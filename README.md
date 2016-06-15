@@ -1,4 +1,4 @@
-# CmlPHPV2.x 项目推荐目录骨架
+# CmlPHPV2.x demo项目(项目推荐目录骨架).
 
 还不知道什么是CmlPHP?[点这里了解](http://cmlphp.51beautylife.com/ "CmlPHP")
 
