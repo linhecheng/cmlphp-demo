@@ -1,0 +1,28 @@
+{
+  "name": "linhecheng/cmlphp",
+  "description": "CmlPHP Framework",
+  "keywords": [
+    "cmlphp"
+  ],
+  "homepage": "http://cmlphp.51beautylife.com",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "linhecheng",
+      "email": "linhechengbugh@live.com",
+      "homepage": "http://51beautylife.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.0"
+  },
+  "require-dev": {
+  },
+  "autoload": {
+    "psr-4": {
+      "Cml\\": "src/Cml/",
+      "Cml\\Vendor\\": "src/Vendor/"
+    }
+  }
+}

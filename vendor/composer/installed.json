@@ -1,0 +1,47 @@
+[
+    {
+        "name": "linhecheng/cmlphp",
+        "version": "v2.6.4",
+        "version_normalized": "2.6.4.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/linhecheng/cmlphp.git",
+            "reference": "6e1b24f5a69c057f014f931f32c23dd58f2c9675"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/6e1b24f5a69c057f014f931f32c23dd58f2c9675.zip",
+            "reference": "6e1b24f5a69c057f014f931f32c23dd58f2c9675",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "time": "2016-06-08 08:08:09",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Cml\\": "src/Cml/",
+                "Cml\\Vendor\\": "src/Vendor/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "linhecheng",
+                "email": "linhechengbugh@live.com",
+                "homepage": "http://51beautylife.com",
+                "role": "Developer"
+            }
+        ],
+        "description": "CmlPHP Framework",
+        "homepage": "http://cmlphp.51beautylife.com",
+        "keywords": [
+            "cmlphp"
+        ]
+    }
+]
