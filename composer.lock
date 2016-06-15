@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ce3df7b584d1a9253dac8129da20e46e",
-    "content-hash": "207a2f79554f0f24f8e54fafe3099a4d",
+    "hash": "3992c4720726736779f37ee79a4326f8",
+    "content-hash": "85dc898425a125e3826946bc353ab127",
     "packages": [
         {
             "name": "linhecheng/cmlphp",
