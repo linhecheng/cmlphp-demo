@@ -4,7 +4,6 @@
     "keywords": ["cmlphp", "cmlphp-demo"],
     "license": "Apache-2.0",
     "type": "project",
-    "minimum-stability": "dev",
     "authors": [
         {
         "name": "linhecheng",
