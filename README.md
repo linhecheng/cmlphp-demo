@@ -12,4 +12,6 @@
 
 安全起见开始开发前前先修改`proj3e5f9e47cd31239b6fd43a772c5a75b4`目录名为其它名称(建议长度在16位以上)、修改完将index.php中`CML_APP_PATH`的值,相应修改
 
+**如果有用到[Cookie管理类](http://api.cmlphp.com/Cml/Http/Cookie.html)、[Encry加密解密类](http://api.cmlphp.com/Cml/Encry.html)、[验证码生成类](http://api.cmlphp.com/Cml/Vendor/VerifyCode.html).请一定要修改`proj3e5f9e47cd31239b6fd43a772c5a75b4/Config/common.php`配置件中的`auth_key`加密key**
+
 [视频教程](http://v.youku.com/v_show/id_XMTQwNTc4MDk2OA==.html)
