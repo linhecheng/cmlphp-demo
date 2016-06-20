@@ -114,15 +114,21 @@ class Pdo extends Base
      *
      * @param string $key get('user-uid-123');
      * @param bool $and 多个条件之间是否为and  true为and false为or
-     * @param bool $useMaster 是否使用主库 默认读取从库
+     * @param bool|string $useMaster 是否使用主库 默认读取从库 此选项为字符串时为表前缀$tablePrefix
      * @param null|string $tablePrefix 表前缀
      *
      * @return array
      */
     public function get($key, $and = true, $useMaster = false, $tablePrefix = null)
     {
+        if (is_string($useMaster)) {
+            is_null($tablePrefix) && $tablePrefix = $useMaster;
+            $useMaster = false;
+        }
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+
         list($tableName, $condition) = $this->parseKey($key, $and);
-        $tableName = $this->tablePrefix.$tableName;
+        $tableName = $tablePrefix.$tableName;
         $sql = "SELECT * FROM {$tableName} WHERE {$condition} LIMIT 0, 1000";
 
         $cacheKey = md5($sql.json_encode($this->bindParams)).$this->getCacheVer($tableName);

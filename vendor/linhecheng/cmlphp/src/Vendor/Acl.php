@@ -181,7 +181,7 @@ class Acl
         if (!$authInfo) return false; //登录超时
 
         //当前登录用户是否为超级管理员
-        if ( Config::get('administratorid') === intval($authInfo['id'])) {
+        if (self::isSuperUser()) {
             return true;
         }
 
@@ -212,13 +212,15 @@ class Acl
     {
         $res = array();
         $authInfo = self::getLoginInfo();
-        if (!$authInfo) return $res; //登录超时
+        if (!$authInfo) { //登录超时
+            return $res;
+        }
 
         Model::getInstance()->db()->table(array('menus'=> 'm'))
             ->columns(array('m.id', 'm.pid', 'm.title', 'm.url'));
 
         //当前登录用户是否为超级管理员
-        if ( Config::get('administratorid') !== intval($authInfo['id'])) {
+        if (!self::isSuperUser()) {
             Model::getInstance()->db()
                 ->join(array('access'=> 'a'), 'a.menuid=m.id')
                 ->lBrackets()
@@ -248,5 +250,19 @@ class Acl
         $user = Acl::getLoginInfo();
         $user && Model::getInstance()->cache()->delete("SSOSingleSignOn".$user['id']);
         Cookie::delete(Config::get('userauthid'));
+    }
+
+    /**
+     * 判断当前登录用户是否为超级管理员
+     *
+     * @return bool
+     */
+    public static function isSuperUser()
+    {
+        $authInfo = self::getLoginInfo();
+        if (!$authInfo) {//登录超时
+            return false;
+        }
+        return Config::get('administratorid') === intval($authInfo['id']);
     }
 }

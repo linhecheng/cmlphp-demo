@@ -197,41 +197,46 @@ abstract class Base
      *
      * @param string $key get('user-uid-123');
      * @param bool $and 多个条件之间是否为and  true为and false为or
+     * @param bool|string $useMaster 是否使用主库 默认读取从库 此选项为字符串时为表前缀$tablePrefix
+     * @param null|string $tablePrefix 表前缀
      *
      * @return
      */
-    abstract public function get($key, $and = true);
+    abstract public function get($key, $and = true, $useMaster = false, $tablePrefix = null);
 
     /**
      * 根据key 新增 一条数据
      *
-     * @param string $key set('user-uid-123');
+     * @param string $table
      * @param array $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
-     * @return bool
+     * @return bool|int
      */
-    abstract public function set($key, $data);
+    abstract public function set($table, $data, $tablePrefix = null);
 
     /**
      * 根据key更新一条数据
      *
-     * @param string $key eg 'user-uid-$uid'
-     * @param array $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
+     * @param string $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
+     * @param array | null $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
      * @param bool $and 多个条件之间是否为and  true为and false为or
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return boolean
      */
-    abstract public function update($key, $data, $and = true);
+    abstract public function update($key, $data = null, $and = true, $tablePrefix = null);
 
     /**
      * 根据key值删除数据
      *
      * @param string $key eg: 'user-uid-$uid'
      * @param bool $and 多个条件之间是否为and  true为and false为or
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return boolean
      */
-    abstract public function delete($key, $and = true);
+    abstract public function delete($key = '', $and = true, $tablePrefix = null);
 
     /**
      * 根据表名删除数据

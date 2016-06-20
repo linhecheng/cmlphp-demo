@@ -4,6 +4,8 @@
 
 > CmlPHP从12年开始开发。从最早追求尽可能轻量，php5.2-的语法。到后面不断总结工作中碰到的实际的问题，加入工程化的一些东西。加入Composer的支持。加入了很多可以减少程序员开发时间的一些特性。现在发布了v2.x。提供了API快速开发的组件或者说基于CmlPHP v2.x的一个项目演示(自动从注释生成接口文档)。不说什么跟xx框架比。比来比去可一点都不好玩，适合就好。这个框架是我到目前总结的尽可能提高自己开发效率的工具集(或者有更好的说法？)。提供给需要它的朋友，希望它可以帮助大家更轻松的完成开发的工作.
 
+关于cmlphp的介绍也可以看看我的这篇文章:[再来聊聊cmlphp](http://www.jianshu.com/p/b03b3d72108c)
+
 ## v2.x
 
 > CmlPHP v2.x 是一个免费的遵循apache协议的全能型php开源框架
@@ -39,13 +41,13 @@
 
 ## 开发手册
 开发手册使用gitbook编写
-[CmlPHP v2.x开发手册](http://cmlphp-doc.51beautylife.com/ "CmlPHP v2.x开发手册")
+[CmlPHP v2.x开发手册](http://doc.cmlphp.com "CmlPHP v2.x开发手册")
 
 ## 你们想要的Api文档
-> 部分看了开发手册的朋友给我发邮件希望我提供一份详细的Api文档,以便更深入的学习CmlPHP，现在它来啦!! [CmlPHP v2.x Api](http://cmlphp-api.51beautylife.com/)。
+> 部分看了开发手册的朋友给我发邮件希望我提供一份详细的Api文档,以便更深入的学习CmlPHP，现在它来啦!! [CmlPHP v2.x Api](http://api.cmlphp.com)。
 
 ## 项目推荐目录骨架
-> 提供了基础目录结构及示例，[点击这里查看](http://git.oschina.net/linhecheng/cmlphp2.5-demo-proj)。
+> 提供了基础目录结构及示例，[点击这里查看](https://github.com/linhecheng/cmlphp-demo)。
 
 ## Api项目示例
 > web开发中很大一部分是接口开发，本示例包含了api开发的两个接口示例以及根据代码注释自动生成文档的示例。 [点击这里查看](http://git.oschina.net/linhecheng/cmlphp2.5-demo-api)

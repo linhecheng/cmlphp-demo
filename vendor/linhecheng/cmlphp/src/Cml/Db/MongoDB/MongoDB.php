@@ -169,20 +169,26 @@ class MongoDB extends Base
      *
      * @param string $key get('user-uid-123');
      * @param bool $and 多个条件之间是否为and  true为and false为or
-     * @return array array('uid'=>123, 'username'=>'abc')
+     * @param bool|string $useMaster 是否使用主库,mongodb驱动下无效,为了保证一致的操作api保留此选项,此选项为字符串时为表前缀$tablePrefix
+     * @param null|string $tablePrefix 表前缀
      *
      * @return array
      */
-    public function get($key, $and = true)
+    public function get($key, $and = true, $useMaster = false, $tablePrefix = null)
     {
+        if (is_string($useMaster) && is_null($tablePrefix)) {
+            $tablePrefix = $useMaster;
+        }
+
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+
         list($tableName, $condition) = $this->parseKey($key, $and);
-        $tableName = $this->tablePrefix.$tableName;
 
         $filter = array();
         isset($this->sql['limit'][0]) && $filter['skip'] = $this->sql['limit'][0];
         isset($this->sql['limit'][1]) && $filter['limit'] = $this->sql['limit'][1];
 
-        return $this->runMongoQuery($tableName, $condition, $filter);
+        return $this->runMongoQuery($tablePrefix . $tableName, $condition, $filter);
     }
 
 
@@ -330,21 +336,24 @@ class MongoDB extends Base
     }
 
     /**
-     * 根据key 新增一条数据
+     * 根据key 新增 一条数据
      *
      * @param string $table
      * @param array $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return bool|int
      */
-    public function set($table, $data)
+    public function set($table, $data, $tablePrefix = null)
     {
         if (is_array($data)) {
+            is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+
             $bulk = new BulkWrite();
             $insertId = $bulk->insert($data);
-            $result = $this->runMongoBulkWrite($this->tablePrefix . $table, $bulk);
+            $result = $this->runMongoBulkWrite($tablePrefix . $table, $bulk);
 
-            $GLOBALS['debug'] && $this->debugLogSql('BulkWrite INSERT', $this->tablePrefix . $table, array(), $data);
+            $GLOBALS['debug'] && $this->debugLogSql('BulkWrite INSERT', $tablePrefix . $table, array(), $data);
 
             if ($result->getInsertedCount() > 0) {
                 $this->lastInsertId = sprintf('%s', $insertId);
@@ -361,12 +370,13 @@ class MongoDB extends Base
      * @param string $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
      * @param array | null $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
      * @param bool $and 多个条件之间是否为and  true为and false为or
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
-     * @return int
+     * @return boolean
      */
-    public function update($key, $data = null, $and = true)
+    public function update($key, $data = null, $and = true, $tablePrefix = null)
     {
-        $tablePrefix = $this->tablePrefix;
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         $tableName = $condition = '';
 
         if (is_array($data)) {
@@ -375,7 +385,7 @@ class MongoDB extends Base
             $data = $key;
         }
 
-        $tableName = empty($tableName) ? $this->getRealTableName(key($this->table)) : $tablePrefix.$tableName;
+        $tableName = empty($tableName) ? $this->getRealTableName(key($this->table)) : $tablePrefix . $tableName;
         empty($tableName) && \Cml\throwException(Lang::get('_PARSE_SQL_ERROR_NO_TABLE_', 'update'));
         $condition += $this->sql['where'];
         empty($condition) && \Cml\throwException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'update'));
@@ -384,7 +394,7 @@ class MongoDB extends Base
         $bulk->update($condition, array('$set' => $data), array('multi' => true));
         $result = $this->runMongoBulkWrite($tableName, $bulk);
 
-        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite UPDATE', $this->tablePrefix . $tableName, $condition, $data);
+        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite UPDATE', $tableName, $condition, $data);
 
         return $result->getModifiedCount();
     }
@@ -394,16 +404,18 @@ class MongoDB extends Base
      *
      * @param string $key eg: 'user-uid-$uid'
      * @param bool $and 多个条件之间是否为and  true为and false为or
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return boolean
      */
-    public function delete($key = '', $and = true)
+    public function delete($key = '', $and = true, $tablePrefix = null)
     {
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         $tableName = $condition = '';
 
         empty($key) || list($tableName, $condition) = $this->parseKey($key, $and, true, true);
 
-        $tableName = empty($tableName) ? $this->getRealTableName(key($this->table)) : $this->tablePrefix.$tableName;
+        $tableName = empty($tableName) ? $this->getRealTableName(key($this->table)) : $tablePrefix . $tableName;
         empty($tableName) && \Cml\throwException(Lang::get('_PARSE_SQL_ERROR_NO_TABLE_', 'delete'));
         $condition += $this->sql['where'];
         empty($condition) && \Cml\throwException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'delete'));
@@ -412,7 +424,7 @@ class MongoDB extends Base
         $bulk->delete($condition);
         $result = $this->runMongoBulkWrite($tableName, $bulk);
 
-        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite DELETE', $this->tablePrefix . $tableName, $condition);
+        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite DELETE', $tableName, $condition);
 
         return $result->getDeletedCount();
     }

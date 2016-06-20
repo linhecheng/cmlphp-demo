@@ -143,14 +143,16 @@ class Model
      * @param mixed $val 值
      * @param string $column 字段名 不传会自动分析表结构获取主键
      * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
+     * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
      *
      * @return bool|array
      */
-    public function getByColumn($val, $column = null, $tableName = null)
+    public function getByColumn($val, $column = null, $tableName = null, $tablePrefix = null)
     {
         is_null($tableName) && $tableName = $this->getTableName();
-        is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $this->tablePrefix);
-        $data = $this->db($this->getDbConf())->table($tableName, $this->tablePrefix)
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $tablePrefix);
+        $data = $this->db($this->getDbConf())->table($tableName, $tablePrefix)
             ->where($column, $val)
             ->limit(0, 1)
             ->select();
@@ -167,14 +169,16 @@ class Model
      * @param mixed $val 值
      * @param string $column 字段名 不传会自动分析表结构获取主键
      * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
+     * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
      *
      * @return bool|array
      */
-    public function getMultiByColumn($val, $column = null, $tableName = null)
+    public function getMultiByColumn($val, $column = null, $tableName = null, $tablePrefix = null)
     {
         is_null($tableName) && $tableName = $this->getTableName();
-        is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $this->tablePrefix);
-        return $this->db($this->getDbConf())->table($tableName, $this->tablePrefix)
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $tablePrefix);
+        return $this->db($this->getDbConf())->table($tableName, $tablePrefix)
             ->where($column, $val)
             ->select();
     }
@@ -184,12 +188,14 @@ class Model
      *
      * @param array $data 要新增的数据
      * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
+     * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
      *
      * @return int
      */
-    public function set($data, $tableName = null){
+    public function set($data, $tableName = null, $tablePrefix = null){
         is_null($tableName) && $tableName = $this->getTableName();
-        return $this->db($this->getDbConf())->set($tableName, $data);
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        return $this->db($this->getDbConf())->set($tableName, $data, $tablePrefix);
     }
 
     /**
@@ -199,15 +205,17 @@ class Model
      * @param array $data 更新的数据
      * @param string $column 字段名 不传会自动分析表结构获取主键
      * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
+     * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
      *
      * @return bool
      */
-    public function updateByColumn($val, $data, $column = null, $tableName = null)
+    public function updateByColumn($val, $data, $column = null, $tableName = null, $tablePrefix = null)
     {
         is_null($tableName) && $tableName = $this->getTableName();
-        is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $this->tablePrefix);
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $tablePrefix);
         return $this->db($this->getDbConf())->where($column, $val)
-            ->update($tableName, $data);
+            ->update($tableName, $data, true, $tablePrefix);
     }
 
     /**
@@ -216,15 +224,17 @@ class Model
      * @param mixed $val
      * @param string $column 字段名 不传会自动分析表结构获取主键
      * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
+     * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
      *
      * @return bool
      */
-    public function delByColumn($val, $column = null, $tableName = null)
+    public function delByColumn($val, $column = null, $tableName = null, $tablePrefix = null)
     {
         is_null($tableName) && $tableName = $this->getTableName();
-        is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $this->tablePrefix);
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $tablePrefix);
         return $this->db($this->getDbConf())->where($column, $val)
-            ->delete($tableName);
+            ->delete($tableName, true, $tablePrefix);
     }
 
     /**
@@ -232,14 +242,16 @@ class Model
      *
      * @param null $pkField 主键的字段名
      * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
+     * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
      *
      * @return mixed
      */
-    public function getTotalNums($pkField = null, $tableName = null)
+    public function getTotalNums($pkField = null, $tableName = null, $tablePrefix = null)
     {
         is_null($tableName) && $tableName = $this->getTableName();
-        is_null($pkField) && $pkField = $this->db($this->getDbConf())->getPk($tableName, $this->tablePrefix);
-        return $this->db($this->getDbConf())->table($tableName, $this->tablePrefix)->count($pkField);
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        is_null($pkField) && $pkField = $this->db($this->getDbConf())->getPk($tableName, $tablePrefix);
+        return $this->db($this->getDbConf())->table($tableName, $tablePrefix)->count($pkField);
     }
 
     /**
@@ -249,15 +261,17 @@ class Model
      * @param int $limit 返回的条数
      * @param string|array $order 传asc 或 desc 自动取主键 或 ['id'=>'desc', 'status' => 'asc']
      * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
+     * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
      *
      * @return array
      */
-    public function getList($offset = 0, $limit = 20, $order = 'DESC', $tableName = null)
+    public function getList($offset = 0, $limit = 20, $order = 'DESC', $tableName = null, $tablePrefix = null)
     {
         is_null($tableName) && $tableName = $this->getTableName();
-        is_array($order) || $order = array($this->db($this->getDbConf())->getPk($tableName, $this->tablePrefix) => $order);
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        is_array($order) || $order = array($this->db($this->getDbConf())->getPk($tableName, $tablePrefix) => $order);
 
-        $dbInstance = $this->db($this->getDbConf())->table($tableName, $this->tablePrefix);
+        $dbInstance = $this->db($this->getDbConf())->table($tableName, $tablePrefix);
         foreach($order as $key => $val)  {
             $dbInstance->orderBy($key, $val);
         }
