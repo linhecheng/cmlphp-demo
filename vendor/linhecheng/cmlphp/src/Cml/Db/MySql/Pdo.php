@@ -414,10 +414,11 @@ class Pdo extends Base
      * @param string $key 操作的key user-id-1
      * @param int $val
      * @param string $field 要改变的字段
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return bool
      */
-    public function increment($key, $val = 1, $field = null)
+    public function increment($key, $val = 1, $field = null, $tablePrefix = null)
     {
         list($tableName, $condition) = $this->parseKey($key, true);
         if (is_null($field) || empty($tableName) || empty($condition)) {
@@ -425,7 +426,8 @@ class Pdo extends Base
             return false;
         }
         $val = abs(intval($val));
-        $tableName = $this->tablePrefix.$tableName;
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        $tableName = $tablePrefix.$tableName;
 
         $stmt = $this->prepare('UPDATE  `'.$tableName."` SET  `{$field}` =  `{$field}` + {$val}  WHERE  $condition");
 
@@ -440,10 +442,11 @@ class Pdo extends Base
      * @param string $key 操作的key user-id-1
      * @param int $val
      * @param string $field 要改变的字段
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return bool
      */
-    public function decrement($key, $val = 1, $field = null)
+    public function decrement($key, $val = 1, $field = null, $tablePrefix = null)
     {
         list($tableName, $condition) = $this->parseKey($key, true);
         if (is_null($field) || empty($tableName) || empty($condition)) {
@@ -452,7 +455,8 @@ class Pdo extends Base
         }
         $val = abs(intval($val));
 
-        $tableName = $this->tablePrefix.$tableName;
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        $tableName = $tablePrefix.$tableName;
         $stmt = $this->prepare('UPDATE  `'.$tableName."` SET  `$field` =  `$field` - $val  WHERE  $condition");
 
         $this->execute($stmt);

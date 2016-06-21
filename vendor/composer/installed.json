@@ -6,18 +6,18 @@
         "source": {
             "type": "git",
             "url": "https://github.com/linhecheng/cmlphp.git",
-            "reference": "7e7607d0107895e4a7f915bd8f0c3a96083a8ed1"
+            "reference": "046bdc594123a75cc3c42e22e4a7a6ade06976c4"
         },
         "dist": {
             "type": "zip",
-            "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/7e7607d0107895e4a7f915bd8f0c3a96083a8ed1.zip",
-            "reference": "7e7607d0107895e4a7f915bd8f0c3a96083a8ed1",
+            "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/046bdc594123a75cc3c42e22e4a7a6ade06976c4.zip",
+            "reference": "046bdc594123a75cc3c42e22e4a7a6ade06976c4",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.0"
         },
-        "time": "2016-06-20 03:41:31",
+        "time": "2016-06-20 14:22:48",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

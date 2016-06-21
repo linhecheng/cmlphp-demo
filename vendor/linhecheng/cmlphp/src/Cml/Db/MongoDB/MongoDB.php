@@ -1034,23 +1034,25 @@ class MongoDB extends Base
      * @param string $key 操作的key user-id-1
      * @param int $val
      * @param string $field 要改变的字段
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return bool
      */
-    public function increment($key, $val = 1, $field = null)
+    public function increment($key, $val = 1, $field = null, $tablePrefix = null)
     {
         list($tableName, $condition) = $this->parseKey($key, true);
         if (is_null($field) || empty($tableName) || empty($condition)) {
             return false;
         }
         $val = abs(intval($val));
-        $tableName = $this->tablePrefix.$tableName;
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        $tableName = $tablePrefix.$tableName;
 
         $bulk = new BulkWrite();
         $bulk->update($condition, array('$inc' => array($field => $val)), array('multi' => true));
         $result = $this->runMongoBulkWrite($tableName, $bulk);
 
-        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite INC', $this->tablePrefix . $tableName, $condition, array('$inc' => array($field => $val)));
+        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite INC', $tableName, $condition, array('$inc' => array($field => $val)));
 
         return $result->getModifiedCount();
     }
@@ -1061,10 +1063,11 @@ class MongoDB extends Base
      * @param string $key 操作的key user-id-1
      * @param int $val
      * @param string $field 要改变的字段
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return bool
      */
-    public function decrement($key, $val = 1, $field = null)
+    public function decrement($key, $val = 1, $field = null, $tablePrefix = null)
     {
         list($tableName, $condition) = $this->parseKey($key, true);
         if (is_null($field) || empty($tableName) || empty($condition)) {
@@ -1072,13 +1075,14 @@ class MongoDB extends Base
         }
         $val = abs(intval($val));
 
-        $tableName = $this->tablePrefix.$tableName;
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        $tableName = $tablePrefix.$tableName;
 
         $bulk = new BulkWrite();
         $bulk->update($condition, array('$inc' => array($field => -$val)), array('multi' => true));
         $result = $this->runMongoBulkWrite($tableName, $bulk);
 
-        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite DEC', $this->tablePrefix . $tableName, $condition, array('$inc' => array($field => -$val)));
+        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite DEC', $tableName, $condition, array('$inc' => array($field => -$val)));
 
         return $result->getModifiedCount();
     }

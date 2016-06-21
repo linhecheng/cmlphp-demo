@@ -1027,10 +1027,11 @@ abstract class Base
      * @param string $key 操作的key eg: user-id-1
      * @param int $val
      * @param string $field 要改变的字段
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return bool
      */
-    abstract public function increment($key, $val = 1, $field = null);
+    abstract public function increment($key, $val = 1, $field = null, $tablePrefix = null);
 
     /**
      * 指定字段的值-1
@@ -1038,10 +1039,11 @@ abstract class Base
      * @param string $key 操作的key user-id-1
      * @param int $val
      * @param string $field 要改变的字段
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return bool
      */
-    abstract public function decrement($key, $val = 1, $field = null);
+    abstract public function decrement($key, $val = 1, $field = null, $tablePrefix = null);
 
     /**
      * Db连接
