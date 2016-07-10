@@ -54,7 +54,7 @@ class Controller
         $method = Route::$urlParams['action'];
         if (method_exists($this, $method)){
             $this->$method();
-        } elseif ($GLOBALS['debug']) {
+        } elseif (Cml::$debug) {
             Cml::montFor404Page();
             throwException(Lang::get('_ACTION_NOT_FOUND_', Route::$urlParams['action']));
         } else {

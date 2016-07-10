@@ -65,7 +65,7 @@ class StaticResource
     {
         //简单判断没有.的时候当作是目录不加版本号
         $isDir = strpos($resource, '.') === false ? true : false;
-        if ($GLOBALS['debug'] && CML_IS_MULTI_MODULES) {
+        if (Cml::$debug && CML_IS_MULTI_MODULES) {
             $file = Response::url("cmlframeworkstaticparse/{$resource}", false);
             if (Config::get('url_model') == 2 ) {
                 $file = rtrim($file, Config::get('url_html_suffix'));
@@ -89,7 +89,7 @@ class StaticResource
         array_shift($pathinfo);
         $resource = implode('/', $pathinfo);
 
-        if ($GLOBALS['debug'] && CML_IS_MULTI_MODULES) {
+        if (Cml::$debug && CML_IS_MULTI_MODULES) {
             $pos = strpos ($resource, '/');
             $file = CML_APP_MODULES_PATH . DIRECTORY_SEPARATOR.substr($resource, 0, $pos).DIRECTORY_SEPARATOR
                 .Config::get('modules_static_path_name') . substr($resource, $pos);

@@ -21,7 +21,7 @@ use  \PhpConsole\Connector as PhpConsoleConnector;
  */
 function dump($var, $getArgs = 0)
 {
-    if ($GLOBALS['debug']) {
+    if (Cml::$debug) {
         new outDebug($var);    //deBug模式直接输出
     } else {
         static $args = array();
@@ -62,7 +62,7 @@ function dumpUsePHPConsole($var, $tag = 'debug')
 function dd($var)
 {
     dump($var);
-    $GLOBALS['debug'] && exit();
+    Cml::$debug && exit();
 }
 
 

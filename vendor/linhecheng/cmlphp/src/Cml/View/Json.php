@@ -8,6 +8,7 @@
  * *********************************************************** */
 namespace Cml\View;
 
+use Cml\Cml;
 use Cml\Config;
 use Cml\Debug;
 
@@ -25,7 +26,7 @@ class Json extends Base
      */
     public function display() {
         header('Content-Type: application/json;charset='.Config::get('default_charset'));
-        if ($GLOBALS['debug']) {
+        if (Cml::$debug) {
             $sql = Debug::getSqls();
             if (Config::get('dump_use_php_console')) {
                 $sql && \Cml\dumpUsePHPConsole($sql, 'sql');

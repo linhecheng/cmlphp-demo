@@ -8,6 +8,7 @@
  * *********************************************************** */
 namespace Cml\Db\MongoDB;
 
+use Cml\Cml;
 use Cml\Config;
 use Cml\Db\Base;
 use Cml\Debug;
@@ -202,7 +203,7 @@ class MongoDB extends Base
      */
     public function runMongoQuery($tableName, $condition = array(), $queryOptions  = array())
     {
-        $GLOBALS['debug'] && $this->debugLogSql('Query', $tableName, $condition, $queryOptions);
+        Cml::$debug && $this->debugLogSql('Query', $tableName, $condition, $queryOptions);
 
         $this->reset();
         $cursor = $this->getSlave()->executeQuery($this->getDbName() . ".{$tableName}", new Query($condition, $queryOptions));
@@ -296,13 +297,13 @@ class MongoDB extends Base
      */
     private function debugLogSql($type = 'Query', $tableName, $condition = array(), $options = array())
     {
-        if ($GLOBALS['debug']) {
-            Debug::addTipInfo(sprintf(
+        if (Cml::$debug) {
+            Debug::addSqlInfo(sprintf(
                 "［MongoDB {$type}］ Collection: %s, Condition: %s, Other: %s",
                 $this->getDbName() . ".{$tableName}",
                 json_encode($condition, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0),
                 json_encode($options, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0)
-            ), 2);
+            ));
         }
     }
 
@@ -317,7 +318,7 @@ class MongoDB extends Base
      */
     public function runMongoCommand($cmd = array(), $runOnMaster = true, $returnCursor = false)
     {
-        $GLOBALS['debug'] && $this->debugLogSql('Command', '', $cmd);
+        Cml::$debug && $this->debugLogSql('Command', '', $cmd);
 
         $this->reset();
         $db = $runOnMaster ? $this->getMaster() : $this->getSlave();
@@ -353,7 +354,7 @@ class MongoDB extends Base
             $insertId = $bulk->insert($data);
             $result = $this->runMongoBulkWrite($tablePrefix . $table, $bulk);
 
-            $GLOBALS['debug'] && $this->debugLogSql('BulkWrite INSERT', $tablePrefix . $table, array(), $data);
+            Cml::$debug && $this->debugLogSql('BulkWrite INSERT', $tablePrefix . $table, array(), $data);
 
             if ($result->getInsertedCount() > 0) {
                 $this->lastInsertId = sprintf('%s', $insertId);
@@ -394,7 +395,7 @@ class MongoDB extends Base
         $bulk->update($condition, array('$set' => $data), array('multi' => true));
         $result = $this->runMongoBulkWrite($tableName, $bulk);
 
-        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite UPDATE', $tableName, $condition, $data);
+        Cml::$debug && $this->debugLogSql('BulkWrite UPDATE', $tableName, $condition, $data);
 
         return $result->getModifiedCount();
     }
@@ -424,7 +425,7 @@ class MongoDB extends Base
         $bulk->delete($condition);
         $result = $this->runMongoBulkWrite($tableName, $bulk);
 
-        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite DELETE', $tableName, $condition);
+        Cml::$debug && $this->debugLogSql('BulkWrite DELETE', $tableName, $condition);
 
         return $result->getDeletedCount();
     }
@@ -1052,7 +1053,7 @@ class MongoDB extends Base
         $bulk->update($condition, array('$inc' => array($field => $val)), array('multi' => true));
         $result = $this->runMongoBulkWrite($tableName, $bulk);
 
-        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite INC', $tableName, $condition, array('$inc' => array($field => $val)));
+        Cml::$debug && $this->debugLogSql('BulkWrite INC', $tableName, $condition, array('$inc' => array($field => $val)));
 
         return $result->getModifiedCount();
     }
@@ -1082,7 +1083,7 @@ class MongoDB extends Base
         $bulk->update($condition, array('$inc' => array($field => -$val)), array('multi' => true));
         $result = $this->runMongoBulkWrite($tableName, $bulk);
 
-        $GLOBALS['debug'] && $this->debugLogSql('BulkWrite DEC', $tableName, $condition, array('$inc' => array($field => -$val)));
+        Cml::$debug && $this->debugLogSql('BulkWrite DEC', $tableName, $condition, array('$inc' => array($field => -$val)));
 
         return $result->getModifiedCount();
     }

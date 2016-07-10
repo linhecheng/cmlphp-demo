@@ -50,7 +50,8 @@
                     <li  class="active">
                         <a href="#overview-intro">约定说明</a>
                         <ul class="nav">
-                            <li><a href="#overview-sign">接口及秘钥</a></li>
+                            <li><a href="#overview-sign">接口地址及秘钥</a></li>
+                            <li><a href="#overview-sign">其它约定</a></li>
                             <li><a href="#overview-format">接口基本格式</a></li>
                             <li><a href="#overview-code">响应code说明</a></li>
                         </ul>
@@ -80,11 +81,19 @@
                     <small></small>
                 </h3>
                 <div class="panel panel-default">
-                    <h4 id="overview-sign">接口及密钥:</h4>
+                    <h4 id="overview-sign"> 接口地址及密钥:</h4>
                     <ol class="bs-callout bs-callout-info">
-                        <li>接口地址 <?php echo $config['api_url'];?></li>
-                        <li>密钥  线下发送</li>
+                        <li><b>接口地址:</b> <?php echo $config['api_url'];?></li>
+                        <li><b>密钥:</b> 线下发送</li>
                     </ol>
+
+                    <h4 id="overview-sign">其它约定:</h4>
+                    <ol class="bs-callout bs-callout-info">
+                        <?php foreach($config['convention_desc'] as $ctitle => $cdesc) {?>
+                        <li><b><?php echo $ctitle;?>:</b> <?php echo $cdesc;?></li>
+                        <?php }?>
+                    </ol>
+
                     <hr>
                     <h4 id="overview-format">接口基本格式:</h4>
                     <table class="table table-bordered" style="border:1px solid #eee;">

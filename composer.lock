@@ -9,16 +9,16 @@
     "packages": [
         {
             "name": "linhecheng/cmlphp",
-            "version": "v2.6.5",
+            "version": "v2.6.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/linhecheng/cmlphp.git",
-                "reference": "046bdc594123a75cc3c42e22e4a7a6ade06976c4"
+                "reference": "cb75baae03565f998eefc0f8f8843d4a58052e4c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/046bdc594123a75cc3c42e22e4a7a6ade06976c4.zip",
-                "reference": "046bdc594123a75cc3c42e22e4a7a6ade06976c4",
+                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/cb75baae03565f998eefc0f8f8843d4a58052e4c.zip",
+                "reference": "cb75baae03565f998eefc0f8f8843d4a58052e4c",
                 "shasum": ""
             },
             "require": {
@@ -48,7 +48,7 @@
             "keywords": [
                 "cmlphp"
             ],
-            "time": "2016-06-20 14:22:48"
+            "time": "2016-07-08 10:02:32"
         }
     ],
     "packages-dev": [],

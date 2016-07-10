@@ -24,16 +24,59 @@ class Debug
     private static $startMemory;//程序开始运行所用内存
     private static $stopMemory;//程序结束运行时所用内存
     private static $tipInfoType = array(
-        E_WARNING=>'运行时警告',
-        E_NOTICE=>'运行时提醒',
-        E_STRICT=>'编码标准化警告',
-        E_USER_ERROR=>'自定义错误',
-        E_USER_WARNING=>'自定义警告',
-        E_USER_NOTICE=>'自定义提醒',
+        E_WARNING => '运行时警告',
+        E_NOTICE => '运行时提醒',
+        E_STRICT => '编码标准化警告',
+        E_USER_ERROR => '自定义错误',
+        E_USER_WARNING => '自定义警告',
+        E_USER_NOTICE => '自定义提醒',
         E_DEPRECATED => '过时函数提醒',
         E_RECOVERABLE_ERROR => '可捕获的致命错误',
-        'Unknow'=>'未知错误'
+        'Unknow' => '未知错误'
     );
+
+
+    /**
+     * info类型的提示信息
+     *
+     * @var int
+     */
+    const TIP_INFO_TYPE_INFO = 0;
+
+    /**
+     * 包含文件的提示信息
+     *
+     * @var int
+     */
+    const TIP_INFO_TYPE_INCLUDE_FILE = 1;
+
+    /**
+     * SQL语句调试信息
+     *
+     * @var int
+     */
+    const TIP_INFO_TYPE_SQL = 2;
+
+    /**
+     * 正常的sql执行语句
+     *
+     * @var int
+     */
+    const SQL_TYPE_NORMAL = 1;
+
+    /**
+     * 该SQL执行结果直接从缓存返回
+     *
+     * @var int
+     */
+    const SQL_TYPE_FROM_CACHE = 2;
+
+    /**
+     * 执行过慢的sql
+     *
+     * @var int
+     */
+    const SQL_TYPE_SLOW = 3;
 
     /**
      * 返回执行的sql语句
@@ -97,7 +140,7 @@ class Debug
      */
     public static function useTime()
     {
-        return round((self::$stopTime - Cml::$nowMicroTime) , 4);  //计算后以4舍5入保留4位返回
+        return round((self::$stopTime - Cml::$nowMicroTime), 4);  //计算后以4舍5入保留4位返回
     }
 
     /**
@@ -108,7 +151,7 @@ class Debug
     public static function useMemory()
     {
         if (function_exists('memory_get_usage')) {
-            return number_format((self::$stopMemory - self::$startMemory) / 1024, 2).'kb';
+            return number_format((self::$stopMemory - self::$startMemory) / 1024, 2) . 'kb';
         } else {
             return '当前服务器环境不支持内存消耗统计';
         }
@@ -135,9 +178,9 @@ class Debug
             $color = 'red';
         }
         $mess = "<span style='color:{$color}'>";
-        $mess .='<b>'.self::$tipInfoType[$errno]."</b>[在文件 {$errfile} 中,第 $errline 行]:";
+        $mess .= '<b>' . self::$tipInfoType[$errno] . "</b>[在文件 {$errfile} 中,第 $errline 行]:";
         $mess .= $errstr;
-        $mess .='</span>';
+        $mess .= '</span>';
         self::addTipInfo($mess);
     }
 
@@ -146,13 +189,12 @@ class Debug
      *
      * @param string $msg 调试消息字符串
      * @param int $type 消息的类型
-     * @param bool $sqlFromCache 是否直接读取缓存
      *
      * @return void
      */
-    public static function addTipInfo($msg, $type = 0, $sqlFromCache = false)
+    public static function addTipInfo($msg, $type = self::TIP_INFO_TYPE_INFO)
     {
-        if ($GLOBALS['debug']) {
+        if (Cml::$debug) {
             switch ($type) {
                 case 0:
                     self::$tipInfo[] = $msg;
@@ -161,13 +203,30 @@ class Debug
                     self::$includefile[] = $msg;
                     break;
                 case 2:
-                    if ($sqlFromCache) {
-                        $msg .= "<span style='color:red;'>[from cache]</span>";
-                    }
                     self::$sqls[] = $msg;
                     break;
             }
         }
+    }
+
+    /**
+     * 添加一条sql查询的调试信息
+     *
+     * @param $sql
+     * @param int $type sql类型 参考常量声明SQL_TYPE_NORMAL、SQL_TYPE_FROM_CACHE、SQL_TYPE_SLOW
+     * @param int $other type = SQL_TYPE_SLOW时带上执行时间
+     */
+    public static function addSqlInfo($sql, $type = self::SQL_TYPE_NORMAL, $other = 0)
+    {
+        switch($type) {
+            case self::SQL_TYPE_FROM_CACHE:
+                $sql .= "<span style='color:red;'>[from cache]</span>";
+                break;
+            case self::SQL_TYPE_SLOW:
+                $sql .= "<span style='color:red;'>[slow sql, {$other}]</span>";
+                break;
+        }
+        self::addTipInfo($sql, self::TIP_INFO_TYPE_SQL);
     }
 
     /**

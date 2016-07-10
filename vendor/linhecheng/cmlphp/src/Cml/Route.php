@@ -314,6 +314,7 @@ class Route
         empty($pathinfo) && $pathinfo[0] = '/';//网站根地址
         $issuccess = array();
         $route = self::$rules;
+        isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] = self::REQUEST_METHOD_ANY;
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':
                 $rmethod = self::REQUEST_METHOD_GET;

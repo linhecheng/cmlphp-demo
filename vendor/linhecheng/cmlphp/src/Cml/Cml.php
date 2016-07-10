@@ -20,6 +20,13 @@ use Cml\Tools\RunCliCommand;
 class Cml
 {
     /**
+     * 是否为debug模式
+     *
+     * @var bool
+     */
+    public static $debug = false;
+
+    /**
      * 当前时间
      *
      * @var int
@@ -42,8 +49,8 @@ class Cml
         if ($error = error_get_last()) {//获取最后一个发生的错误的信息。 包括提醒、警告、致命错误
             if (in_array($error['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING))) { //当捕获到的错误为致命错误时 报告
                 Plugin::hook('cml.before_fatal_error', $error);
-                
-                if (!$GLOBALS['debug']) {
+
+                if (!self::$debug) {
                     //正式环境 只显示‘系统错误’并将错误信息记录到日志
                     Log::emergency('fatal_error', array($error));
                     $error = array();
@@ -63,7 +70,7 @@ class Cml
                 }
             }
         }
-        
+
         Plugin::hook('cml.before_cml_stop');
     }
 
@@ -83,7 +90,7 @@ class Cml
             $error['files'][$key] = $val;
         }
 
-        if (!$GLOBALS['debug']) {
+        if (!self::$debug) {
             //正式环境 只显示‘系统错误’并将错误信息记录到日志
             Log::emergency($error['message'], array($error['files'][0]));
 
@@ -110,7 +117,7 @@ class Cml
      */
     public static function autoloadComposerAdditional($className)
     {
-        $GLOBALS['debug'] && Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', $className), 1);//在debug中显示包含的类
+        self::$debug && Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', $className), Debug::TIP_INFO_TYPE_INCLUDE_FILE);//在debug中显示包含的类
     }
 
     /**
@@ -119,11 +126,6 @@ class Cml
      */
     private static function handleConfigLang()
     {
-        //因自动加载机制需要\Cml\Config和\Cml\Lang的支持所以手动载入这两个类
-        require CML_PATH.DIRECTORY_SEPARATOR.'Cml'.DIRECTORY_SEPARATOR.'Http'.DIRECTORY_SEPARATOR.'Request.php';
-        require CML_PATH.DIRECTORY_SEPARATOR.'Cml'.DIRECTORY_SEPARATOR.'Config.php';
-        require CML_PATH.DIRECTORY_SEPARATOR.'Cml'.DIRECTORY_SEPARATOR.'Lang.php';
-
         //引入框架惯例配置文件
         $cmlConfig = require CML_PATH.DIRECTORY_SEPARATOR.'Cml'.DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR.'config.php';
         Config::init();
@@ -171,16 +173,8 @@ class Cml
 
         self::handleConfigLang();
 
-        date_default_timezone_set(Config::get('time_zone')); //设置时区
-
-        self::$nowTime = time();
-        self::$nowMicroTime = microtime(true);
-
         //包含框架中的框架函数库文件
         require CML_PATH.DIRECTORY_SEPARATOR.'Cml'.DIRECTORY_SEPARATOR.'Tools'.DIRECTORY_SEPARATOR.'functions.php';
-
-        // 注册AUTOLOAD方法
-        //spl_autoload_register('Cml\Cml::autoload');
 
         //设置自定义捕获致命异常函数
         //普通错误由Cml\Debug::catcher捕获 php默认在display_errors为On时致命错误直接输出 为off时 直接显示服务器错误或空白页,体验不好
@@ -190,6 +184,18 @@ class Cml
         set_exception_handler('Cml\Cml::appException'); //手动抛出的异常由此函数捕获
 
         ini_set('display_errors', 'off');//屏蔽系统自带的错误输出
+
+        Config::get('debug') && self::$debug = true;
+        //载入插件配置文件
+        $pluginConfig = CML_APP_FULL_PATH . DIRECTORY_SEPARATOR . 'Config' . DIRECTORY_SEPARATOR . 'plugin.php';
+        is_file($pluginConfig) && require $pluginConfig;
+
+        Plugin::hook('cml.before_set_time_zone');//用于动态设置时区等。
+
+        date_default_timezone_set(Config::get('time_zone')); //设置时区
+
+        self::$nowTime = time();
+        self::$nowMicroTime = microtime(true);
 
         //程序运行必须的类
         $runTimeClassList = array(
@@ -201,26 +207,21 @@ class Cml
         Config::get('session_user') && $runTimeClassList[] = CML_PATH.DIRECTORY_SEPARATOR.'Cml'.DIRECTORY_SEPARATOR.'Session.php';
 
         //设置调试模式
-        if (Config::get('debug')) {
+        if (Cml::$debug) {
             $GLOBALS['debug'] = true;//开启debug
             Debug::start();//记录开始运行时间\内存初始使用
             //设置捕获系统异常 使用set_error_handler()后，error_reporting将会失效。所有的错误都会交给set_error_handler。
             set_error_handler('\Cml\Debug::catcher');
 
+            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Cml'), Debug::TIP_INFO_TYPE_INCLUDE_FILE);
+            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Config'), Debug::TIP_INFO_TYPE_INCLUDE_FILE);
+            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Lang'), Debug::TIP_INFO_TYPE_INCLUDE_FILE);
+            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Http\Request'), Debug::TIP_INFO_TYPE_INCLUDE_FILE);
+            //后面自动载入的类都会自动收集到Debug类下
             spl_autoload_register('Cml\Cml::autoloadComposerAdditional', true, true);
 
-            //包含程序运行必须的类
-            foreach ($runTimeClassList as $file) {
-                require $file;
-                Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\\'.basename($file)), 1);
-            }
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\\Debug'), 1);
+            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\\Debug'), Debug::TIP_INFO_TYPE_INCLUDE_FILE);
             $runTimeClassList = null;
-
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Cml'), 1);
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Config'), 1);
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Lang'), 1);
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Http\Request'), 1);
         } else {
             $GLOBALS['debug'] = false;//关闭debug
             //ini_set('error_reporting', E_ALL & ~E_NOTICE);//记录除了notice之外的错误
@@ -254,14 +255,6 @@ class Cml
                 define('CML_OB_START', false);
             }
         }
-
-        //包含应用函数库文件 都使用composer去管理
-        //$projectFuns = CML_APP_FULL_PATH.DIRECTORY_SEPARATOR.'Function'.DIRECTORY_SEPARATOR.'function.php';
-        //is_file($projectFuns) && require $projectFuns;
-
-        //载入插件配置文件
-        $pluginConfig = CML_APP_FULL_PATH . DIRECTORY_SEPARATOR . 'Config' . DIRECTORY_SEPARATOR . 'plugin.php';
-        is_file($pluginConfig) && require $pluginConfig;
 
         Request::isCli() && RunCliCommand::runCliCommand();
 
@@ -316,7 +309,7 @@ class Cml
         //控制器所在路径
         $actionController = CML_APP_CONTROLLER_PATH . Route::$urlParams['controller'] . 'Controller.php';
 
-        $GLOBALS['debug'] && Debug::addTipInfo(Lang::get('_CML_ACTION_CONTROLLER_', $actionController));
+        self::$debug && Debug::addTipInfo(Lang::get('_CML_ACTION_CONTROLLER_', $actionController));
 
         Plugin::hook('cml.before_run_controller');
 
@@ -332,7 +325,7 @@ class Cml
             call_user_func(array( $controller ,  "runAppController"));//运行
         } else {
             self::montFor404Page();
-            if ($GLOBALS['debug']) {
+            if (self::$debug) {
                 throwException(Lang::get(
                     '_CONTROLLER_NOT_FOUND_',
                     CML_APP_CONTROLLER_PATH,
@@ -373,7 +366,7 @@ class Cml
     public static function cmlStop()
     {
         //输出Debug模式的信息
-        if ($GLOBALS['debug']) {
+        if (self::$debug) {
             header('Content-Type:text/html; charset='.Config::get('default_charset'));
             Debug::stop();
         } else {

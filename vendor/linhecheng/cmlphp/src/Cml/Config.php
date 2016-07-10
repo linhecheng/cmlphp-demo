@@ -26,7 +26,7 @@ class Config
 
     /**
      * 存放了所有配置信息
-     * 
+     *
      * @var array
      */
     private static $_content = array(
@@ -115,20 +115,21 @@ class Config
 
             // 多维数组设置 A.B.C = 1
             $key = explode('.', $key);
-            $setConfigs = array();
             $tmp = null;
             foreach ($key as $k) {
                 if (is_null($tmp)) {
-                    $setConfigs[$k] = array();
-                    $tmp = &$setConfigs[$k];
+                    if (isset(static::$_content['normal'][$k]) === false) {
+                        static::$_content['normal'][$k] = array();
+                    }
+                    $tmp = &static::$_content['normal'][$k];
                 } else {
-                    $tmp[$k] = array();
+                    is_array($tmp) || $tmp = array();
+                    isset($tmp[$k]) || $tmp[$k] = array();
                     $tmp = &$tmp[$k];
                 }
             }
             $tmp = $value;
             unset($tmp);
-            static::$_content['normal'] = array_merge(static::$_content['normal'], $setConfigs);
         }
         return null;
     }

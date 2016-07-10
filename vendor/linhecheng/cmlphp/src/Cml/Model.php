@@ -58,6 +58,7 @@ class Model
         } else {
             $config = Config::get($conf);
         }
+        $config['mark'] = $conf;
         $driver = '\Cml\Db\\'.str_replace('.', '\\', $config['driver']);
         if (isset(self::$dbInstance[$conf])) {
             return self::$dbInstance[$conf];
@@ -298,4 +299,31 @@ class Model
     {
         return $this->db($this->getDbConf())->table($this->getTableName(), $this->tablePrefix);
     }
+
+    /**
+     * 当访问model中不存在的方法时直接调用$this->db()的相关方法
+     *
+     * @param $dbMethod
+     * @param $arguments
+     *
+     * @return \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB
+     */
+    public function __call($dbMethod, $arguments)
+    {
+        return call_user_func_array([$this->db($this->getDbConf()), $dbMethod], $arguments);
+    }
+
+    /**
+     * 当访问model中不存在的方法时直接调用相关model中的db()的相关方法
+     *
+     * @param $dbMethod
+     * @param $arguments
+     *
+     * @return \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB
+     */
+    public static function __callStatic($dbMethod, $arguments)
+    {
+        return call_user_func_array([static::getInstance()->db(static::getInstance()->getDbConf()), $dbMethod], $arguments);
+    }
+
 }

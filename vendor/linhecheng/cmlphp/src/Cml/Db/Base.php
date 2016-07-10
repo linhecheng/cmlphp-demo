@@ -805,7 +805,7 @@ abstract class Base
             }
         } else {
             $this->union .= $all ? ' UNION ALL ' : ' UNION ';
-            $this->union .= $this->filterUnionSql($sql);
+            $this->union .= $this->filterUnionSql($sql) . ' ';
         }
         return $this;
     }
@@ -988,19 +988,7 @@ abstract class Base
      *
      * @return mixed
      */
-    public function count($field = '*', $isMulti = false)
-    {
-        $count = $this->columns(array("COUNT({$field})" => 'count'))->select();
-        if ($isMulti) {
-            $return = array();
-            foreach($count as $val) {
-                $return[] = intval($val['count']);
-            }
-            return $return;
-        } else {
-            return intval($count[0]['count']);
-        }
-    }
+    abstract public function count($field = '*', $isMulti = false);
 
     /**
      * 返回INSERT，UPDATE 或 DELETE 查询所影响的记录行数。
@@ -1128,10 +1116,10 @@ abstract class Base
      */
     public function getCacheVer($table)
     {
-        $version = Model::getInstance()->cache()->get('db_cache_version_'.$table);
+        $version = Model::getInstance()->cache()->get($this->conf['mark'] . '_db_cache_version_' . $table);
         if (!$version) {
             $version = microtime(true);
-            Model::getInstance()->cache()->set('db_cache_version_'.$table, $version, $this->conf['cache_expire']);
+            Model::getInstance()->cache()->set($this->conf['mark'] . '_db_cache_version_' . $table, $version, $this->conf['cache_expire']);
         }
         return $version;
     }
@@ -1152,7 +1140,7 @@ abstract class Base
             Model::getInstance()->cache()->set("emergency_mode_not_real_time_refresh_mysql_query_cache_{$table}", time(), 3600);
         }
 
-        Model::getInstance()->cache()->set('db_cache_version_'.$table, microtime(true), $this->conf['cache_expire']);
+        Model::getInstance()->cache()->set($this->conf['mark'] . '_db_cache_version_' . $table, microtime(true), $this->conf['cache_expire']);
     }
 
 }

@@ -230,7 +230,7 @@ class Html extends Base
         //执行替换
         $template = preg_replace($exp, $replace, $template);
 
-        if (!$GLOBALS['debug']) {
+        if (!Cml::$debug) {
             /* 去除html空格与换行 */
             $find = array('~>\s+<~','~>(\s+\n|\r)~');
             $replace = array('><','>');
