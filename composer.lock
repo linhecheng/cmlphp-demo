@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "70d152bc07eae2dada67ca551936fbc7",
+    "hash": "ff794ecbcfd07955d999bfd43d224871",
     "content-hash": "03b0ef3e21e7c9e372b3d8dc9f71667c",
     "packages": [
         {
             "name": "linhecheng/cmlphp",
-            "version": "v2.6.6",
+            "version": "v2.6.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/linhecheng/cmlphp.git",
-                "reference": "cb75baae03565f998eefc0f8f8843d4a58052e4c"
+                "reference": "a55a5200f2f0769ef03b30b795814145e2e0538d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/cb75baae03565f998eefc0f8f8843d4a58052e4c.zip",
-                "reference": "cb75baae03565f998eefc0f8f8843d4a58052e4c",
+                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/a55a5200f2f0769ef03b30b795814145e2e0538d.zip",
+                "reference": "a55a5200f2f0769ef03b30b795814145e2e0538d",
                 "shasum": ""
             },
             "require": {
@@ -48,7 +48,7 @@
             "keywords": [
                 "cmlphp"
             ],
-            "time": "2016-07-08 10:02:32"
+            "time": "2016-07-19 06:50:43"
         }
     ],
     "packages-dev": [],

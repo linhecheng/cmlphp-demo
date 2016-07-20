@@ -450,7 +450,7 @@ class MongoDB extends Base
      */
     public function truncate($tableName)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -680,7 +680,7 @@ class MongoDB extends Base
     }
 
     /**
-     * 分组 MongoDB中的聚合方式跟 sql不一样这个操作屏蔽。如果要使用聚合直接使用MongoDB Command
+     * 分组 MongoDB中的聚合方式跟 sql不一样。这个操作屏蔽。如果要使用聚合直接使用MongoDB Command
      *
      * @param string $column 要设置分组的字段名
      *
@@ -688,7 +688,7 @@ class MongoDB extends Base
      */
     public function groupBy($column)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -702,7 +702,7 @@ class MongoDB extends Base
      */
     public function having($column, $operator = '=', $value)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -716,7 +716,7 @@ class MongoDB extends Base
      */
     public function join($table, $on, $tablePrefix = null)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -730,7 +730,7 @@ class MongoDB extends Base
      */
     public function leftJoin($table, $on, $tablePrefix = null)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -744,7 +744,7 @@ class MongoDB extends Base
      */
     public function rightJoin($table, $on, $tablePrefix = null)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -757,7 +757,7 @@ class MongoDB extends Base
      */
     public function union($sql, $all = false)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -836,6 +836,87 @@ class MongoDB extends Base
 
         $count = $this->runMongoCommand($cmd);
         return intval($count[0]['n']);
+    }
+
+    /**
+     * 获取 $max 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时此参数为要$group的字段
+     *
+     * @return mixed
+     */
+    public function max($field = 'id', $isMulti = false)
+    {
+        return $this->aggregation($field, $isMulti, '$max');
+    }
+
+    /**
+     * 获取 $min 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时此参数为要$group的字段
+     *
+     * @return mixed
+     */
+    public function min($field = 'id', $isMulti = false)
+    {
+        return $this->aggregation($field, $isMulti, '$min');
+    }
+
+    /**
+     * 获取 $sum的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时此参数为要$group的字段
+     *
+     * @return mixed
+     */
+    public function sum($field = 'id', $isMulti = false)
+    {
+        return $this->aggregation($field, $isMulti, '$sum');
+    }
+
+    /**
+     * 获取 $avg 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时此参数为要$group的字段
+     *
+     * @return mixed
+     */
+    public function avg($field = 'id', $isMulti = false)
+    {
+        return $this->aggregation($field, $isMulti, '$avg');
+    }
+
+    /**
+     * 获取聚合的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时此参数为要$group的字段
+     * @param string $operation 聚合操作
+     *
+     * @return mixed
+     */
+    private function aggregation($field, $isMulti = false, $operation = '$max')
+    {
+        $pipe = array();
+        empty($this->sql['where']) || $pipe[] = array(
+            '$match' => $this->sql['where']
+        );
+        $pipe[] = array(
+            '$group' => array(
+                '_id' => $isMulti ? '$'.$isMulti :  '0',
+                'count' => array($operation => '$'.$field)
+            )
+        );
+        $res = $this->mongoDbAggregate($pipe);
+        if ($isMulti ===  false) {
+            return $res[0]['count'];
+        } else {
+            return $res;
+        }
     }
 
     /**
@@ -1134,7 +1215,7 @@ class MongoDB extends Base
      */
     public function  startTransAction()
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -1144,7 +1225,7 @@ class MongoDB extends Base
      */
     public function commit()
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -1156,7 +1237,7 @@ class MongoDB extends Base
      */
     public function savePoint($pointName)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -1168,7 +1249,7 @@ class MongoDB extends Base
      */
     public function rollBack($rollBackTo = false)
     {
-        return false;
+        return $this;
     }
 
     /**
@@ -1182,6 +1263,6 @@ class MongoDB extends Base
      */
     public function callProcedure($procedureName = '', $bindParams = array(), $isSelect = true)
     {
-        return false;
+        return $this;
     }
 }

@@ -270,25 +270,97 @@ class Pdo extends Base
     }
 
     /**
-     * 获取count(字段名或*)的结果
+     * 获取 COUNT(字段名或*) 的结果
      *
      * @param string $field 要统计的字段名
-     * @param bool $isMulti 结果集是否为多条 默认只有一条
-     * @param bool|string $useMaster 是否使用主库 默认读取从库 此选项为字符串时为表前缀$tablePrefix
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     * @param bool|string $useMaster 是否使用主库 默认读取从库
      *
      * @return mixed
      */
     public function count($field = '*', $isMulti = false, $useMaster = false)
     {
-        $count = $this->columns(array("COUNT({$field})" => 'count'))->select(null, null, $useMaster);
+        return $this->aggregation($field, $isMulti, $useMaster, 'COUNT');
+    }
+
+    /**
+     * 获取 MAX(字段名) 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     * @param bool|string $useMaster 是否使用主库 默认读取从库
+     *
+     * @return mixed
+     */
+    public function max($field = 'id', $isMulti = false, $useMaster = false)
+    {
+        return $this->aggregation($field, $isMulti, $useMaster, 'MAX');
+    }
+
+    /**
+     * 获取 MIN(字段名) 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     * @param bool|string $useMaster 是否使用主库 默认读取从库
+     *
+     * @return mixed
+     */
+    public function min($field = 'id', $isMulti = false, $useMaster = false)
+    {
+        return $this->aggregation($field, $isMulti, $useMaster, 'MIN');
+    }
+
+    /**
+     * 获取 SUM(字段名) 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     * @param bool|string $useMaster 是否使用主库 默认读取从库
+     *
+     * @return mixed
+     */
+    public function sum($field = 'id', $isMulti = false, $useMaster = false)
+    {
+        return $this->aggregation($field, $isMulti, $useMaster, 'SUM');
+    }
+
+    /**
+     * 获取 AVG(字段名) 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     * @param bool|string $useMaster 是否使用主库 默认读取从库
+     *
+     * @return mixed
+     */
+    public function avg($field = 'id', $isMulti = false, $useMaster = false)
+    {
+        return $this->aggregation($field, $isMulti, $useMaster, 'AVG');
+    }
+
+    /**
+     * 获取max(字段名)的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     * @param bool|string $useMaster 是否使用主库 默认读取从库
+     * @param string $operation 聚合操作
+     *
+     * @return mixed
+     */
+    private function aggregation($field, $isMulti = false, $useMaster = false, $operation = 'COUNT')
+    {
+        is_string($isMulti) && $this->groupBy($isMulti);
+        $count = $this->columns(array("{$operation}({$field})" => '__res__'))->select(null, null, $useMaster);
         if ($isMulti) {
             $return = array();
             foreach($count as $val) {
-                $return[] = intval($val['count']);
+                $return[] = $operation === 'COUNT' ? intval($val['__res__']) : floatval($val['__res__']);
             }
             return $return;
         } else {
-            return intval($count[0]['count']);
+            return $operation === 'COUNT' ? intval($count[0]['__res__']) : floatval($count[0]['__res__']);
         }
     }
 

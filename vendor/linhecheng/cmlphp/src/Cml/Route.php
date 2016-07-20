@@ -143,6 +143,7 @@ class Route
             self::findAction($pathinfo, $path);//未匹配到路由 按文件名映射查找
         }
 
+        $pathinfo = array_values($pathinfo);
         for ($i = 0; $i < count($pathinfo); $i += 2) {
             $_GET[$pathinfo[$i]] = $pathinfo[$i + 1];
         }

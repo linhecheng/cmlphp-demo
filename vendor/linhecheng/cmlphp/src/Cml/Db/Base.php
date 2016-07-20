@@ -981,7 +981,7 @@ abstract class Base
     }
 
     /**
-     * 获取count(字段名或*)的结果
+     * 获取 COUNT(字段名或*) 的结果
      *
      * @param string $field 要统计的字段名
      * @param bool $isMulti 结果集是否为多条 默认只有一条
@@ -989,6 +989,46 @@ abstract class Base
      * @return mixed
      */
     abstract public function count($field = '*', $isMulti = false);
+
+    /**
+     * 获取 MAX(字段名或*) 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     *
+     * @return mixed
+     */
+    abstract public function max($field = '*', $isMulti = false);
+
+    /**
+     * 获取 MIN(字段名或*) 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     *
+     * @return mixed
+     */
+    abstract public function min($field = '*', $isMulti = false);
+
+    /**
+     * 获取 SUM(字段名或*) 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     *
+     * @return mixed
+     */
+    abstract public function sum($field = '*', $isMulti = false);
+
+    /**
+     * 获取 AVG(字段名或*) 的结果
+     *
+     * @param string $field 要统计的字段名
+     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
+     *
+     * @return mixed
+     */
+    abstract public function avg($field = '*', $isMulti = false);
 
     /**
      * 返回INSERT，UPDATE 或 DELETE 查询所影响的记录行数。

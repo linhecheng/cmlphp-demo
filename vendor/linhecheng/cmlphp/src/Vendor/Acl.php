@@ -16,8 +16,10 @@ use Cml\Model;
 use Cml\Route;
 
 /**
- * 权限控制类
+   权限控制类
 
+    对方法注释 @noacl 则不检查该方法的权限
+    对方法注释 @@acljump web/User/add 则将当前方法的权限检查跳转为检查 web/User/add方法的权限
     加到normal.php配置中
     //权限控制配置
     'administratorid'=>'1', //超管理员id
@@ -67,7 +69,7 @@ use Cml\Route;
         UNIQUE KEY `username` (`username`)
     ) ENGINE=MyISAM AUTO_INCREMENT=28 DEFAULT CHARSET=utf8;
 
- * @package Cml\Vendor
+    @package Cml\Vendor
  */
 class Acl
 {
@@ -76,7 +78,7 @@ class Acl
      *
      * @var string
      */
-    public static $encryptKey = 'pnnle-oienngls-llentne-lnegxe';
+    private static $encryptKey = 'pnnle-oienngls-llentne-lnegxe';
 
     /**
      * 有权限的时候保存权限的显示名称用于记录log
@@ -93,7 +95,18 @@ class Acl
     public static $authUser = null;
 
     /**
-     * 设置用户登录Cookie
+     * 设置加密用的混淆key Cookie::set本身有一重加密 这里再加一重
+     *
+     * @param string $key
+     */
+    public static function setEncryptKey($key)
+    {
+        self::$encryptKey = $key;
+    }
+
+
+    /**
+     * 保存当前登录用户的信息
      *
      * @param int $uid 用户id
      */
@@ -110,7 +123,7 @@ class Acl
     }
 
     /**
-     *获取当前会话的信息
+     * 获取当前登录用户的信息
      *
      * @return array
      */
@@ -172,7 +185,7 @@ class Acl
     /**
      * 检查对应的权限
      *
-     * @param object $controller 传入控制器用来判断当前方法是不是要跳过权限检查
+     * @param object $controller 传入控制器方法用来判断当前方法是不是要跳过权限检查。如 web/User/list
      *
      * @return int 返回1是通过检查，0是不能通过检查
      */

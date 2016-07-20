@@ -15,13 +15,87 @@ namespace Cml\Vendor;
  */
 class StringProcess
 {
+
     /**
-    * 检查字符串是否是UTF8编码
-    *
-    * @param string $string 字符串
+     * 返回两个字符串的相似度
      *
-    * @return Boolean
-    */
+     * @param string  $string1
+     * @param string $string2
+     * @return int
+     */
+    public static function strSimilar($string1, $string2)
+    {
+        similar_text($string1, $string2, $percent);
+        return round($percent / 100, 2);
+    }
+
+    /**
+     * 计算两个字符串间的levenshteinDistance
+     * @param string $string1
+     * @param string $string2
+     * @param int $costReplace 定义替换次数
+     * @param string $encoding
+     * @return mixed
+     */
+    public static function levenshteinDistance($string1, $string2,  $costReplace = 1, $encoding = 'UTF-8')
+    {
+        $mbStringToArrayFunc = function ($string) use ($encoding)
+        {
+            $arrayResult = array();
+            while ($iLen = mb_strlen($string, $encoding)) {
+                array_push($arrayResult, mb_substr($string, 0, 1, $encoding));
+                $string = mb_substr($string, 1, $iLen, $encoding);
+            }
+            return $arrayResult;
+        };
+
+        $countSameLetter = 0;
+        $d = array();
+        $mbLen1 = mb_strlen($string1, $encoding);
+        $mbLen2 = mb_strlen($string2, $encoding);
+
+        $mbStr1 = $mbStringToArrayFunc($string1, $encoding);
+        $mbStr2 = $mbStringToArrayFunc($string2, $encoding);
+
+        $maxCount = count($mbStr1) > count($mbStr2) ? count($mbStr1) : count($mbStr2);
+
+        for ($i1 = 0; $i1 <= $mbLen1; $i1++) {
+            $d[$i1] = array();
+            $d[$i1][0] = $i1;
+        }
+
+        for ($i2 = 0; $i2 <= $mbLen2; $i2++) {
+            $d[0][$i2] = $i2;
+        }
+
+        for ($i1 = 1; $i1 <= $mbLen1; $i1++) {
+            for ($i2 = 1; $i2 <= $mbLen2; $i2++) {
+                // $cost = ($str1[$i1 - 1] == $str2[$i2 - 1]) ? 0 : 1;
+                if ($mbStr1[$i1 - 1] === $mbStr2[$i2 - 1]) {
+                    $cost = 0;
+                    $countSameLetter++;
+                } else {
+                    $cost = $costReplace; //替换
+                }
+                $d[$i1][$i2] = min($d[$i1 - 1][$i2] + 1, //插入
+                    $d[$i1][$i2 - 1] + 1, //删除
+                    $d[$i1 - 1][$i2 - 1] + $cost);
+            }
+        }
+
+        $percent  = round(($maxCount - $d[$mbLen1][$mbLen2]) / $maxCount, 2);
+
+        //return $d[$mbLen1][$mbLen2];
+        return array('distance' => $d[$mbLen1][$mbLen2], 'count_same_letter' => $countSameLetter, 'percent' => $percent);
+    }
+
+    /**
+     * 检查字符串是否是UTF8编码
+     *
+     * @param string $string 字符串
+     *
+     * @return Boolean
+     */
     public static function isUtf8($string)
     {
         $len = strlen($string);
