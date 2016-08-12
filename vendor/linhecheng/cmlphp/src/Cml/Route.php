@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 URL解析类
  * *********************************************************** */
 namespace Cml;
@@ -18,6 +18,13 @@ use Cml\Http\Request;
 class Route
 {
     /**
+     * 是否启用分组
+     *
+     * @var false
+     */
+    private static $group = false;
+
+    /**
      * pathinfo数据用来提供给插件做一些其它事情
      *
      * @var array
@@ -25,15 +32,59 @@ class Route
     private static $pathinfo = array();
 
     /**
-     * 定义路由类型常量
+     * 路由类型为GET请求
+     *
+     * @var int
      */
     const REQUEST_METHOD_GET = 1;
+
+    /**
+     * 路由类型为POST请求
+     *
+     * @var int
+     */
     const REQUEST_METHOD_POST = 2;
+
+    /**
+     * 路由类型为PUT请求
+     *
+     * @var int
+     */
     const REQUEST_METHOD_PUT = 3;
+
+    /**
+     * 路由类型为PATCH请求
+     *
+     * @var int
+     */
     const REQUEST_METHOD_PATCH = 4;
+
+    /**
+     * 路由类型为DELETE请求
+     *
+     * @var int
+     */
     const REQUEST_METHOD_DELETE = 5;
+
+    /**
+     * 路由类型为OPTIONS请求
+     *
+     * @var int
+     */
     const REQUEST_METHOD_OPTIONS = 6;
+
+    /**
+     * 路由类型为任意请求类型
+     *
+     * @var int
+     */
     const REQUEST_METHOD_ANY = 7;
+
+    /**
+     * 路由类型 reset 路由
+     *
+     * @var int
+     */
     const RESTROUTE = 8;
 
     /**
@@ -209,7 +260,7 @@ class Route
      */
     public static function get($pattern, $action)
     {
-        self::$rules[self::REQUEST_METHOD_GET.$pattern] = $action;
+        self::$rules[self::REQUEST_METHOD_GET.self::patternFactory($pattern)] = $action;
     }
 
     /**
@@ -222,7 +273,7 @@ class Route
      */
     public static function post($pattern, $action)
     {
-        self::$rules[self::REQUEST_METHOD_POST.$pattern] = $action;
+        self::$rules[self::REQUEST_METHOD_POST.self::patternFactory($pattern)] = $action;
     }
 
     /**
@@ -235,7 +286,7 @@ class Route
      */
     public static function put($pattern, $action)
     {
-        self::$rules[self::REQUEST_METHOD_PUT.$pattern] = $action;
+        self::$rules[self::REQUEST_METHOD_PUT.self::patternFactory($pattern)] = $action;
     }
 
     /**
@@ -248,7 +299,7 @@ class Route
      */
     public static function patch($pattern, $action)
     {
-        self::$rules[self::REQUEST_METHOD_PATCH.$pattern] = $action;
+        self::$rules[self::REQUEST_METHOD_PATCH.self::patternFactory($pattern)] = $action;
     }
 
     /**
@@ -261,7 +312,7 @@ class Route
      */
     public static function delete($pattern, $action)
     {
-        self::$rules[self::REQUEST_METHOD_DELETE.$pattern] = $action;
+        self::$rules[self::REQUEST_METHOD_DELETE.self::patternFactory($pattern)] = $action;
     }
 
     /**
@@ -274,7 +325,7 @@ class Route
      */
     public static function options($pattern, $action)
     {
-        self::$rules[self::REQUEST_METHOD_OPTIONS.$pattern] = $action;
+        self::$rules[self::REQUEST_METHOD_OPTIONS.self::patternFactory($pattern)] = $action;
     }
 
     /**
@@ -287,7 +338,7 @@ class Route
      */
     public static function any($pattern, $action)
     {
-        self::$rules[self::REQUEST_METHOD_ANY.$pattern] = $action;
+        self::$rules[self::REQUEST_METHOD_ANY.self::patternFactory($pattern)] = $action;
     }
 
     /**
@@ -300,8 +351,44 @@ class Route
      */
     public static function rest($pattern, $action)
     {
-        self::$rules[self::RESTROUTE.$pattern] = $action;
+        self::$rules[self::RESTROUTE.self::patternFactory($pattern)] = $action;
     }
+
+    /**
+     * 分组路由
+     *
+     * @param string $namespace 分组名
+     * @param callable $func 闭包
+     */
+    public static function group($namespace, callable $func)
+    {
+        if (empty($namespace)) {
+            throw new \InvalidArgumentException(Lang::get('_NOT_ALLOW_EMPTY_', '$namespace'));
+        }
+
+        self::$group = trim($namespace, '/');
+
+        $func();
+
+        self::$group = false;
+    }
+
+    /**
+     * 组装路由规则
+     *
+     * @param $pattern
+     *
+     * @return string
+     */
+    private static function patternFactory($pattern)
+    {
+        if (self::$group) {
+            return self::$group . '/' . ltrim($pattern);
+        } else {
+            return $pattern;
+        }
+    }
+
 
     /**
      * 匹配路由
@@ -391,7 +478,9 @@ class Route
             $route[$issuccess[0]] = trim($route[$issuccess[0]], '/');
 
             //判断路由的正确性
-            count(explode('/', $route[$issuccess[0]])) >= 2 || throwException(Lang::get('_ROUTE_PARAM_ERROR_',  substr($issuccess[0], 1)));
+            if (count(explode('/', $route[$issuccess[0]])) < 2) {
+                throw new \InvalidArgumentException(Lang::get('_ROUTE_PARAM_ERROR_',  substr($issuccess[0], 1)));
+            }
 
             $returnArr[0] = true;
             $successRoute = explode('/', $issuccess[0]);
@@ -423,5 +512,25 @@ class Route
     public static function getPathInfo()
     {
         return self::$pathinfo;
+    }
+
+    /**
+     * 载入应用单独的路由
+     *
+     * @param string $app 应用名称
+     */
+    public static function loadAppRoute($app = 'web')
+    {
+        static $loaded = array();
+        if (isset($loaded[$app]) ) {
+            return;
+        }
+        $appRoute = CML_APP_MODULES_PATH.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR.'route.php';
+        if (!is_file($appRoute)) {
+            throw new \InvalidArgumentException(Lang::get('_NOT_FOUND_', $app.DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR.'route.php'));
+        }
+
+        $loaded[$app] = 1;
+        require $appRoute;
     }
 }

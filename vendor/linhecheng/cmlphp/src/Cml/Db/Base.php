@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 Db 数据库抽象基类
  * *********************************************************** */
 namespace Cml\Db;
@@ -473,7 +473,9 @@ abstract class Base
     public function whereBetween($column, $value, $value2 = null)
     {
         if (is_null($value2)) {
-            is_array($value) || \Cml\throwException(Lang::get('_DB_PARAM_ERROR_WHERE_BETWEEN_'));
+            if (!is_array($value)) {
+                throw new \InvalidArgumentException(Lang::get('_DB_PARAM_ERROR_WHERE_BETWEEN_'));
+            }
             $val = $value;
         } else {
             $val = array($value, $value2);
@@ -494,7 +496,9 @@ abstract class Base
     public function whereNotBetween($column, $value, $value2 = null)
     {
         if (is_null($value2)) {
-            is_array($value) || \Cml\throwException(Lang::get('_DB_PARAM_ERROR_WHERE_BETWEEN_'));
+            if (!is_array($value)) {
+                throw new \InvalidArgumentException(Lang::get('_DB_PARAM_ERROR_WHERE_BETWEEN_'));
+            }
             $val = $value;
         } else {
             $val = array($value, $value2);
@@ -829,7 +833,9 @@ abstract class Base
      */
     protected function parseOn(&$table, $on)
     {
-        empty($on) && \Cml\throwException(Lang::get('_DB_PARAM_ERROR_PARSE_ON_', $table));
+        if (empty($on)) {
+            throw new \InvalidArgumentException(Lang::get('_DB_PARAM_ERROR_PARSE_ON_', $table));
+        }
         $result = '';
         foreach ($on as $key => $val) {
             if (is_numeric($key)) {
@@ -938,7 +944,7 @@ abstract class Base
                         $conkey = key($v);
                         if (!isset($dbFields[$conkey])) $conkey = $k;
                         if (!in_array(key(current($v)), array('+', '-', '*', '/', '%', '^', '&', '|', '<<', '>>', '~'))) {
-                            \Cml\throwException(Lang::get('_PARSE_UPDATE_SQL_PARAMS_ERROR_'));
+                            throw new \InvalidArgumentException(Lang::get('_PARSE_UPDATE_SQL_PARAMS_ERROR_'));
                         }
                         $p = "`{$k}`= `{$conkey}`" . key(current($v)) . abs(intval(current(current($v))));
                         break;
@@ -974,8 +980,12 @@ abstract class Base
             $this->bindParams[] = $arr[$i + 1];
         }
         $table = strtolower($arr[0]);
-        (empty($table) && !$noTable) && \Cml\throwException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'table'));
-        (empty($condition) && !$noCondition) && \Cml\throwException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'condition'));
+        if (empty($table) && !$noTable) {
+            throw new \InvalidArgumentException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'table'));
+        }
+        if (empty($condition) && !$noCondition) {
+            throw new \InvalidArgumentException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'condition'));
+        }
         empty($condition) || $condition = "($condition)";
         return array($table, $condition);
     }

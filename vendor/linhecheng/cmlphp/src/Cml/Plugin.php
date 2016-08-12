@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 插件类
  * *********************************************************** */
 namespace Cml;
@@ -28,7 +28,7 @@ class Plugin
      * @param string $hook 插件钩子名称
      * @param array $params 参数
      *
-     * @return void
+     * @return mixed
      */
     public static function hook($hook, $params = array())
     {
@@ -36,30 +36,36 @@ class Plugin
         if (!is_null($hookRun)) {
             foreach ($hookRun as $key => $val) {
                 if (is_int($key)) {
-                    call_user_func($val, $params);
+                    $callBack = $val;
                 } else {
                     $plugin = new $key();
-                    call_user_func_array(array($plugin, $val), $params);
+                    $callBack = array($plugin, $val);
+                }
+                $return = call_user_func_array($callBack, array_slice(func_get_args(), 1));
+
+                if (!is_null($return)) {
+                    return $return;
                 }
             }
         }
-        return;
+        return null;
     }
 
     /**
      * 挂载插件到钩子
-      \Cml\Plugin::mount('hookName', array(
-            function() {//匿名函数
-            },
-            '\App\Test\Plugins' => 'run' //对象,
-            '\App\Test\Plugins::run'////静态方法
-        );
+    \Cml\Plugin::mount('hookName', array(
+        function() {//匿名函数
+        },
+        '\App\Test\Plugins' => 'run' //对象,
+        '\App\Test\Plugins::run'////静态方法
+    );
      *
      * @param string $hook 要挂载的目标钩子
      * @param array $params 相应参数
      */
     public static function mount($hook, $params = array())
     {
+        is_array($params) || $params = array($params);
         if (isset(self::$mountInfo[$hook])) {
             self::$mountInfo[$hook] += $params;
         } else {

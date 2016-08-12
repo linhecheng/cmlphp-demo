@@ -1,13 +1,14 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 上午11:01
- * @version  2.5
+ * @version  2.6
  * cml框架 配置处理类
  * *********************************************************** */
 namespace Cml;
 
+use Cml\Exception\ConfigNotFoundException;
 use Cml\Http\Request;
 
 /**
@@ -154,7 +155,9 @@ class Config
                 'Config'.DIRECTORY_SEPARATOR
                 .
                 ( $global ? self::$isLocal.DIRECTORY_SEPARATOR : '' ).$file.'.php';
-            is_file($file) || throwException(Lang::get('_FILE_NOT_FOUND_', $file));
+            if (!is_file($file)) {
+                throw new ConfigNotFoundException(Lang::get('_NOT_FOUND_', $file));
+            }
             static::$_content[$file] = require $file;
             return static::$_content[$file];
         }

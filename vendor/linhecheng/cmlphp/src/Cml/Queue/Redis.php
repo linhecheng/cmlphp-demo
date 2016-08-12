@@ -1,9 +1,9 @@
 <?php namespace Cml\Queue;
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-02-04 下午20:11
- * @version  2.5
+ * @version  2.6
  * cml框架 队列Redis驱动
  * *********************************************************** */
 use Cml\Config;
@@ -40,7 +40,7 @@ class Redis extends Base
     public function lPop($name)
     {
         $data = $this->getDriver()->lPop($name);
-        $data && $this->decodeDate($data);
+        $data && $data = $this->decodeDate($data);
         return $data;
     }
 
@@ -67,7 +67,7 @@ class Redis extends Base
     public function rPop($name)
     {
         $data = $this->getDriver()->rPop($name);
-        $data && $this->decodeDate($data);
+        $data && $data = $this->decodeDate($data);
         return $data;
     }
 

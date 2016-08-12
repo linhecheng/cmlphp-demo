@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-4-15
- * @version  2.5
+ * @version  2.6
  * cml框架 Lock处理类
  * *********************************************************** */
 namespace Cml;
@@ -36,8 +36,7 @@ class Lock
                 $_instance[$useCache] = new $lock($useCache);
                 return $_instance[$useCache];
             } else {
-                throwException(Lang::get('_NOT_OPEN_', $useCache));
-                return false;
+                throw new \InvalidArgumentException(Lang::get('_NOT_OPEN_', $useCache));
             }
         }
     }

@@ -1,15 +1,19 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 memcache缓存驱动
  * *********************************************************** */
 namespace Cml\Cache;
 
 use Cml\Config;
+use Cml\Exception\CacheConnectFailException;
+use Cml\Exception\PhpExtendNotInstall;
 use Cml\Lang;
+use Cml\Log;
+use Cml\Plugin;
 
 /**
  * memcache缓存驱动
@@ -42,6 +46,8 @@ class Memcache extends namespace\Base
      * 使用的缓存配置 默认为使用default_cache配置的参数
      *
      * @param bool｜array $conf
+     *
+     * @throws CacheConnectFailException | PhpExtendNotInstall
      */
     public function __construct($conf = false)
     {
@@ -54,35 +60,78 @@ class Memcache extends namespace\Base
             $this->memcache = new \Memcache;
             $this->type = 2;
         } else {
-            \Cml\throwException(Lang::get('_CACHE_EXTEND_NOT_INSTALL_', 'Memcached/Memcache'));
+            throw new PhpExtendNotInstall(Lang::get('_CACHE_EXTEND_NOT_INSTALL_', 'Memcached/Memcache'));
         }
 
         if (!$this->memcache) {
-            \Cml\throwException(Lang::get('_CACHE_NEW_INSTANCE_ERROR_', 'Memcache'));
+            throw new PhpExtendNotInstall(Lang::get('_CACHE_NEW_INSTANCE_ERROR_', 'Memcache'));
         }
+
+        $singleNodeDownFunction = function($host, $port) {
+            //这边挂掉调用此回调在几s内只会调用一次。其它情况使用memcache方法均返回flase不报错
+            Plugin::hook('cml.cache_server_down', ['host' => $host, 'port' => $port]);
+            Log::emergency('memcache server down', array('downServer' => ['host' => $host, 'port' => $port]));
+        };
+
+        $allNodeDownFunction = function($serverList) {
+            Plugin::hook('cml.cache_server_down', $this->conf['server'], $serverList);//全挂
+
+            throw new CacheConnectFailException(Lang::get('_CACHE_CONNECT_FAIL_', 'Memcache',
+                json_encode($serverList)
+            ));
+        };
+
+        $downServer = 0;
 
         if ($this->type == 2) {//memcache
             foreach ($this->conf['server'] as $val) {
                 if (!$this->memcache->addServer($val['host'], $val['port'])) {
-                    \Cml\throwException(Lang::get('_CACHE_CONNECT_FAIL_', 'Memcache',
-                        $this->conf['host'] . ':' . $this->conf['port']
-                    ));
+                    Log::emergency('memcache server down', array('downServer' => $val));
                 }
             }
+
+            $this->memcache->setFailureCallback($singleNodeDownFunction);
+
+            $serverList = $this->memcache->getextendedstats();
+            foreach ($serverList as $server => $status) {
+                $status || $downServer++;
+            }
+
+            if (count($serverList) <= $downServer) {
+                $allNodeDownFunction($serverList);
+            }
+
             return;
         }
 
         if (md5(json_encode($this->conf['server'])) !== md5(json_encode($this->memcache->getServerList()))) {
             $this->memcache->quit();
             $this->memcache->resetServerList();
-            $this->memcache->setOption(\Memcached::OPT_PREFIX_KEY, $this->conf['prefix']);
+            $this->memcache->addServers(array_values($this->conf['server']));
+
+            $this->memcache->setOptions(array(
+                \Memcached::OPT_PREFIX_KEY => $this->conf['prefix'],
+                \Memcached::OPT_DISTRIBUTION => \Memcached::DISTRIBUTION_CONSISTENT,
+                \Memcached::OPT_LIBKETAMA_COMPATIBLE => true,
+                \Memcached::OPT_SERVER_FAILURE_LIMIT => 1,
+                \Memcached::OPT_RETRY_TIMEOUT => 30,
+                \Memcached::OPT_AUTO_EJECT_HOSTS => true,
+                \Memcached::OPT_REMOVE_FAILED_SERVERS => true
+            ));
+
             \Memcached::HAVE_JSON  && $this->memcache->setOption(\Memcached::OPT_SERIALIZER, \Memcached::SERIALIZER_JSON_ARRAY);
-            if (!$this->memcache->addServers(array_values($this->conf['server']))) {
-                \Cml\throwException(
-                    Lang::get('_CACHE_CONNECT_FAIL_', 'Memcache',
-                        json_encode($this->conf['server'])
-                    ));
+        }
+
+        $serverStatus = $this->memcache->getStats();
+        foreach($serverStatus as $server => $status) {
+            if ($status['pid'] < 1) {
+                $downServer++;
+                $server = explode(':', $server);
+                $singleNodeDownFunction($server[0], $server[1]);
             }
+        }
+        if (count($serverStatus) <= $downServer) {
+            $allNodeDownFunction($serverStatus);
         }
     }
 

@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-3-1 下午18:07
- * @version  2.5
+ * @version  2.6
  * cml框架 MongoDB数据库MongoDB驱动类 http://php.net/manual/zh/set.mongodb.php
  * *********************************************************** */
 namespace Cml\Db\MongoDB;
@@ -159,8 +159,12 @@ class MongoDB extends Base
             $and ? $condition[$keys[$i]] =  $val : $condition['$or'][][$keys[$i]] = $val;
         }
 
-        (empty($table) && !$noTable) && \Cml\throwException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'table'));
-        (empty($condition) && !$noCondition) && \Cml\throwException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'condition'));
+        if (empty($table) && !$noTable) {
+            throw new \InvalidArgumentException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'table'));
+        }
+        if (empty($condition) && !$noCondition) {
+            throw new \InvalidArgumentException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'condition'));
+        }
 
         return array($table, $condition);
     }
@@ -263,11 +267,11 @@ class MongoDB extends Base
 
             // Check if the write concern could not be fulfilled
             if ($writeConcernError = $result->getWriteConcernError()) {
-                \Cml\throwException(sprintf("%s (%d): %s\n",
+                throw new \RuntimeException(sprintf("%s (%d): %s\n",
                     $writeConcernError->getMessage(),
                     $writeConcernError->getCode(),
                     var_export($writeConcernError->getInfo(), true)
-                ));
+                ), 0, $e);
             }
 
             $errors = array();
@@ -279,9 +283,9 @@ class MongoDB extends Base
                     $writeError->getCode()
                 );
             }
-            \Cml\throwException(var_export($errors, true));
+            throw new \RuntimeException(var_export($errors, true), 0, $e);
         } catch (MongoDBDriverException $e) {
-            \Cml\throwException("Other error: %s\n", $e->getMessage());
+            throw new \UnexpectedValueException("Other error: %s\n", $e->getMessage(), 0, $e);
         }
 
         return $return;
@@ -387,9 +391,13 @@ class MongoDB extends Base
         }
 
         $tableName = empty($tableName) ? $this->getRealTableName(key($this->table)) : $tablePrefix . $tableName;
-        empty($tableName) && \Cml\throwException(Lang::get('_PARSE_SQL_ERROR_NO_TABLE_', 'update'));
+        if (empty($tableName)) {
+            throw new \InvalidArgumentException(Lang::get('_PARSE_SQL_ERROR_NO_TABLE_', 'update'));
+        }
         $condition += $this->sql['where'];
-        empty($condition) && \Cml\throwException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'update'));
+        if (empty($condition)) {
+            throw new \InvalidArgumentException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'update'));
+        }
 
         $bulk = new BulkWrite();
         $bulk->update($condition, array('$set' => $data), array('multi' => true));
@@ -417,9 +425,13 @@ class MongoDB extends Base
         empty($key) || list($tableName, $condition) = $this->parseKey($key, $and, true, true);
 
         $tableName = empty($tableName) ? $this->getRealTableName(key($this->table)) : $tablePrefix . $tableName;
-        empty($tableName) && \Cml\throwException(Lang::get('_PARSE_SQL_ERROR_NO_TABLE_', 'delete'));
+        if (empty($tableName)) {
+            throw new \InvalidArgumentException(Lang::get('_PARSE_SQL_ERROR_NO_TABLE_', 'delete'));
+        }
         $condition += $this->sql['where'];
-        empty($condition) && \Cml\throwException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'delete'));
+        if (empty($condition)) {
+            throw new \InvalidArgumentException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'delete'));
+        }
 
         $bulk = new BulkWrite();
         $bulk->delete($condition);
@@ -479,9 +491,13 @@ class MongoDB extends Base
         $currentOrIndex = isset($this->sql['where']['$or']) ? count($this->sql['where']['$or']) - 1 : 0;
 
         if ($this->opIsAnd) {
-            isset($this->sql['where'][$column][$operator]) && \Cml\throwException('Mongodb Where Op key Is Exists['.$column.$operator.']');
+            if (isset($this->sql['where'][$column][$operator])) {
+                throw new \InvalidArgumentException('Mongodb Where Op key Is Exists['.$column.$operator.']');
+            }
         } else if ($this->bracketsIsOpen) {
-            isset($this->sql['where']['$or'][$currentOrIndex][$column][$operator]) && \Cml\throwException('Mongodb Where Op key Is Exists['.$column.$operator.']');
+            if (isset($this->sql['where']['$or'][$currentOrIndex][$column][$operator])) {
+                throw new \InvalidArgumentException('Mongodb Where Op key Is Exists['.$column.$operator.']');
+            }
         }
 
         switch ($operator) {

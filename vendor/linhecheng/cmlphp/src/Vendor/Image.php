@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
- * @Date: 14-2-211 下午2:23
- * @version  2.5
+ * @Date: 14-2-21 下午2:23
+ * @version  2.6
  * cml框架 图片处理扩展类
  * *********************************************************** */
 

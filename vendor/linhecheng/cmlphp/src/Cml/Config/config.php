@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
- * @Date: 14-2-211 下午2:23
- * @version  2.5
+ * @Date: 14-2-21 下午2:23
+ * @version  2.6
  * cml框架惯例配置文件
  * *********************************************************** */
 
@@ -57,7 +57,7 @@ return array(
         'server' => array(
             array(
                 'host' => '127.0.0.1',
-                'port' => '11211',
+                'port' => 11211,//必须是整形
                 //'weight' => 100 //权重memcached扩展有效
             ),
             //多台...
@@ -84,11 +84,16 @@ return array(
         'server' => array(
             array(
                 'host' => '127.0.0.1',
-                'port' => '6379',
+                'port' => 6379,
+                //'db' => 6
                 //'password' => '123456' //没有密码的时候不要配置
             ),
             //多台...
         ),
+        //'back' => array(//当server中有机器挂掉且back有开启时。会自动使用back来替换挂掉的server方便处理异常情况
+        //    'host' => '127.0.0.1',
+        //    'port' => 6379
+        //)
     ),
     */
 

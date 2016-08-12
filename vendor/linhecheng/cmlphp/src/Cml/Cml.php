@@ -1,13 +1,14 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午2:51
- * @version  2.5
+ * @version  2.6
  * cml框架 项目基类
  * *********************************************************** */
 namespace Cml;
 
+use Cml\Exception\ControllerNotFoundException;
 use Cml\Http\Request;
 use Cml\Http\Response;
 use Cml\Tools\RunCliCommand;
@@ -48,7 +49,9 @@ class Cml
     {
         if ($error = error_get_last()) {//获取最后一个发生的错误的信息。 包括提醒、警告、致命错误
             if (in_array($error['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING))) { //当捕获到的错误为致命错误时 报告
-                Plugin::hook('cml.before_fatal_error', $error);
+                if (Plugin::hook('cml.before_fatal_error', $error) == 'jump') {
+                    return;
+                }
 
                 if (!self::$debug) {
                     //正式环境 只显示‘系统错误’并将错误信息记录到日志
@@ -56,6 +59,7 @@ class Cml
                     $error = array();
                     $error['message'] = Lang::get('_CML_ERROR_');
                 } else {
+                    $error['exception'] = 'Fatal Error';
                     $error['files'][0] = array(
                         'file' => $error['file'],
                         'line' => $error['line']
@@ -68,6 +72,8 @@ class Cml
                     header('HTTP/1.1 500 Internal Server Error');
                     require Config::get('html_exception');
                 }
+
+                Plugin::hook('cml.after_fatal_error', $error);
             }
         }
 
@@ -81,13 +87,21 @@ class Cml
      */
     public static function appException($e)
     {
-        Plugin::hook('cml.before_throw_exception', $e);
+        if (Plugin::hook('cml.before_throw_exception', $e) === 'resume') {
+            return;
+        }
 
         $error = array();
+        $exceptionClass = new \ReflectionClass($e);
+        $error['exception'] = '\\' . $exceptionClass->name;
         $error['message'] = $e->getMessage();
-        $trace  =   $e->getTrace();
+        $trace = $e->getTrace();
         foreach ($trace as $key => $val) {
             $error['files'][$key] = $val;
+        }
+
+        if (substr($e->getFile(), -20) !== '\Tools\functions.php' || $e->getLine() !== 90) {
+            array_unshift($error['files'], array('file' => $e->getFile(), 'line' => $e->getLine(), 'type' => 'throw'));
         }
 
         if (!self::$debug) {
@@ -145,7 +159,7 @@ class Cml
         define('CML_IS_MULTI_MODULES', Config::get('is_multi_modules'));
         define(
             'CML_APP_MODULES_PATH',
-            CML_APP_FULL_PATH . (CML_IS_MULTI_MODULES ? DIRECTORY_SEPARATOR . \Cml\Config::get('application_dir') : '')
+            CML_APP_FULL_PATH . (CML_IS_MULTI_MODULES ? DIRECTORY_SEPARATOR . Config::get('application_dir') : '')
         );
 
         //引入系统语言包
@@ -196,6 +210,10 @@ class Cml
 
         self::$nowTime = time();
         self::$nowMicroTime = microtime(true);
+
+        //全局的自定义语言包
+        $globalLang = CML_APP_FULL_PATH.DIRECTORY_SEPARATOR.'Lang'.DIRECTORY_SEPARATOR.Config::get('lang').'.php';
+        is_file($globalLang) && Lang::set(require $globalLang);
 
         //程序运行必须的类
         $runTimeClassList = array(
@@ -326,7 +344,7 @@ class Cml
         } else {
             self::montFor404Page();
             if (self::$debug) {
-                throwException(Lang::get(
+                throw new ControllerNotFoundException(Lang::get(
                     '_CONTROLLER_NOT_FOUND_',
                     CML_APP_CONTROLLER_PATH,
                     Route::$urlParams['controller'],
@@ -372,7 +390,7 @@ class Cml
         } else {
             $deBugLogData = dump('', 1);
             if (!empty($deBugLogData)) {
-                Config::get('dump_use_php_console') ? \Cml\dumpUsePHPConsole($deBugLogData) : require CML_PATH.DIRECTORY_SEPARATOR.'Cml'.DIRECTORY_SEPARATOR.'ConsoleLog.php';
+                Config::get('dump_use_php_console') ? dumpUsePHPConsole($deBugLogData) : require CML_PATH.DIRECTORY_SEPARATOR.'Cml'.DIRECTORY_SEPARATOR.'ConsoleLog.php';
             };
             CML_OB_START && ob_end_flush();
             exit();

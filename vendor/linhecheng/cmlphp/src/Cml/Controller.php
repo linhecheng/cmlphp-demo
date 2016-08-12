@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 系统默认控制器类
  * *********************************************************** */
 namespace Cml;
@@ -56,7 +56,7 @@ class Controller
             $this->$method();
         } elseif (Cml::$debug) {
             Cml::montFor404Page();
-            throwException(Lang::get('_ACTION_NOT_FOUND_', Route::$urlParams['action']));
+            throw new \BadMethodCallException(Lang::get('_ACTION_NOT_FOUND_', Route::$urlParams['action']));
         } else {
             Cml::montFor404Page();
             Response::show404Page();

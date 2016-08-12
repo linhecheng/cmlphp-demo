@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 视图 html渲染引擎
  * *********************************************************** */
 
@@ -11,6 +11,8 @@ namespace Cml\View;
 
 use Cml\Cml;
 use Cml\Config;
+use Cml\Exception\FileCanNotReadableException;
+use Cml\Exception\MkdirErrorException;
 use Cml\Lang;
 use Cml\Route;
 use Cml\Secure;
@@ -44,6 +46,20 @@ class Html extends Base
     private $layout = null;
 
     /**
+     * 要替换的标签
+     *
+     * @var array
+     */
+    private $pattern = array();
+
+    /**
+     * 替换后的内容
+     *
+     * @var array
+     */
+    private $replacement = array();
+
+    /**
      * 构造方法
      *
      */
@@ -53,148 +69,48 @@ class Html extends Base
             'templateDir' => 'templates' . DIRECTORY_SEPARATOR, //模板文件所在目录
             'cacheDir' => 'templates' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR, //缓存文件存放目录
             'autoUpdate' => true, //当模板文件改动时是否重新生成缓存
-            'leftDeper' => preg_quote(Config::get('html_left_deper')),
-            'rightDeper' => preg_quote(Config::get('html_right_deper'))
+            'leftDelimiter' => preg_quote(Config::get('html_left_deper')),
+            'rightDelimiter' => preg_quote(Config::get('html_right_deper'))
         );
-    }
-
-    /**
-     * 设定模板参数
-     *
-     * @param  string | array $name  参数名称
-     * @param  mixed  $value 参数值
-     *
-     * @return void
-     */
-    public function set($name, $value = '')
-    {
-        if (is_array($name)) {
-            $this->options = array_merge($this->options, $name);
-        } else {
-            $this->options[$name] = $value;
-        }
-    }
-
-    /**
-     * 通过魔术方法设定模板参数
-     *
-     * @param  string $name  参数名称
-     * @param  mixed  $value 参数值
-     *
-     * @return void
-     */
-    public function __set($name, $value)
-    {
-        $this->set($name, $value);
-    }
-
-    /**
-     * 获取模板文件缓存
-     *
-     * @param  string $file 模板文件名称
-     * @param int $type 缓存类型0当前操作的模板的缓存 1包含的模板的缓存
-     *
-     * @return string
-     */
-    public function getFile($file, $type = 0)
-    {
-        $type == 1 && $file = $this->initBaseDir($file);//初始化路径
-        //$file = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $file);
-        $cacheFile = $this->getCacheFile($file);
-        if ($this->options['autoUpdate']) {
-            $tplFile = $this->getTplFile($file);
-            is_readable($tplFile) || \Cml\throwException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $tplFile));
-            if (!is_file($cacheFile)) {
-                if ($type !==1 && !is_null($this->layout)) {
-                    is_readable($this->layout) || \Cml\throwException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
-                }
-                $this->compile($tplFile, $cacheFile, $type);
-                return $cacheFile;
-            }
-
-            $compile = false;
-            $tplMtime = filemtime($tplFile);
-            $cacheMtime = filemtime($cacheFile);
-            if ($cacheMtime && $tplMtime) {
-                ($cacheMtime < $tplMtime) && $compile = true;
-            } else {//获取mtime失败
-                $compile = true;
-            }
-
-            if ($compile && $type !==1 && !is_null($this->layout)) {
-                is_readable($this->layout) || \Cml\throwException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
-            }
-
-            //当子模板未修改时判断布局模板是否修改
-            if (!$compile && $type !==1 && !is_null($this->layout)) {
-                is_readable($this->layout) || \Cml\throwException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
-                $layoutMTime = filemtime($this->layout);
-                if ($layoutMTime) {
-                    $cacheMtime < $layoutMTime && $compile = true;
-                } else {
-                    $compile = true;
-                }
-            }
-
-            $compile && $this->compile($tplFile, $cacheFile, $type);
-        }
-        return $cacheFile;
-    }
-
-    /**
-     * 对模板文件进行缓存
-     *
-     * @param  string  $tplFile    模板文件名
-     * @param  string $cacheFile 模板缓存文件名
-     * @param int $type 缓存类型0当前操作的模板的缓存 1包含的模板的缓存
-     *
-     * @return void
-     */
-    private function compile($tplFile, $cacheFile, $type)
-    {
-        $leftDeper = $this->options['leftDeper'];
-        $rightDeper = $this->options['rightDeper'];
-
-        //取得模板内容
-        //$template = file_get_contents($tplFile);
-        $template = $this->getTplContent($tplFile, $type);
 
         //要替换的标签
-        $exp = array(
+        $this->pattern = array(
             '#\<\?(=|php)(.+?)\?\>#s', //替换php标签
-            "#$leftDeper(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?);?$rightDeper#", //替换变量 $a['name']这种一维数组以及$a['name']['name']这种二维数组
-            "#$leftDeper(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+);?$rightDeper#", //替换$a.key这种一维数组
-            "#$leftDeper(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+)\\.([a-zA-Z0-9_\x7f-\xff]+);?$rightDeper#", //替换$a.key.key这种二维数组
-            '#'.$leftDeper.'template\s+([a-z0-9A-Z_\.\/]+);?'.$rightDeper.'[\n\r\t]*#',//替换模板载入命令
-            '#'.$leftDeper.'eval\s+(.+?)'.$rightDeper.'#s',//替换eval
-            '#'.$leftDeper.'echo\s+(.+?)'.$rightDeper.'#s', //替换 echo
-            '#'.$leftDeper.'if\s+(.+?)'.$rightDeper.'#s',//替换if
-            '#'.$leftDeper.'(elseif|elseif)\s+(.+?)'.$rightDeper.'#s', //替换 elseif
-            '#'.$leftDeper.'else'.$rightDeper.'#', //替换 else
-            '#'.$leftDeper.'\/if'.$rightDeper.'#',//替换 /if
-            '#'.$leftDeper.'(loop|foreach)\s+(\S+)\s+(\S+)'.$rightDeper.'#s',//替换loop|foreach
-            '#'.$leftDeper.'(loop|foreach)\s+(\S+)\s+(\S+)\s+(\S+)'.$rightDeper.'#s',//替换loop|foreach
-            '#'.$leftDeper.'\/(loop|foreach)'.$rightDeper.'#',//替换 /foreach|/loop
-            '#'.$leftDeper.'hook\s+(\w+?)\s*'.$rightDeper.'#i',//替换 hook
-            '#'.$leftDeper.'(get|post|request)\s+(\w+?)\s*'.$rightDeper.'#i',//替换 get/post/request
-            '#'.$leftDeper.'lang\s+([A-Za-z0-9_\.]+)\s*'.$rightDeper.'#i',//替换 lang
-            '#'.$leftDeper.'config\s+([A-Za-z0-9_\.]+)\s*'.$rightDeper.'#i',//替换 config
-            '#'.$leftDeper.'url\s+(.*?)\s*'.$rightDeper.'#i',//替换 url
-            '#'.$leftDeper.'public'.$rightDeper.'#i',//替换 {{public}}
-            '#'.$leftDeper.'self'.$rightDeper.'#i',//替换 {{self}}
-            '#'.$leftDeper.'token'.$rightDeper.'#i',//替换 {{token}}
-            '#'.$leftDeper.'controller'.$rightDeper.'#i',//替换 {{controller}}
-            '#'.$leftDeper.'action'.$rightDeper.'#i',//替换 {{action}}
-            '#'.$leftDeper.'urldeper'.$rightDeper.'#i',//替换 {{urldeper}}
-            '#'.$leftDeper.' \\?\\>[\n\r]*\\<\\?'.$rightDeper.'#', //删除 PHP 代码断间多余的空格及换行
+            '#'.$this->options['leftDelimiter']."(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?);?".$this->options['rightDelimiter'].'#', //替换变量 $a['name']这种一维数组以及$a['name']['name']这种二维数组
+            '#'.$this->options['leftDelimiter']."(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+);?".$this->options['rightDelimiter'].'#', //替换$a.key这种一维数组
+            '#'.$this->options['leftDelimiter']."(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+)\\.([a-zA-Z0-9_\x7f-\xff]+);?".$this->options['rightDelimiter'].'#', //替换$a.key.key这种二维数组
+            '#'.$this->options['leftDelimiter'].'template\s+([a-z0-9A-Z_\.\/]+);?'.$this->options['rightDelimiter'].'[\n\r\t]*#',//替换模板载入命令
+            '#'.$this->options['leftDelimiter'].'eval\s+(.+?)'.$this->options['rightDelimiter'].'#s',//替换eval
+            '#'.$this->options['leftDelimiter'].'echo\s+(.+?)'.$this->options['rightDelimiter'].'#s', //替换 echo
+            '#'.$this->options['leftDelimiter'].'if\s+(.+?)'.$this->options['rightDelimiter'].'#s',//替换if
+            '#'.$this->options['leftDelimiter'].'(elseif|elseif)\s+(.+?)'.$this->options['rightDelimiter'].'#s', //替换 elseif
+            '#'.$this->options['leftDelimiter'].'else'.$this->options['rightDelimiter'].'#', //替换 else
+            '#'.$this->options['leftDelimiter'].'\/if'.$this->options['rightDelimiter'].'#',//替换 /if
+            '#'.$this->options['leftDelimiter'].'(loop|foreach)\s+(\S+)\s+(\S+)'.$this->options['rightDelimiter'].'#s',//替换loop|foreach
+            '#'.$this->options['leftDelimiter'].'(loop|foreach)\s+(\S+)\s+(\S+)\s+(\S+)'.$this->options['rightDelimiter'].'#s',//替换loop|foreach
+            '#'.$this->options['leftDelimiter'].'\/(loop|foreach)'.$this->options['rightDelimiter'].'#',//替换 /foreach|/loop
+            '#'.$this->options['leftDelimiter'].'hook\s+(\w+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 hook
+            '#'.$this->options['leftDelimiter'].'(get|post|request)\s+(\w+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 get/post/request
+            '#'.$this->options['leftDelimiter'].'lang\s+([A-Za-z0-9_\.]+)\s*'.$this->options['rightDelimiter'].'#i',//替换 lang
+            '#'.$this->options['leftDelimiter'].'config\s+([A-Za-z0-9_\.]+)\s*'.$this->options['rightDelimiter'].'#i',//替换 config
+            '#'.$this->options['leftDelimiter'].'url\s+(.*?)\s*'.$this->options['rightDelimiter'].'#i',//替换 url
+            '#'.$this->options['leftDelimiter'].'public'.$this->options['rightDelimiter'].'#i',//替换 {{public}}
+            '#'.$this->options['leftDelimiter'].'self'.$this->options['rightDelimiter'].'#i',//替换 {{self}}
+            '#'.$this->options['leftDelimiter'].'token'.$this->options['rightDelimiter'].'#i',//替换 {{token}}
+            '#'.$this->options['leftDelimiter'].'controller'.$this->options['rightDelimiter'].'#i',//替换 {{controller}}
+            '#'.$this->options['leftDelimiter'].'action'.$this->options['rightDelimiter'].'#i',//替换 {{action}}
+            '#'.$this->options['leftDelimiter'].'urldeper'.$this->options['rightDelimiter'].'#i',//替换 {{urldeper}}
+            '#'.$this->options['leftDelimiter'].' \\?\\>[\n\r]*\\<\\?'.$this->options['rightDelimiter'].'#', //删除 PHP 代码断间多余的空格及换行
             '#(href\s*?=\s*?"\s*?"|href\s*?=\s*?\'\s*?\')#',
             '#(src\s*?=\s*?"\s*?"|src\s*?=\s*?\'\s*?\')#',
-            '#'.$leftDeper.'assert\s+(.+?)\s*'.$rightDeper.'#i',//替换 assert
-            '#'.$leftDeper.'comment\s+(.+?)\s*'.$rightDeper.'#i',//替换 comment 模板注释
+            '#'.$this->options['leftDelimiter'].'assert\s+(.+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 assert
+            '#'.$this->options['leftDelimiter'].'comment\s+(.+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 comment 模板注释
+            '#'.$this->options['leftDelimiter'].'acl\s+(.+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 acl权限判断标识
+            '#'.$this->options['leftDelimiter'].'\/acl'.$this->options['rightDelimiter'].'#i',//替换 /acl
         );
 
         //替换后的内容
-        $replace = array(
+        $this->replacement = array(
             '&lt;?${1}${2}?&gt',
             '<?php echo ${1};?>',
             '<?php echo ${1}[\'${2}\'];?>',
@@ -226,9 +142,125 @@ class Html extends Base
             'src="javascript:void(0);"',
             '<?php echo \Cml\Tools\StaticResource::parseResourceUrl("${1}");?>',//静态资源
             '',
+            '<?php if (\Cml\Vendor\Acl::checkAcl("${1}")) { ?>',//替换 acl权限判断标识
+            '<?php } ?>',// /acl
         );
+    }
+
+    /**
+     * 添加一个模板标签
+     *
+     * @param string $pattern 正则
+     * @param string $replacement 替换成xx内容
+     * @param bool $haveDelimiter $pattern的内容是否要带上左右定界符
+     *
+     * @return bool
+     */
+    public function addRule($pattern, $replacement, $haveDelimiter = true)
+    {
+        if ($pattern && $replacement) {
+            $this->pattern = $haveDelimiter ? '#'.$this->options['leftDelimiter'].$pattern.$this->options['rightDelimiter'].'#s' : "#{$pattern}#s";
+            $this->replacement = $replacement;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 设定模板参数
+     *
+     * @param  string | array $name  参数名称
+     * @param  mixed  $value 参数值
+     *
+     * @return void
+     */
+    private function set($name, $value = '')
+    {
+        if (is_array($name)) {
+            $this->options = array_merge($this->options, $name);
+        } else {
+            $this->options[$name] = $value;
+        }
+    }
+
+    /**
+     * 获取模板文件缓存
+     *
+     * @param  string $file 模板文件名称
+     * @param int $type 缓存类型0当前操作的模板的缓存 1包含的模板的缓存
+     *
+     * @return string
+     */
+    private function getFile($file, $type = 0)
+    {
+        $type == 1 && $file = $this->initBaseDir($file);//初始化路径
+        //$file = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $file);
+        $cacheFile = $this->getCacheFile($file);
+        if ($this->options['autoUpdate']) {
+            $tplFile = $this->getTplFile($file);
+            if (!is_readable($tplFile)) {
+                throw new FileCanNotReadableException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $tplFile));
+            }
+            if (!is_file($cacheFile)) {
+                if ($type !==1 && !is_null($this->layout)) {
+                    if (!is_readable($this->layout)) {
+                        throw new FileCanNotReadableException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
+                    }
+                }
+                $this->compile($tplFile, $cacheFile, $type);
+                return $cacheFile;
+            }
+
+            $compile = false;
+            $tplMtime = filemtime($tplFile);
+            $cacheMtime = filemtime($cacheFile);
+            if ($cacheMtime && $tplMtime) {
+                ($cacheMtime < $tplMtime) && $compile = true;
+            } else {//获取mtime失败
+                $compile = true;
+            }
+
+            if ($compile && $type !==1 && !is_null($this->layout)) {
+                if (!is_readable($this->layout)) {
+                    throw new FileCanNotReadableException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
+                }
+            }
+
+            //当子模板未修改时判断布局模板是否修改
+            if (!$compile && $type !==1 && !is_null($this->layout)) {
+                if (!is_readable($this->layout)) {
+                    throw new FileCanNotReadableException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
+                }
+                $layoutMTime = filemtime($this->layout);
+                if ($layoutMTime) {
+                    $cacheMtime < $layoutMTime && $compile = true;
+                } else {
+                    $compile = true;
+                }
+            }
+
+            $compile && $this->compile($tplFile, $cacheFile, $type);
+        }
+        return $cacheFile;
+    }
+
+    /**
+     * 对模板文件进行缓存
+     *
+     * @param  string  $tplFile    模板文件名
+     * @param  string $cacheFile 模板缓存文件名
+     * @param int $type 缓存类型0当前操作的模板的缓存 1包含的模板的缓存
+     *
+     * @return void
+     */
+    private function compile($tplFile, $cacheFile, $type)
+    {
+        //取得模板内容
+        //$template = file_get_contents($tplFile);
+        $template = $this->getTplContent($tplFile, $type);
+
         //执行替换
-        $template = preg_replace($exp, $replace, $template);
+        $template = preg_replace($this->pattern, $this->replacement, $template);
 
         if (!Cml::$debug) {
             /* 去除html空格与换行 */
@@ -260,12 +292,10 @@ class Html extends Base
         if ($type === 0 && !is_null($this->layout)) {//主模板且存在模板布局
             $layoutCon = file_get_contents($this->layout);
             $tplCon = file_get_contents($tplFile);
-            $ldeper = $this->options['leftDeper'];
-            $rdeper = $this->options['rightDeper'];
 
             //获取子模板内容
             $presult = preg_match_all(
-                '#'.$ldeper.'to\s+([a_zA-Z]+?)'.$rdeper.'(.*?)'.$ldeper.'\/to'.$rdeper.'#is',
+                '#'.$this->options['leftDelimiter'].'to\s+([a_zA-Z]+?)'.$this->options['rightDelimiter'].'(.*?)'.$this->options['leftDelimiter'].'\/to'.$this->options['rightDelimiter'].'#is',
                 $tplCon,
                 $tmpl
             );
@@ -282,13 +312,13 @@ class Html extends Base
             //将子模板内容替换到布局文件返回
             $layoutBlockData = &$this->layoutBlockData;
             $layoutCon = preg_replace_callback(
-                '#'.$ldeper.'block\s+([a_zA-Z]+?)'.$rdeper.'(.*?)'.$ldeper.'\/block'.$rdeper.'#is',
+                '#'.$this->options['leftDelimiter'].'block\s+([a_zA-Z]+?)'.$this->options['rightDelimiter'].'(.*?)'.$this->options['leftDelimiter'].'\/block'.$this->options['rightDelimiter'].'#is',
                 function($matches) use($layoutBlockData) {
                     array_shift($matches);
                     if (isset($layoutBlockData[$matches[0]])) {
                         //替换{parent}标签并返回
                         return str_replace(
-                            Config::get('html_left_deper').'parent'.Config::get('html_right_deper'),
+                            $this->options['rightDelimiter'].'parent'.$this->options['rightDelimiter'],
                             $matches[1],
                             $layoutBlockData[$matches[0]]
                         );
@@ -340,7 +370,9 @@ class Html extends Base
     private function makePath($path)
     {
         $path = dirname($path);
-        if (!is_dir($path) && !mkdir($path, 0700, true)) \Cml\throwException(Lang::get('_CREATE_DIR_ERROR_')."[{$path}]");
+        if (!is_dir($path) && !mkdir($path, 0700, true)) {
+            throw new MkdirErrorException(Lang::get('_CREATE_DIR_ERROR_')."[{$path}]");
+        }
         return true;
     }
 

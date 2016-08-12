@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
- * @Date: 14-2-211 下午2:23
- * @version  2.5
+ * @Date: 14-2-21 下午2:23
+ * @version  2.6
  * cml框架公用函数库
  * *********************************************************** */
 namespace Cml;
@@ -42,7 +42,7 @@ function dump($var, $getArgs = 0)
 function dumpUsePHPConsole($var, $tag = 'debug')
 {
     if (!Config::get('dump_use_php_console')) {
-        throwException(Lang::get('_NOT_OPEN_', 'dump_use_php_console'));
+        throw new \BadFunctionCallException(Lang::get('_NOT_OPEN_', 'dump_use_php_console'));
     }
     static $connector = false;
     if ($connector === false) {

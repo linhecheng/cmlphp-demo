@@ -1,21 +1,369 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
- * @Date: 14-2-211 下午2:23
- * @version  2.5
+ * @Date: 14-2-21 下午2:23
+ * @version  2.6
  * cml框架 数据验证类
  * *********************************************************** */
 
 namespace Cml\Vendor;
+use Cml\Cml;
+use Cml\Config;
+use Cml\Exception\FileCanNotReadableException;
+use Cml\Lang;
 
 /**
- * C数据验证类,封装了常用的数据验证接口
+ * 数据验证类,封装了常用的数据验证接口
  *
  * @package Cml\Vendor
  */
 class Validate
 {
+
+    /**
+     * 要验证的数组
+     * @var array
+     */
+    private $data = array();
+
+    /**
+     * 自定义的规则
+     *
+     * @var array
+     */
+    private static $rules = array();
+
+    /**
+     * 数据绑定的验证规则
+     *
+     * @var array
+     */
+    private $dateBindRule = array();
+
+    /**
+     * 错误提示语
+     *
+     * @var array
+     */
+    private static $errorTip = array();
+
+    /**
+     * 验证后的错误信息
+     *
+     * @var array
+     */
+    private $errorMsg = array();
+
+    /**
+     * 字段别名
+     *
+     * @var array
+     */
+    private $label = array();
+
+    /**
+     * 初始化要检验的参数
+     *
+     * @param array $data 包含要验证数据的数组
+     * @param string|null $langDir 语言包所在的路径
+     *
+     */
+    public function __construct(array $data = array(), $langDir = null)
+    {
+        if (is_null($langDir)) {
+            $langDir = __DIR__ . '/Validate/Lang/' . Config::get('lang') . '.php';
+        }
+
+        if (!is_file($langDir)) {
+            throw new FileCanNotReadableException(Lang::get('_NOT_FOUND_', 'lang dir ['.$langDir.']'));
+        }
+
+        $errorTip = require $langDir;
+        foreach($errorTip as $key => $val) {
+            $key = strtolower($key);
+            isset(self::$errorTip[$key]) || self::$errorTip[$key] = $val;
+        }
+
+        $this->data = $data;
+    }
+
+    /**
+     * 添加一个自定义的验证规则
+     *
+     * @param  string $name
+     * @param  mixed $callback
+     * @param  string $message
+     * @throws \InvalidArgumentException
+     */
+    public static function addRule($name, $callback, $message = 'error param')
+    {
+        if (!is_callable($callback)) {
+            throw new \InvalidArgumentException('param $callback must can callable');
+        }
+        self::$errorTip[strtolower($name)] = $message;
+        static::$rules[strtolower($name)] = $callback;
+    }
+
+    /**
+     * 绑定校验规则到字段
+     *
+     * @param string $rule
+     * @param array|string $field
+     *
+     * @return $this
+     */
+    public function rule($rule, $field)
+    {
+        $ruleMethod = 'is' . ucfirst($rule);
+        if (!isset(static::$rules[$rule]) && !method_exists($this, $ruleMethod)) {
+            throw new \InvalidArgumentException(Lang::get('_NOT_FOUND_', 'validate rule ['. $rule.']'));
+        }
+
+        $params = array_slice(func_get_args(), 2);
+
+        $this->dateBindRule[] = array(
+            'rule' => $rule,
+            'field' => (array)$field,
+            'params' => (array)$params
+        );
+        return $this;
+    }
+
+    /**
+     * 批量绑定校验规则到字段
+     *
+     * @param array $rules
+     *
+     * @return $this
+     */
+    public function rules($rules)
+    {
+        foreach ($rules as $rule => $field) {
+            if (is_array($field) && is_array($field[0])) {
+                foreach ($field as $params) {
+                    array_unshift($params, $rule);
+                    call_user_func_array(array($this, 'rule'), $params);
+                }
+            } else {
+                $this->rule($rule, $field);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * 自定义错误提示信息
+     *
+     * @param string $msg
+     * @return $this
+     */
+    public function message($msg)
+    {
+        $this->dateBindRule[count($this->dateBindRule) - 1]['message'] = $msg;
+
+        return $this;
+    }
+
+    /**
+     * 执行校验并返回布尔值
+     *
+     * @return boolean
+     */
+    public function validate()
+    {
+        foreach ($this->dateBindRule as $bind) {
+            foreach ($bind['field'] as $field) {
+                if (strpos($field, '.')) {
+                    $values = Cml::doteToArr($field, $this->data);
+                } else {
+                    $values = isset($this->data[$field]) ? $this->data[$field] : null;
+                }
+
+                if (isset(static::$rules[$field])) {
+                    $callback = static::$rules[$field];
+                } else {
+                    $callback = array($this, 'is' . ucfirst($bind['rule']));
+                }
+
+                is_array($values) || $values = array($values);
+
+                $result = true;
+                foreach ($values as $value) {
+                    $result = $result && call_user_func($callback, $value, $bind['params'], $field);
+                }
+
+                if (!$result) {
+                    $this->error($field, $bind);
+                }
+            }
+        }
+
+        return count($this->getErrors()) === 0;
+    }
+
+    /**
+     * 添加一条错误信息
+     *
+     * @param string $field
+     * @param string $bind
+     */
+    private function error($field, &$bind)
+    {
+        $label = (isset($this->label[$field]) && !empty($this->label[$field])) ? $this->label[$field] : $field;
+        $this->errorMsg[$field][] = vsprintf(str_replace('{field}', $label, (isset($bind['message']) ? $bind['message'] : '{field} ' . self::$errorTip[strtolower($bind['rule'])])), $bind['params']);
+    }
+
+    /**
+     * 设置字段显示别名
+     *
+     * @param string $label
+     *
+     * @return $this
+     */
+    public function label($label)
+    {
+        if(is_array($label)) {
+            $this->label = array_merge($this->label, $label);
+        } else {
+            $this->label[$this->dateBindRule[count($this->dateBindRule) - 1]['field'][0]] = $label;
+        }
+
+        return $this;
+    }
+
+    /**
+     * 获取所有错误信息
+     *
+     * @param int $format 返回的格式 0返回数组，1返回json,2返回字符串
+     * @param string $delimiter format为2时分隔符
+     * @return array|string
+     */
+    public function getErrors($format = 0, $delimiter = '|')
+    {
+        switch ($format) {
+            case 1:
+                return json_encode($this->errorMsg);
+            case 2:
+                return implode($delimiter, $this->errorMsg);
+        }
+        return $this->errorMsg;
+    }
+
+    /**
+     * 数据基础验证-是否必须填写的参数
+     *
+     * @param  string $value 需要验证的值
+     *
+     * @return bool
+     */
+    public static function isRequire($value)
+    {
+        if (is_null($value)) {
+            return false;
+        } elseif (is_string($value) && trim($value) === '') {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 数据基础验证-是否大于
+     *
+     * @param int $value 要比较的值
+     * @param int $max 要大于的长度
+     *
+     * @return bool
+     */
+    public static function isGt($value, $max)
+    {
+        is_array($max) && $max = $max[0];
+        if (!is_numeric($value)) {
+            return false;
+        } elseif (function_exists('bccomp')) {
+            return bccomp($value, $max, 14) == 1;
+        } else {
+            return $value > $max;
+        }
+    }
+
+    /**
+     * 数据基础验证-是否小于
+     *
+     * @param int $value 要比较的值
+     * @param int $min 要小于的长度
+     *
+     * @return bool
+     */
+    public static function isLt($value, $min)
+    {
+        is_array($min) && $min = $min[0];
+        if (!is_numeric($value)) {
+            return false;
+        } elseif (function_exists('bccomp')) {
+            return bccomp($min, $value, 14) == 1;
+        } else {
+            return $value < $min;
+        }
+    }
+
+    /**
+     * 数据基础验证-字符串长度是否大于
+     *
+     * @param string $value 字符串
+     * @param int $max 要大于的长度
+     *
+     * @return bool
+     */
+    public static function isLengthGt($value, $max)
+    {
+        is_array($max) && $max = $max[0];
+        return self::isLength($value, $max);
+    }
+
+
+    /**
+     * 数据基础验证-字符串长度是否小于
+     *
+     * @param string $value 字符串
+     * @param int $min 要小于的长度
+     *
+     * @return bool
+     */
+    public static function isLengthLt($value, $min)
+    {
+        is_array($min) && $min = $min[0];
+        return self::isLength($value, 0, $min);
+    }
+
+    /**
+     * 数据基础验证-判断数据是否在数组中
+     *
+     * @param string $value 字符串
+     * @param array $array 比较的数组
+     *
+     * @return bool
+     */
+    public static function isIn($value, $array)
+    {
+        is_array($array[0]) && $array = $array[0];
+        return in_array($value, $array);
+    }
+
+    /**
+     * 数据基础验证-判断数据是否在数组中
+     *
+     * @param string $value 字符串
+     * @param array $array 比较的数组
+     *
+     * @return bool
+     */
+    public static function isNotIn($value, $array)
+    {
+        is_array($array[0]) && $array = $array[0];
+        return !in_array($value, $array);
+    }
 
     /**
      * 数据基础验证-检测字符串长度
@@ -34,21 +382,13 @@ class Validate
         }
         $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
 
+        if (is_array($min)) {
+            $min = $min[0];
+            $max = $min[1];
+        }
         if ($min != 0 && $length < $min) return false;
         if ($max != 0 && $length > $max) return false;
         return true;
-    }
-
-    /**
-     * 数据基础验证-是否必须填写的参数
-     *
-     * @param  string $value 需要验证的值
-     *
-     * @return bool
-     */
-    public static function isRequire($value)
-    {
-        return preg_match('/.+/', trim($value));
     }
 
     /**
@@ -62,6 +402,34 @@ class Validate
     {
         if (empty($value)) return true;
         return false;
+    }
+
+    /**
+     * 验证两个字段相等
+     *
+     * @param string $compareField
+     * @param string $field
+     *
+     * @return bool
+     */
+    protected function isEquals($value, $compareField, $field)
+    {
+        is_array($compareField) && $compareField = $compareField[0];
+        return isset($this->data[$field]) && isset($this->data[$compareField]) && $this->data[$field] == $this->data[$compareField];
+    }
+
+    /**
+     * 验证两个字段不等
+     *
+     * @param string $compareField
+     * @param string $field
+     *
+     * @return bool
+     */
+    protected function isDifferent($value, $compareField, $field)
+    {
+        is_array($compareField) && $compareField = $compareField[0];
+        return isset($this->data[$field]) && isset($this->data[$compareField]) && $this->data[$field] != $this->data[$compareField];
     }
 
     /**
@@ -111,6 +479,30 @@ class Validate
     public static function isNumber($value)
     {
         return is_numeric($value);
+    }
+
+    /**
+     * 数据基础验证-是否是整型
+     *
+     * @param  int $value 需要验证的值
+     *
+     * @return bool
+     */
+    public static function isInt($value)
+    {
+        return filter_var($value, \FILTER_VALIDATE_INT) !== false;
+    }
+
+    /**
+     * 数据基础验证-是否是布尔类型
+     *
+     * @param  int $value 需要验证的值
+     *
+     * @return bool
+     */
+    public static function isBool($value)
+    {
+        return (is_bool($value)) ? true : false;
     }
 
     /**

@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 系统默认Model
  * *********************************************************** */
 namespace Cml;
@@ -103,8 +103,7 @@ class Model
                 self::$cacheInstance[$conf] = new $driver($config);
                 return self::$cacheInstance[$conf];
             } else {
-                throwException(Lang::get('_NOT_OPEN_', $conf));
-                return false;
+                throw new \InvalidArgumentException(Lang::get('_NOT_OPEN_', $conf));
             }
         }
     }

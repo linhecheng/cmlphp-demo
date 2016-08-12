@@ -1,9 +1,9 @@
 <?php namespace Cml\Logger;
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-21-22 下午1:11
- * @version  2.5
+ * @version  2.6
  * cml框架 Log Redis驱动实现
  * *********************************************************** */
 

@@ -1,15 +1,19 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 Redis缓存驱动
  * *********************************************************** */
 namespace Cml\Cache;
 
 use Cml\Config;
+use Cml\Exception\CacheConnectFailException;
+use Cml\Exception\PhpExtendNotInstall;
 use Cml\Lang;
+use Cml\Log;
+use Cml\Plugin;
 
 /**
  * Redis缓存驱动
@@ -33,7 +37,7 @@ class Redis extends namespace\Base
         $this->conf = $conf ? $conf : Config::get('default_cache');
 
         if (!extension_loaded('redis') ) {
-            \Cml\throwException(Lang::get('_CACHE_EXTEND_NOT_INSTALL_', 'Redis'));
+            throw new PhpExtendNotInstall(Lang::get('_CACHE_EXTEND_NOT_INSTALL_', 'Redis'));
         }
     }
 
@@ -46,22 +50,65 @@ class Redis extends namespace\Base
      *
      * @return \Redis
      */
-    private function hash($key) {
-        $success = sprintf('%u', crc32($key)) % count($this->conf['server']);
+    private function hash($key)
+    {
+        $serverNum = count($this->conf['server']);
+        $success = sprintf('%u', crc32($key)) % $serverNum;
 
-        if(!isset($this->redis[$success]) || !is_object($this->redis[$success])) {
+        if (!isset($this->redis[$success]) || !is_object($this->redis[$success])) {
             $instance = new \Redis();
-            if($instance->pconnect($this->conf['server'][$success]['host'], $this->conf['server'][$success]['port'], 1.5)) {
-                $this->redis[$success] = $instance;
-            } else {
-                \Cml\throwException(Lang::get('_CACHE_CONNECT_FAIL_', 'Redis',
+
+            $connectToRedisFunction = function($host, $port) use ($instance) {
+                return $instance->pconnect($host, $port, 1.5);
+            };
+
+            $connectResult = $connectToRedisFunction($this->conf['server'][$success]['host'], $this->conf['server'][$success]['port']);
+
+            $failOver = null;
+
+            if (!$connectResult && !empty($this->conf['back'])) {
+                $failOver = $this->conf['back'];
+                $connectResult = $connectToRedisFunction($failOver['host'], $failOver['port']);
+            }
+
+            if (!$connectResult && $serverNum > 1) {
+                $failOver = $success + 1;
+                $failOver >= $serverNum && $failOver = $success - 1;
+                $failOver = $this->conf['server'][$failOver];
+                $connectResult = $connectToRedisFunction($failOver['host'], $failOver['port']);
+            }
+
+            if (!$connectResult) {
+                Plugin::hook('cml.cache_server_down', array($this->conf['server'][$success]));
+
+                throw new CacheConnectFailException(Lang::get('_CACHE_CONNECT_FAIL_', 'Redis',
                     $this->conf['server'][$success]['host'] . ':' . $this->conf['server'][$success]['port']
                 ));
             }
 
-            if (isset($this->conf['server'][$success]['password']) && !empty($this->conf['server'][$success]['password'])) {
-                $instance->auth($this->conf['server'][$success]['password']) || \Cml\throwException('redis password error!');
+            $password = false;
+            if (is_null($failOver)) {
+                if (isset($this->conf['server'][$success]['password']) && !empty($this->conf['server'][$success]['password'])) {
+                    $password = $this->conf['server'][$success]['password'];
+                }
+
+                isset($this->conf['server'][$success]['db']) && $instance->select($this->conf['server'][$success]['db']);
+            } else {
+                if (isset($failOver['password']) && !empty($failOver['password'])) {
+                    $password = $failOver['password'];
+                }
+
+                isset($failOver['db']) && $instance->select($failOver['db']);
+
+                Log::emergency('redis server down', array('downServer' => $this->conf['server'][$success], 'failOverTo' => $failOver));
+                Plugin::hook('cml.redis_server_down_fail_over', array('downServer' => $this->conf['server'][$success], 'failOverTo' => $failOver));
             }
+
+            if ($password && !$instance->auth($password)) {
+                throw new \RuntimeException('redis password error!');
+            }
+
+            $this->redis[$success] = $instance;
         }
         return $this->redis[$success];
     }
@@ -141,7 +188,7 @@ class Redis extends namespace\Base
                 if($instance->pconnect($val['host'], $val['port'], 1.5)) {
                     $this->redis[$key] = $instance;
                 } else {
-                    \Cml\throwException(Lang::get('_CACHE_NEW_INSTANCE_ERROR_', 'Redis'));
+                    throw new \RuntimeException(Lang::get('_CACHE_NEW_INSTANCE_ERROR_', 'Redis'));
                 }
             }
             $this->redis[$key]->flushDB();

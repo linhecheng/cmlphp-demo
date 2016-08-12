@@ -1,14 +1,15 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
- * @Date: 14-2-211 下午2:23
- * @version  2.5
+ * @Date: 14-2-21 下午2:23
+ * @version  2.6
  * cml框架 Http扩展类
  * *********************************************************** */
 namespace Cml\Vendor;
 
 use Cml\Cml;
+use Cml\Exception\FileCanNotReadableException;
 
 /**
  * Http扩展类,用于采集、文件下载等
@@ -161,7 +162,7 @@ class Http
         }elseif ($content != '') {
             $length = strlen($content);
         }else {
-            \Cml\throwException($filename.'下载文件不存在！');
+            throw new FileCanNotReadableException($filename.'下载文件不存在！');
         }
         if (empty($showname)) {
             $showname = $filename;

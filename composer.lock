@@ -9,16 +9,16 @@
     "packages": [
         {
             "name": "linhecheng/cmlphp",
-            "version": "v2.6.7",
+            "version": "v2.6.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/linhecheng/cmlphp.git",
-                "reference": "a55a5200f2f0769ef03b30b795814145e2e0538d"
+                "reference": "c6d0b06c6870e47c15615aeb8cf2927a73dfadf8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/a55a5200f2f0769ef03b30b795814145e2e0538d.zip",
-                "reference": "a55a5200f2f0769ef03b30b795814145e2e0538d",
+                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/c6d0b06c6870e47c15615aeb8cf2927a73dfadf8.zip",
+                "reference": "c6d0b06c6870e47c15615aeb8cf2927a73dfadf8",
                 "shasum": ""
             },
             "require": {
@@ -44,11 +44,11 @@
                 }
             ],
             "description": "CmlPHP Framework",
-            "homepage": "http://cmlphp.51beautylife.com",
+            "homepage": "http://cmlphp.com",
             "keywords": [
                 "cmlphp"
             ],
-            "time": "2016-07-19 06:50:43"
+            "time": "2016-08-12 11:32:01"
         }
     ],
     "packages-dev": [],

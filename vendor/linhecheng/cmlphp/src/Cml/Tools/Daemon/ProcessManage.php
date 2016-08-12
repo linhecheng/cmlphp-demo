@@ -1,9 +1,9 @@
 <?php namespace Cml\Tools\Daemon;
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 2016/01/23 17:30
- * @version  2.5
+ * @version  2.6
  * cml框架 守护进程工作进程
  * *********************************************************** */
 

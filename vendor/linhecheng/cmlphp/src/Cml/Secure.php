@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.5
+ * @version  2.6
  * cml框架 系统安全类
  * *********************************************************** */
 namespace Cml;
@@ -193,11 +193,11 @@ class Secure
             if ($type == 1) {
                 if (!empty($_POST)) {
                     Response::sendHttpStatus(403);
-                    throwException(Lang::get('_ILLEGAL_REQUEST_'));
+                    throw new \UnexpectedValueException(Lang::get('_ILLEGAL_REQUEST_'));
                 }
             } else {
                 Response::sendHttpStatus(403);
-                throwException(Lang::get('_ILLEGAL_REQUEST_'));
+                throw new \UnexpectedValueException(Lang::get('_ILLEGAL_REQUEST_'));
             }
         }
     }

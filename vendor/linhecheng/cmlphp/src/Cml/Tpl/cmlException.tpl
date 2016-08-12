@@ -11,7 +11,7 @@
 <table class="pure-table">
     <thead>
         <tr>
-            <th>系统发生错误</th>
+            <th><?php echo \Cml\Lang::get('_CML_ERROR_');?></th>
         </tr>
     </thead>
 
@@ -29,7 +29,7 @@
         </tr>
     <?php if (isset($error['files'])) {?>
         <tr class="pure-table-odd">
-            <td><b><?php echo strip_tags($error['message']);?></b></td>
+            <td><b><span style="font-size:25px;color:#350606;font-style:italic;">＂<?php echo $error['exception'];?>＂</span> <?php echo strip_tags($error['message']);?></b></td>
         </tr>
         <tr>
             <td style="font-size:30px;">stack trace:</td>

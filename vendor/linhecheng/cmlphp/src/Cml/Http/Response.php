@@ -1,9 +1,9 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.51beautylife.com
+ * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 下午3:51
- * @version  2.5
+ * @version  2.6
  * cml框架 请求响应类
  * *********************************************************** */
 namespace Cml\Http;
@@ -134,24 +134,30 @@ class Response
     {
         $return = '';
         // 解析URL
-        empty($url) && \Cml\throwException(Lang::get('_CML_ERROR_')); //'U方法参数出错'
+        if (empty($url)) {
+            throw new \InvalidArgumentException(Lang::get('_NOT_ALLOW_EMPTY_', 'url')); //'U方法参数出错'
+        }
         // URL组装
         $delimiter = Config::get('url_pathinfo_depr');
-	    $url = ltrim($url, '/');
+        $url = ltrim($url, '/');
         $url = implode($delimiter, explode('/', $url));
 
-	    if (Config::get('url_model') == 1) {
-		    $return = $_SERVER['SCRIPT_NAME'].'/'.$url;
-	    } elseif (Config::get('url_model') == 2) {
-		    $return = Route::$urlParams['root'].$url;
-	    } elseif (Config::get('url_model') == 3){
-		    $return = $_SERVER['SCRIPT_NAME'].'?'.Config::get('var_pathinfo').'=/'.$url;
-	    }
+        if (Config::get('url_model') == 1) {
+            $return = $_SERVER['SCRIPT_NAME'].'/'.$url;
+        } elseif (Config::get('url_model') == 2) {
+            $return = Route::$urlParams['root'].$url;
+        } elseif (Config::get('url_model') == 3){
+            $return = $_SERVER['SCRIPT_NAME'].'?'.Config::get('var_pathinfo').'=/'.$url;
+        }
 
-	    $return .= (Config::get('url_model') == 2 ? Config::get('url_html_suffix') : '');
+        $return .= (Config::get('url_model') == 2 ? Config::get('url_html_suffix') : '');
 
-	    $return = Secure::filterScript($return);
-        if ($echo === 1) {echo $return;} else {return $return;}
+        $return = Secure::filterScript($return);
+        if ($echo === 1) {
+            echo $return;
+        } else {
+            return $return;
+        }
         return '';
     }
 
