@@ -3,9 +3,10 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 2016/01/23 17:30
- * @version  2.6
+ * @version  2.7
  * cml框架 守护进程工作进程
  * *********************************************************** */
+use Cml\Cml;
 
 /**
  * 守护进程工作进程工作类
@@ -116,10 +117,10 @@ class ProcessManage
         file_put_contents(self::$pidFile, posix_getpid()) || die("can't create pid file");
         self::setProcessName('master');
 
-        pcntl_signal(SIGINT,  array('\\'.__CLASS__, 'signalHandler'), false);
-        pcntl_signal(SIGUSR1, array('\\'.__CLASS__, 'signalHandler'), false);
+        pcntl_signal(SIGINT,  ['\\'.__CLASS__, 'signalHandler'], false);
+        pcntl_signal(SIGUSR1, ['\\'.__CLASS__, 'signalHandler'], false);
 
-        file_put_contents(self::$status, '<?php return '.var_export(array(), true).';', LOCK_EX );
+        file_put_contents(self::$status, '<?php return '.var_export([], true).';', LOCK_EX );
         self::createChildrenProcess();
 
         while (true) {
@@ -197,7 +198,7 @@ class ProcessManage
             foreach($status['pid'] as $cid) {
                 posix_kill($cid, SIGUSR1);
             }
-            $status['pid'] = array();
+            $status['pid'] = [];
             file_put_contents(self::$status, '<?php return '.var_export($status, true).';', LOCK_EX );
         } else {
             exit(posix_getpid().'reload...');
@@ -238,14 +239,14 @@ class ProcessManage
 
         $status = self::getStatus();
 
-        isset($status['task']) || $status['task'] = array();
+        isset($status['task']) || $status['task'] = [];
 
         $key = md5($task);
-        isset($status['task'][$key]) || $status['task'][$key] = array(
+        isset($status['task'][$key]) || $status['task'][$key] = [
             'last_runtime' => 0,//上一次运行时间
             'frequency' => $frequency,//执行的频率
             'task' => $task
-        );
+        ];
         file_put_contents(self::$status, '<?php return '.var_export($status, true).';', LOCK_EX );
 
         self::message('task nums (' . count($status['task']) . ') list  ['.json_encode($status['task'], PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0).']');
@@ -306,7 +307,7 @@ class ProcessManage
      */
     public static function getStatus($showInfo = false) {
 
-        $status = is_file(self::$status) ? require(self::$status) : array();
+        $status = is_file(self::$status) ? Cml::requireFile(self::$status) : [];
         if (!$showInfo) {
             return $status;
         }
@@ -328,9 +329,9 @@ class ProcessManage
      */
     public static function run($cmd)
     {
-        self::$pidFile = CML_RUNTIME_PATH.DIRECTORY_SEPARATOR.'DaemonProcess_.pid';
-        self::$log = CML_RUNTIME_PATH.DIRECTORY_SEPARATOR.'DaemonProcess_.log';
-        self::$status = CML_RUNTIME_PATH.DIRECTORY_SEPARATOR.'DaemonProcessStatus.php';
+        self::$pidFile = Cml::getApplicationDir('global_store_path').DIRECTORY_SEPARATOR.'DaemonProcess_.pid';
+        self::$log = Cml::getApplicationDir('global_store_path').DIRECTORY_SEPARATOR.'DaemonProcess_.log';
+        self::$status = Cml::getApplicationDir('global_store_path').DIRECTORY_SEPARATOR.'DaemonProcessStatus.php';
         self::checkExtension();
 
         $param = is_array($cmd) && count($cmd) == 2 ? $cmd[1] : $cmd;
@@ -384,7 +385,7 @@ class ProcessManage
         if($pid > 0) {
             $status = self::getStatus();
             $status['pid'][$pid] = $pid;
-            isset($status['task']) || $status['task'] = array();
+            isset($status['task']) || $status['task'] = [];
             file_put_contents(self::$status, '<?php return '.var_export($status, true).';', LOCK_EX );
         } elseif($pid === 0) {
             self::setProcessName('worker');

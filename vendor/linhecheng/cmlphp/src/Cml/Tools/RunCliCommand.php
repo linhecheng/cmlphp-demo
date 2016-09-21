@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 2015/11/9 16:01
- * @version  2.6
+ * @version  2.7
  * cml框架 系统cli命令解析
  * *********************************************************** */
 use Cml\Http\Request;
@@ -30,7 +30,7 @@ class RunCliCommand
         array_shift($_SERVER['argv']);
         array_shift($_SERVER['argv']);
         $tool = array_shift($_SERVER['argv']);
-        $args = array();
+        $args = [];
         foreach($_SERVER['argv'] as $val) {
             $args[] = $val;
         }

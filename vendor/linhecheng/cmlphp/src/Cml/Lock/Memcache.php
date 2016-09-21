@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-1-25 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 锁机制Memcache驱动
  * *********************************************************** */
 
@@ -24,11 +24,11 @@ class Memcache extends Base
      * 上锁
      *
      * @param string $key 要上的锁的key
-     * @param bool $wouldblock 是否堵塞
+     * @param bool $wouldBlock 是否堵塞
      *
      * @return mixed
      */
-    public function lock($key, $wouldblock = false)
+    public function lock($key, $wouldBlock = false)
     {
         if(empty($key)) {
             return false;
@@ -37,16 +37,16 @@ class Memcache extends Base
 
         if (
             isset($this->lockCache[$key])
-            && $this->lockCache[$key] == Model::getInstance()->cache($this->userCache)->getInstance()->get($key)
+            && $this->lockCache[$key] == Model::getInstance()->cache($this->useCache)->getInstance()->get($key)
         ) {
             return true;
         }
 
-        $driverType = Model::getInstance()->cache($this->userCache)->getDriverType();
+        $driverType = Model::getInstance()->cache($this->useCache)->getDriverType();
         if ($driverType === 1) { //memcached
-            $isLock = Model::getInstance()->cache($this->userCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, $this->expire);
+            $isLock = Model::getInstance()->cache($this->useCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, $this->expire);
         } else {//memcache
-            $isLock = Model::getInstance()->cache($this->userCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, 0, $this->expire);
+            $isLock = Model::getInstance()->cache($this->useCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, 0, $this->expire);
         }
         if ($isLock) {
             $this->lockCache[$key] = (string)Cml::$nowMicroTime;
@@ -54,7 +54,7 @@ class Memcache extends Base
         }
 
         //非堵塞模式
-        if (!$wouldblock) {
+        if (!$wouldBlock) {
             return false;
         }
 
@@ -63,9 +63,9 @@ class Memcache extends Base
             usleep(200);
 
             if ($driverType === 1) { //memcached
-                $isLock = Model::getInstance()->cache($this->userCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, $this->expire);
+                $isLock = Model::getInstance()->cache($this->useCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, $this->expire);
             } else {//memcache
-                $isLock = Model::getInstance()->cache($this->userCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, 0, $this->expire);
+                $isLock = Model::getInstance()->cache($this->useCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, 0, $this->expire);
             }
         } while (!$isLock);
 

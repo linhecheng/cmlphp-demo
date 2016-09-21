@@ -3,11 +3,11 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架惯例配置文件
  * *********************************************************** */
 
-return array(
+return [
     //调试模式  默认关闭
     'debug' => false,
     'db_fields_cache' => true, //在debug模式实时获取字段列表，线上模式是否开启数据库字段缓存到文件。自v2.6.3起。开启本功能主要用于获取主键缓存
@@ -15,9 +15,9 @@ return array(
     'time_zone' => 'PRC', //时区
 
     //数据库配置
-    'default_db' => array(
-        'driver' => 'MySql.Pdo', //数据库驱动
-        'master' => array(
+    'default_db' => [
+        'driver' => 'Pdo', //数据库驱动
+        'master' => [
             'host' => 'localhost', //数据库主机
             'username' => 'root', //数据库用户名
             'password' => '', //数据库密码
@@ -26,94 +26,98 @@ return array(
             'tableprefix' => 'sun_', //数据表前缀
             'pconnect' => false, //是否开启数据库长连接
             'engine' => ''//数据库引擎
-        ),
-        'slaves'=>array(),
+        ],
+        'slaves'=>[],
         'cache_expire' => 3600,//查询数据缓存时间
         //是否记录执行慢的sql语句。只针对mysql有效。这个不能长期开，只能要分析sql性能的时候比如只开个5会钟有一定的log后就应该关掉。默认为false。
         //为整形的时候则为执行时间大于这个时间的sql都记录到log下 比如配置为1则为执行超过1s的sql都记录到 notice.log里
         'log_slow_sql' => false,
-    ),
+    ],
 
     /**
     使用MongoDB
-    'db_mongo' => array(
-        'driver' => 'MongoDB.MongoDB', //数据库驱动
-        'master' => array(
+    'db_mongo' => [
+        'driver' => 'MongoDB', //数据库驱动
+        'master' => [
             'host' => 'localhost:27017',
             'username' => '',
             'password' => '',
             'dbname' => 'test',
             //'replicaSet' => '' //replicaSet名称
-        ),
-        'slaves'=>array(),
-    ),
+        ],
+        'slaves'=>[],
+    ],
      **/
 
     // 缓存服务器的配置
-    'default_cache' => array(
+    'default_cache' => [
         'on' => 0, //为1则启用，或者不启用
         'driver' => 'Memcache',
         'prefix' => 'cml_',
-        'server' => array(
-            array(
+        'server' => [
+            [
                 'host' => '127.0.0.1',
                 'port' => 11211,//必须是整形
                 //'weight' => 100 //权重memcached扩展有效
-            ),
+            ],
             //多台...
-        ),
-    ),
+        ],
+    ],
     /**
     //文件缓存
-    'default_cache' => array(
+    'default_cache' => [
         'on' => 0, //为1则启用，或者不启用
         'driver' => 'File',
         'prefix' => 'cml_'
-    ),
+    ],
     //apc缓存
-    'default_cache' => array(
+    'default_cache' => [
         'on' => 0, //为1则启用，或者不启用
         'driver' => 'Apc',
         'prefix' => 'cml_'
-    ),
+    ],
     //Redis缓存
-    'default_cache' => array(
+    'default_cache' => [
         'on' => 0, //为1则启用，或者不启用
         'driver' => 'Redis',
         'prefix' => 'cml_',
-        'server' => array(
-            array(
+        'server' => [
+            [
                 'host' => '127.0.0.1',
                 'port' => 6379,
+                //'pconnect' => false //默认使用长连接
                 //'db' => 6
                 //'password' => '123456' //没有密码的时候不要配置
-            ),
+            ],
             //多台...
-        ),
-        //'back' => array(//当server中有机器挂掉且back有开启时。会自动使用back来替换挂掉的server方便处理异常情况
+        ],
+        //'back' => [//当server中有机器挂掉且back有开启时。会自动使用back来替换挂掉的server方便处理异常情况
         //    'host' => '127.0.0.1',
         //    'port' => 6379
-        //)
-    ),
+        //]
+    ],
     */
 
-    //模板设置
-    'view_render_engine' => 'Html',//视图渲染引擎，Html/Excel/Json/Xml
+    /*模板设置*/
+    'view_render_engine' => 'html',//默认的视图渲染引擎，html/excel/json/xml
     'default_charset' => 'utf-8', // 默认输出编码
     'http_cache_control' => 'private', // 网页缓存控制
     'output_encode' => true, // 页面压缩输出
 
-    //Html引擎配置
+    /*Html引擎配置。只适用于html模板引擎*/
     'html_theme' =>'', //默认只有单主题
     'html_template_suffix' => '.html',     // 默认模板文件后缀
     'html_left_deper' => '{{', //模板左定界符
     'html_right_deper' => '}}', //模板右定界符
-    'html_exception' => CML_PATH.'/Cml/Tpl/cmlException.tpl', // 默认成功跳转对应的模板文件
-    '404_page' => CML_PATH.'/Cml/Tpl/404.tpl', // 404跳转页
+
+    /*系统模板定义*/
+    'html_exception' => CML_CORE_PATH.'/Tpl/cmlException.tpl', // 默认成功跳转对应的模板文件
+    '404_page' => CML_CORE_PATH.'/Tpl/404.tpl', // 404跳转页
+    'debug_page' => CML_CORE_PATH.'/Tpl/debug.tpl', // debug调试信息模板
 
 
     /* URL设置 */
-    'url_model' => 1,       // URL访问模式,可选参数0、1、2、3,代表以下四种模式：
+    'url_model' => 1,       // URL访问模式,可选参数1、2、3,代表以下四种模式：
     // 1 (PATHINFO 模式显示index.php); 2 (PATHINFO 不显示index.php); 3 (兼容模式)  默认为PATHINFO 模式，提供最好的用户体验和SEO支持
     'url_pathinfo_depr' => '/', // PATHINFO模式下，各参数之间的分割符号
     'url_html_suffix' => '.html',  // URL伪静态后缀设置
@@ -145,26 +149,22 @@ return array(
 
     /**锁配置**/
     'lock_prefix' => 'cml_',
-    //上锁使用的缓存
-    'locker_use_cache' => 'default_cache',
+    'locker_use_cache' => 'default_cache', //上锁使用的缓存
 
     /**日志配置**/
     'log_warn_log' => false, //警告级别的日志默认不记录
-    'log_driver' => 'File', //日志驱动,内置File/Redis两种
     'log_prefix' => 'cml_log', //会显示到日志内容中,同时当以redis为驱动的时候会做为队列的前缀
-    //Log类使用的缓存
-    'log_use_cache' => 'default_cache',//只有在该缓存的驱动为redis的时候才有效,否则会报错
-    //队列使用的缓存
-    'queue_use_cache' => 'default_cache',//只有在该缓存的驱动为redis的时候才有效,否则会报错
+    //Log类使用redis为驱动时使用的缓存配置key
+    'redis_log_use_cache' => 'default_cache',//只有在该缓存的驱动为redis的时候才有效,否则会报错
 
-    'is_multi_modules' => true, //是否为分模块设计,//默认为true 这个选项是为了兼容旧项目，新项目最好不要开启
-    'application_dir' => 'Application',//分模块的时候主目录名称
-    'modules_static_path_name' => 'Resource',//分模块的时候如有静态资源默认目录名
+    /**队列配置**/
+    //Redis队列使用的缓存
+    'redis_queue_use_cache' => 'default_cache',//只有在该缓存的驱动为redis的时候才有效,否则会报错
 
     /*系统路由-统一用小写url*/
-    'cmlframework_system_command' => array(
+    'cmlframework_system_command' => [
         'cmlframeworkstaticparse' => '\\Cml\\Tools\\StaticResource::parseResourceFile'
-    ),
+    ],
     'static_file_version' => 'v1', //开发模式会自动在静态文件后加时间缀，实时过期,线上模板版本号固定，如有需要在这里改版本号强制过期
 
     /*php-console配置*/
@@ -179,4 +179,5 @@ return array(
      */
     'emergency_mode_not_real_time_refresh_mysql_query_cache' => false, //配置成int型则为缓存刷新周期。如配置成 300 则为数据变更时每五分钟更新一次mysql查询缓存
 
-);
+    'var_page' => 'page', //分页时传递当前页数的变量名
+];

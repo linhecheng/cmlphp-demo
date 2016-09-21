@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-21-22 下午1:11
- * @version  2.6
+ * @version  2.7
  * cml框架 Log Redis驱动实现
  * *********************************************************** */
 
@@ -26,9 +26,9 @@ class Redis extends Base
      *
      * @return null
      */
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = [])
     {
-        return Model::getInstance()->cache(Config::get('log_use_cache'))->getInstance()->lPush(
+        return Model::getInstance()->cache(Config::get('redis_log_use_cache'))->getInstance()->lPush(
             Config::get('log_prefix') . '_' . $level ,
             $this->format($message, $context)
         );

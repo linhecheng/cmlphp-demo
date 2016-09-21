@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 图片处理扩展类
  * *********************************************************** */
 
@@ -114,7 +114,9 @@ class Image
             ($height > $imageInfo['height']) && $height = $imageInfo['height'];
         }
 
-        if (!in_array($type, array('jpeg', 'gif', 'png'))) return false;
+        if (!in_array($type, ['jpeg', 'gif', 'png'])) {
+            return false;
+        }
         $createImageFunc = "imagecreatefrom{$type}";
         $sourceCreateImage = $createImageFunc($image);//载入原图
 

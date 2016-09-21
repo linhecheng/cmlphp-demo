@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 Log处理类
  * *********************************************************** */
 namespace Cml;
@@ -20,18 +20,11 @@ class Log
     /**
      * 获取Logger实例
      *
-     * @param string | null $logger 使用的log驱动
-     *
      * @return Base
      */
-    private static function getLogger($logger = null)
+    private static function getLogger()
     {
-        static $instance = null;
-        if(is_null($instance)) {
-            $driver = '\\Cml\\Logger\\' . (is_null($logger) ? Config::get('log_driver', 'File') : $logger);
-            $instance = new $driver();
-        }
-        return $instance;
+        return Cml::getContainer()->make('cml_log');
     }
 
     /**
@@ -42,7 +35,7 @@ class Log
      *
      * @return bool
      */
-    public static function debug($log, array $context = array())
+    public static function debug($log, array $context = [])
     {
         return self::getLogger()->debug($log, $context);
     }
@@ -55,7 +48,7 @@ class Log
      *
      * @return bool
      */
-    public static function info($log, array $context = array())
+    public static function info($log, array $context = [])
     {
         return self::getLogger()->info($log, $context);
     }
@@ -68,7 +61,7 @@ class Log
      *
      * @return bool
      */
-    public static function notice($log, array $context = array())
+    public static function notice($log, array $context = [])
     {
         return self::getLogger()->notice($log, $context);
     }
@@ -81,7 +74,7 @@ class Log
      *
      * @return bool
      */
-    public static function warning($log, array $context = array())
+    public static function warning($log, array $context = [])
     {
         return self::getLogger()->warning($log, $context);
     }
@@ -94,7 +87,7 @@ class Log
      *
      * @return bool
      */
-    public static function error($log, array $context = array())
+    public static function error($log, array $context = [])
     {
         return self::getLogger()->error($log, $context);
     }
@@ -107,7 +100,7 @@ class Log
      *
      * @return bool
      */
-    public static function critical($log, array $context = array())
+    public static function critical($log, array $context = [])
     {
         return self::getLogger()->critical($log, $context);
     }
@@ -120,7 +113,7 @@ class Log
      *
      * @return bool
      */
-    public static function emergency($log, array $context = array())
+    public static function emergency($log, array $context = [])
     {
         return self::getLogger()->emergency($log, $context);
     }
@@ -128,20 +121,20 @@ class Log
     /**
      * 错误日志handler
      *
-     * @param int $errno 错误类型 分运行时警告、运行时提醒、自定义错误、自定义提醒、未知等
-     * @param string $errstr 错误提示
-     * @param string $errfile 发生错误的文件
-     * @param string $errline 错误所在行数
+     * @param int $errorType 错误类型 分运行时警告、运行时提醒、自定义错误、自定义提醒、未知等
+     * @param string $errorTip 错误提示
+     * @param string $errorFile 发生错误的文件
+     * @param int $errorLine 错误所在行数
      *
      * @return void
      */
-    public static function catcherPhpError($errno, $errstr, $errfile, $errline)
+    public static function catcherPhpError($errorType, $errorTip, $errorFile, $errorLine)
     {
-        if (in_array($errno, array(E_NOTICE, E_STRICT, E_DEPRECATED, E_USER_DEPRECATED, E_USER_NOTICE))) {
+        if (in_array($errorType, [E_NOTICE, E_STRICT, E_DEPRECATED, E_USER_DEPRECATED, E_USER_NOTICE])) {
             return ;//只记录warning以上级别日志
         }
 
-        self::getLogger()->log(self::getLogger()->phpErrorToLevel[$errno], $errstr, array('file' => $errfile, 'line' => $errline));
+        self::getLogger()->log(self::getLogger()->phpErrorToLevel[$errorType], $errorTip, ['file' => $errorFile, 'line' => $errorLine]);
         return;
     }
 

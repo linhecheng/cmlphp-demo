@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 下午5:30
- * @version  2.6
+ * @version  2.7
  * cml框架 请求类
  * *********************************************************** */
 namespace Cml\Http;
@@ -94,13 +94,13 @@ class Request
             return false;
         } else {
             $cookie = null;
-            static $mobileBrowserList =array('iphone', 'android', 'phone', 'mobile', 'wap', 'netfront', 'java', 'opera mobi', 'opera mini',
+            static $mobileBrowserList = ['iphone', 'android', 'phone', 'mobile', 'wap', 'netfront', 'java', 'opera mobi', 'opera mini',
                 'ucweb', 'windows ce', 'symbian', 'series', 'webos', 'sony', 'blackberry', 'dopod', 'nokia', 'samsung',
                 'palmsource', 'xda', 'pieplus', 'meizu', 'midp', 'cldc', 'motorola', 'foma', 'docomo', 'up.browser',
                 'up.link', 'blazer', 'helio', 'hosin', 'huawei', 'novarra', 'coolpad', 'webos', 'techfaith', 'palmsource',
                 'alcatel', 'amoi', 'ktouch', 'nexian', 'ericsson', 'philips', 'sagem', 'wellcom', 'bunjalloo', 'maui', 'smartphone',
                 'iemobile', 'spice', 'bird', 'zte-', 'longcos', 'pantech', 'gionee', 'portalmmm', 'jig browser', 'hiptop',
-                'benq', 'haier', '^lct', '320x320', '240x320', '176x220');
+                'benq', 'haier', '^lct', '320x320', '240x320', '176x220'];
             foreach ($mobileBrowserList as $val) {
                 $result = strpos(strtolower($_SERVER['HTTP_USER_AGENT']), $val);
                 if (false !== $result) {
@@ -198,7 +198,7 @@ class Request
      *
      * @return bool|mixed
      */
-    public static function curl($url, $parameter = array(), $header = array(), $type = 'json', $timeout = 10)
+    public static function curl($url, $parameter = [], $header = [], $type = 'json', $timeout = 10)
     {
         $ssl = substr($url, 0, 8) == "https://" ? true : false;
         $ch = curl_init();
@@ -209,7 +209,7 @@ class Request
 
         if ($type == 'json') {
             $queryStr = json_encode($parameter, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
-            //$queryStr = str_replace(array('\/','[]'), array('/','{}'), $queryStr);//兼容
+            //$queryStr = str_replace(['\/','[]'], ['/','{}'], $queryStr);//兼容
 
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $queryStr);

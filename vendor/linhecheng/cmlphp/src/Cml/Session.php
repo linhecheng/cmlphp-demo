@@ -50,12 +50,12 @@ class Session
         ini_set('session.save_handler', 'user');
         session_module_name('user');
         session_set_save_handler(
-            array($cmlSession, 'open'), //运行session_start()时执行
-            array($cmlSession, 'close'), //在脚本执行结束或调用session_write_close(),或session_destroy()时被执行，即在所有session操作完后被执行
-            array($cmlSession, 'read'), //在执行session_start()时执行，因为在session_start时会去read当前session数据
-            array($cmlSession, 'write'), //此方法在脚本结束和session_write_close强制提交SESSION数据时执行
-            array($cmlSession, 'destroy'), //在执行session_destroy()时执行
-            array($cmlSession, 'gc') //执行概率由session.gc_probability和session.gc_divisor的值决定，时机是在open,read之后，session_start会相继执行open,read和gc
+            [$cmlSession, 'open'], //运行session_start()时执行
+            [$cmlSession, 'close'], //在脚本执行结束或调用session_write_close(),或session_destroy()时被执行，即在所有session操作完后被执行
+            [$cmlSession, 'read'], //在执行session_start()时执行，因为在session_start时会去read当前session数据
+            [$cmlSession, 'write'], //此方法在脚本结束和session_write_close强制提交SESSION数据时执行
+            [$cmlSession, 'destroy'], //在执行session_destroy()时执行
+            [$cmlSession, 'gc'] //执行概率由session.gc_probability和session.gc_divisor的值决定，时机是在open,read之后，session_start会相继执行open,read和gc
         );
         ini_get('session.auto_start') || session_start(); //自动开启session,必须在session_set_save_handler后面执行
     }
@@ -83,7 +83,7 @@ class Session
         if (Config::get('session_user_LOC') == 'db') {
             $this->handler ->wlink = null;
         }
-        //$GLOBALS['debug'] && \Cml\Debug::stop(); 开启ob_start()的时候 php此时已经不能使用压缩，所以这边输出的数据是没压缩的，而之前已经告诉浏览器数据是压缩的，所以会导致火狐、ie不能正常解压
+        //$GLOBALS['debug'] && \Cml\Debug::stopAndShowDebugInfo(); 开启ob_start()的时候 php此时已经不能使用压缩，所以这边输出的数据是没压缩的，而之前已经告诉浏览器数据是压缩的，所以会导致火狐、ie不能正常解压
         //$this->gc($this->lifeTime);
         return true;
     }
@@ -118,11 +118,11 @@ class Session
     public function write($sessionId, $value)
     {
         if (Config::get('session_user_LOC') == 'db') {
-            $this->handler ->set(Config::get('session_user_loc_table'), array(
+            $this->handler ->set(Config::get('session_user_loc_table'), [
                 'id' => $sessionId,
                 'value' => $value,
                 'ctime' => Cml::$nowTime
-            ), Config::get('session_user_loc_tableprefix'));
+            ], Config::get('session_user_loc_tableprefix'));
         } else {
             $this->handler->set(Config::get('session_user_loc_tableprefix').Config::get('session_user_loc_table').'-id-'.$sessionId, $value, $this->lifeTime);
         }

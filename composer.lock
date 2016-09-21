@@ -4,25 +4,25 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ff794ecbcfd07955d999bfd43d224871",
-    "content-hash": "03b0ef3e21e7c9e372b3d8dc9f71667c",
+    "hash": "b88de4e904d7be67e94d114c595c10b8",
+    "content-hash": "fe9d58bf401ec7bbe56614bf07b39441",
     "packages": [
         {
             "name": "linhecheng/cmlphp",
-            "version": "v2.6.8",
+            "version": "v2.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/linhecheng/cmlphp.git",
-                "reference": "c6d0b06c6870e47c15615aeb8cf2927a73dfadf8"
+                "reference": "09ea3c8576ae53d1fe4178e9d4250e6d4858676d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/c6d0b06c6870e47c15615aeb8cf2927a73dfadf8.zip",
-                "reference": "c6d0b06c6870e47c15615aeb8cf2927a73dfadf8",
+                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/09ea3c8576ae53d1fe4178e9d4250e6d4858676d.zip",
+                "reference": "09ea3c8576ae53d1fe4178e9d4250e6d4858676d",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=5.4.0"
             },
             "type": "library",
             "autoload": {
@@ -48,7 +48,7 @@
             "keywords": [
                 "cmlphp"
             ],
-            "time": "2016-08-12 11:32:01"
+            "time": "2016-09-21 09:02:37"
         }
     ],
     "packages-dev": [],

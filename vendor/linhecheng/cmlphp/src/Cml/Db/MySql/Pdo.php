@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 MySql数据库 Pdo驱动类
  * *********************************************************** */
 namespace Cml\Db\MySql;
@@ -55,11 +55,28 @@ class Pdo extends Base
         $stmt = $this->prepare('SHOW TABLES;', $this->rlink);
         $this->execute($stmt);
 
-        $tables = array();
+        $tables = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $tables[] = $row['Tables_in_'.$this->conf['master']['dbname']];
         }
         return $tables;
+    }
+
+    /**
+     * 获取当前数据库中所有表的信息
+     *
+     * @return array
+     */
+    public function getAllTableStatus()
+    {
+        $stmt = $this->prepare('SHOW TABLE STATUS FROM '.$this->conf['master']['dbname'], $this->rlink);
+        $this->execute($stmt);
+        $res = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $return = [];
+        foreach ($res as $val) {
+            $return[$val['Name']] = $val;
+        }
+        return $return;
     }
 
     /**
@@ -73,7 +90,7 @@ class Pdo extends Base
      */
     public function getDbFields($table, $tablePrefix = null, $filter = 0)
     {
-        static $dbFieldCache = array();
+        static $dbFieldCache = [];
 
         if ($filter == 1 && Cml::$debug) return '*'; //debug模式时直接返回*
         $table = is_null($tablePrefix) ? strtolower($table) : strtolower($tablePrefix . $table);
@@ -87,16 +104,16 @@ class Pdo extends Base
             if (!$info || Cml::$debug) {
                 $stmt = $this->prepare("SHOW COLUMNS FROM $table", $this->rlink, false);
                 $this->execute($stmt, false);
-                $info = array();
+                $info = [];
                 while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-                    $info[$row['Field']] = array(
+                    $info[$row['Field']] = [
                         'name'    => $row['Field'],
                         'type'    => $row['Type'],
                         'notnull' => (bool) ($row['Null'] === ''), // not null is empty, null is yes
                         'default' => $row['Default'],
                         'primary' => (strtolower($row['Key']) == 'pri'),
                         'autoinc' => (strtolower($row['Extra']) == 'auto_increment'),
-                    );
+                    ];
                 }
 
                 count($info) > 0 && \Cml\simpleFileCache($this->conf['master']['dbname'].'.'.$table, $info);
@@ -127,8 +144,8 @@ class Pdo extends Base
      */
     public function get($key, $and = true, $useMaster = false, $tablePrefix = null)
     {
-        if (is_string($useMaster)) {
-            is_null($tablePrefix) && $tablePrefix = $useMaster;
+        if (is_string($useMaster) && is_null($tablePrefix)) {
+            $tablePrefix = $useMaster;
             $useMaster = false;
         }
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
@@ -161,7 +178,7 @@ class Pdo extends Base
      * 根据key 新增 一条数据
      *
      * @param string $table
-     * @param array $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
+     * @param array $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return bool|int
@@ -186,7 +203,7 @@ class Pdo extends Base
      * 根据key更新一条数据
      *
      * @param string $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
-     * @param array | null $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
+     * @param array | null $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
      * @param bool $and 多个条件之间是否为and  true为and false为or
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
@@ -362,9 +379,9 @@ class Pdo extends Base
     private function aggregation($field, $isMulti = false, $useMaster = false, $operation = 'COUNT')
     {
         is_string($isMulti) && $this->groupBy($isMulti);
-        $count = $this->columns(array("{$operation}({$field})" => '__res__'))->select(null, null, $useMaster);
+        $count = $this->columns(["{$operation}({$field})" => '__res__'])->select(null, null, $useMaster);
         if ($isMulti) {
-            $return = array();
+            $return = [];
             foreach($count as $val) {
                 $return[] = $operation === 'COUNT' ? intval($val['__res__']) : floatval($val['__res__']);
             }
@@ -491,14 +508,14 @@ class Pdo extends Base
             $host = explode(':', $host);
             $dsn = "mysql:host={$host[0]};".(isset($host[1]) ? "port={$host[1]};" : '')."dbname={$dbName}";
             if ($pConnect) {
-                $link = new \PDO($dsn, $username, $password, array(
+                $link = new \PDO($dsn, $username, $password, [
                     \PDO::ATTR_PERSISTENT => true,
                     \PDO::ATTR_EMULATE_PREPARES=> false
-                ));
+                ]);
             } else {
-                $link = new \PDO($dsn, $username, $password, array(
+                $link = new \PDO($dsn, $username, $password, [
                     \PDO::ATTR_EMULATE_PREPARES=> false
-                ));
+                ]);
             }
         } catch (\PDOException $e) {
             throw new PdoConnectException(
@@ -588,7 +605,7 @@ class Pdo extends Base
         $resetParams && $this->reset();
         is_null($link) && $link = $this->wlink;
 
-        $sqlParams = array();
+        $sqlParams = [];
         foreach ($this->bindParams as $key => $val) {
             $sqlParams[] = ':param'.$key;
         }
@@ -632,8 +649,8 @@ class Pdo extends Base
         if ($this->conf['log_slow_sql']) {
             $queryTime = microtime(true) - $startQueryTimeStamp;
             if ($queryTime > $this->conf['log_slow_sql']) {
-                if (Plugin::hook('cml.mysql_query_slow', array('sql' => $this->buildDebugSql(), 'query_time' => $queryTime)) !== false) {
-                    Log::notice('slow_sql', array('sql' => $this->buildDebugSql(), 'query_time' => $queryTime));
+                if (Plugin::hook('cml.mysql_query_slow', ['sql' => $this->buildDebugSql(), 'query_time' => $queryTime]) !== false) {
+                    Log::notice('slow_sql', ['sql' => $this->buildDebugSql(), 'query_time' => $queryTime]);
                 }
                 $slow = $queryTime;
             }
@@ -768,7 +785,7 @@ class Pdo extends Base
      *
      * @return array|int
      */
-    public function callProcedure($procedureName = '', $bindParams = array(), $isSelect = true)
+    public function callProcedure($procedureName = '', $bindParams = [], $isSelect = true)
     {
         $this->bindParams = $bindParams;
         $stmt = $this->prepare("exec {$procedureName}");

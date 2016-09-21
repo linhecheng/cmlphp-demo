@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 13-10-22 下午5:06
- * @version  2.6
+ * @version  2.7
  * cml框架 stmp邮件发送
  * *********************************************************** */
 namespace Cml\Vendor;
@@ -17,7 +17,7 @@ use Cml\Cml;
  */
 class Email
 {
-    public $config = array(
+    public $config = [
         'sitename' => '网站名称',
         'state' => 1,
         'server' => 'smtp.eudemonsonline.com',
@@ -27,9 +27,9 @@ class Email
         'password' => 'nd@sdf89un2',
         'charset' => 'utf-8',
         'mailfrom' => 'service@eudemonsonline.com'
-    );
+    ];
 
-    public function __construct($config = array())
+    public function __construct($config = [])
     {
         $this->config = array_merge($this->config, $config);
     }

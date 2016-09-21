@@ -3,12 +3,13 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-1-25 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 锁机制驱动抽象类基类
  * *********************************************************** */
 namespace Cml\Lock;
 
 use Cml\Config;
+use Cml\Interfaces\Lock;
 use Cml\Model;
 
 /**
@@ -16,17 +17,18 @@ use Cml\Model;
  *
  * @package Cml\Lock
  */
-abstract class Base
+abstract class Base implements Lock
 {
     /**
-     * 使用的缓存
+     * 锁驱动使用redis/memcache时使用的缓存
      *
      * @var string
      */
-    protected $userCache = 'default_cache';
+    protected $useCache = '';
 
-    public function __construct($userCache) {
-        is_null($userCache) || $this->userCache = $userCache;
+    public function __construct($useCache) {
+        $useCache || $useCache = Config::get('locker_use_cache', 'default_cache');
+        $this->useCache = $useCache;
     }
 
     /**
@@ -43,14 +45,14 @@ abstract class Base
      *
      * @var array
      */
-    protected $lockCache = array();
+    protected $lockCache = [];
 
     /**
      * 设置锁的过期时间
      *
      * @param int $expire
      *
-     * @return \Cml\Lock\Redis | \Cml\Lock\Memcache | \Cml\Lock\File
+     * @return $this | \Cml\Lock\Redis | \Cml\Lock\Memcache | \Cml\Lock\File
      */
     public function setExpire($expire = 100)
     {
@@ -71,16 +73,6 @@ abstract class Base
     }
 
     /**
-     * 上锁
-     *
-     * @param string $key 要解锁的锁的key
-     * @param bool $wouldblock 是否堵塞
-     *
-     * @return mixed
-     */
-    abstract public function lock($key, $wouldblock = false);
-
-    /**
      * 解锁
      *
      * @param string $key
@@ -93,9 +85,9 @@ abstract class Base
 
         if (
             isset($this->lockCache[$key])
-            && $this->lockCache[$key] == Model::getInstance()->cache($this->userCache)->getInstance()->get($key)
+            && $this->lockCache[$key] == Model::getInstance()->cache($this->useCache)->getInstance()->get($key)
         ) {
-            Model::getInstance()->cache($this->userCache)->getInstance()->delete($key);
+            Model::getInstance()->cache($this->useCache)->getInstance()->delete($key);
             $this->lockCache[$key] = null;//防止gc延迟,判断有误
             unset($this->lockCache[$key]);
         }
@@ -108,8 +100,8 @@ abstract class Base
     public function __destruct()
     {
         foreach ($this->lockCache as $key => $isMyLock) {
-            if ($isMyLock == Model::getInstance()->cache($this->userCache)->getInstance()->get($key)) {
-                Model::getInstance()->cache($this->userCache)->getInstance()->delete($key);
+            if ($isMyLock == Model::getInstance()->cache($this->useCache)->getInstance()->get($key)) {
+                Model::getInstance()->cache($this->useCache)->getInstance()->delete($key);
             }
             $this->lockCache[$key] = null;//防止gc延迟,判断有误
             unset($this->lockCache[$key]);

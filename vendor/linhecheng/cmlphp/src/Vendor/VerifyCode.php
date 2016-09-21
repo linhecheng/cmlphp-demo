@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 13-9-4 下午4:35
- * @version  2.6
+ * @version  2.7
  * cml框架 验证码扩展类
  * *********************************************************** */
 namespace Cml\Vendor;
@@ -134,19 +134,19 @@ class VerifyCode
                 $ba = $tmp;
             }
         }
-        $randarr= array(
+        $randarr = [
             1 => $la + $ba,
             2 => $la * $ba,
             3 => $la - $ba
             // 4 => $la / $ba,
-        );
+        ];
         $randstr = $randarr[$randnum];
-        $randResult = array(
+        $randResult = [
             1 => $la .'+'. $ba.'=?',
             2 => $la .'*'. $ba.'=?',
             3 => $la .'-'.$ba.'=?'
             // 4 => $la .'/'. $ba.'='. $randarr[4],
-        );
+        ];
         $randval = $randResult[$randnum];
         $authKey = md5(mt_rand().microtime());
         Cookie::set($verifyName, $authKey);

@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 上午11:01
- * @version  2.6
+ * @version  2.7
  * cml框架 配置处理类
  * *********************************************************** */
 namespace Cml;
@@ -30,9 +30,9 @@ class Config
      *
      * @var array
      */
-    private static $_content = array(
-        'normal' => array()
-    );
+    private static $_content = [
+        'normal' => []
+    ];
 
     public static function init()
     {
@@ -120,12 +120,12 @@ class Config
             foreach ($key as $k) {
                 if (is_null($tmp)) {
                     if (isset(static::$_content['normal'][$k]) === false) {
-                        static::$_content['normal'][$k] = array();
+                        static::$_content['normal'][$k] = [];
                     }
                     $tmp = &static::$_content['normal'][$k];
                 } else {
-                    is_array($tmp) || $tmp = array();
-                    isset($tmp[$k]) || $tmp[$k] = array();
+                    is_array($tmp) || $tmp = [];
+                    isset($tmp[$k]) || $tmp[$k] = [];
                     $tmp = &$tmp[$k];
                 }
             }
@@ -148,17 +148,20 @@ class Config
         if (isset(static::$_content[$file])) {
             return static::$_content[$file];
         } else {
-            $file = CML_APP_FULL_PATH.DIRECTORY_SEPARATOR
-                .
-                ( $global ? '' : Config::get('application_dir') . Route::$urlParams['path'] )
-                .
-                'Config'.DIRECTORY_SEPARATOR
-                .
-                ( $global ? self::$isLocal.DIRECTORY_SEPARATOR : '' ).$file.'.php';
+            $file =
+                (
+                    $global
+                    ? Cml::getApplicationDir('global_config_path')
+                    : Cml::getApplicationDir('apps_path')
+                        .  '/' . Cml::getContainer()->make('cml_route')->getAppName(). '/'
+                        . Cml::getApplicationDir('app_config_path_name')
+                )
+                . '/'. ( $global ? self::$isLocal.DIRECTORY_SEPARATOR : '' ).$file.'.php';
+
             if (!is_file($file)) {
                 throw new ConfigNotFoundException(Lang::get('_NOT_FOUND_', $file));
             }
-            static::$_content[$file] = require $file;
+            static::$_content[$file] = Cml::requireFile($file);
             return static::$_content[$file];
         }
     }

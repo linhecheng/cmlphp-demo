@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-4-15
- * @version  2.6
+ * @version  2.7
  * cml框架 Lock处理类
  * *********************************************************** */
 namespace Cml;
@@ -25,19 +25,43 @@ class Lock
      */
     public static function getLocker($useCache = null)
     {
-        is_null($useCache) && $useCache = Config::get('locker_use_cache', 'default_cache');
-        static $_instance = array();
-        $config = Config::get($useCache);
-        if (isset($_instance[$useCache])) {
-            return $_instance[$useCache];
-        } else {
-            if ($config['on']) {
-                $lock = 'Cml\Lock\\'.$config['driver'];
-                $_instance[$useCache] = new $lock($useCache);
-                return $_instance[$useCache];
-            } else {
-                throw new \InvalidArgumentException(Lang::get('_NOT_OPEN_', $useCache));
-            }
-        }
+        return Cml::getContainer()->make('cml_lock', $useCache);
+    }
+
+    /**
+     * 设置锁的过期时间
+     *
+     * @param int $expire
+     *
+     * @return \Cml\Lock\Redis | \Cml\Lock\Memcache | \Cml\Lock\File
+     */
+    public static function setExpire($expire = 100)
+    {
+        self::getLocker()->setExpire($expire);
+    }
+
+    /**
+     * 上锁
+     *
+     * @param string $key 要解锁的锁的key
+     * @param bool $wouldBlock 是否堵塞
+     *
+     * @return mixed
+     */
+    public static function lock($key, $wouldBlock = false)
+    {
+        return self::getLocker()->lock($key, $wouldBlock);
+    }
+
+    /**
+     * 解锁
+     *
+     * @param string $key
+     *
+     * @return void
+     */
+    public static function unlock($key)
+    {
+        self::getLocker()->unlock($key);
     }
 }

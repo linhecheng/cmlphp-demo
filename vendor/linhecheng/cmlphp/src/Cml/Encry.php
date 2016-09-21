@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.6
+ * @version  2.7
  * 用法  加密：encrypt($data, $key)、解密：ecrypt($data, $key = null)
  * *********************************************************** */
 namespace Cml;
@@ -48,11 +48,11 @@ class Encry
     private static function cry($string, $type, $key)
     {
         self::createKey($key);
-        $type == 2 && $string = str_replace(array('___a', '___b', '___c'), array('/', '+', '='), $string);
+        $type == 2 && $string = str_replace(['___a', '___b', '___c'], ['/', '+', '='], $string);
 
         $string = $type == 2 ? base64_decode($string) : substr(md5(self::$auth_key . $string), 0, 8) . $string;
         $str_len = strlen($string);
-        $data = array();
+        $data = [];
         $auth_key_length = strlen(self::$auth_key);
         for ($i = 0; $i <= 256; $i++) {
             $data[$i] = ord(self::$auth_key[$i % $auth_key_length]);
@@ -72,7 +72,7 @@ class Encry
             $s.=chr(ord($string[$i]) ^ $code);
         }
         if ($type == 1) {
-            return str_replace(array('/', '+', '='), array('___a', '___b', '___c'), base64_encode($s));
+            return str_replace(['/', '+', '='], ['___a', '___b', '___c'], base64_encode($s));
         } else {
             if (substr(md5(self::$auth_key . substr($s, 8)), 0, 8) == substr($s, 0, 8)) {
                 return substr($s, 8);

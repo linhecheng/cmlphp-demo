@@ -3,65 +3,18 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-02-04 下午20:11
- * @version  2.6
+ * @version  2.7
  * cml框架 队列基类
  * *********************************************************** */
+use Cml\Interfaces\Queue;
+
 /**
  * 队列基类
  *
  * @package Cml\Queue
  */
-abstract class Base
+abstract class Base implements Queue
 {
-
-    /**
-     * 从列表头入队
-     *
-     * @param string $name 要从列表头入队的队列的名称
-     * @param mixed $data 要入队的数据
-     *
-     * @return mixed
-     */
-    abstract public function lPush($name, $data);
-
-    /**
-     * 从列表头出队
-     *
-     * @param string $name 要从列表头出队的队列的名称
-     *
-     * @return mixed
-     */
-    abstract public function lPop($name);
-
-    /**
-     * 从列表尾入队
-     *
-     * @param string $name 要从列表尾入队的队列的名称
-     * @param mixed $data 要入队的数据
-     *
-     * @return mixed
-     */
-    abstract public function rPush($name, $data);
-
-    /**
-     * 从列表尾出队
-     *
-     * @param string $name 要从列表尾出队的队列的名称
-     *
-     * @return mixed
-     */
-    abstract public function rPop($name);
-
-    /**
-     * 弹入弹出
-     *
-     * @param string $from 要弹出的队列名称
-     * @param string $to 要入队的队列名称
-     *
-     * @return mixed
-     */
-    abstract public function rPopLpush($from, $to);
-
     /**
      * 序列化数据
      *

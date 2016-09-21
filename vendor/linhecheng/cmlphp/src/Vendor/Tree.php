@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 无限级分类
  * *********************************************************** */
 
@@ -19,11 +19,11 @@ class Tree
     /**
      * @var array 默认配置
      */
-    private static $config = array(
+    private static $config = [
         'pid' => 'pid', //低级id字段名
         'id' => 'id', //主键字段名
         'name' => 'name' //名称字段名
-    );
+    ];
 
     /**
      * @var int 当前为第几层树
@@ -33,13 +33,15 @@ class Tree
     /**
      * 修改配置
      *
-     * @param  array $config array('pid'=>'', 'id' => '', 'name' =>'name')
+     * @param  array $config ['pid'=>'', 'id' => '', 'name' =>'name']
      *
      * @return mixed
      */
-    public static function setConfig($config = array())
+    public static function setConfig($config = [])
     {
-        if (!is_array($config)) return false;
+        if (!is_array($config)) {
+            return false;
+        }
         self::$config = array_merge(self::$config, $config);
         return true;
     }
@@ -92,7 +94,7 @@ class Tree
      */
     public static function getTreeNoFormat(&$list, $pid = 0)
     {
-        $res = array();
+        $res = [];
         if (!is_array($list)) { //遍历结束
             return $res;
         }
@@ -116,8 +118,8 @@ class Tree
      */
     public static function getChild($list, $id)
     {
-        if (!is_array($list)) return array();
-        $temp = array();
+        if (!is_array($list)) return [];
+        $temp = [];
         foreach ($list as $v) {
             if ($v[self::$config['pid']] == $id) {
                 $temp[] = $v;
@@ -136,8 +138,8 @@ class Tree
      */
     public static function getParent($list, $id)
     {
-        if (!is_array($list)) return array();
-        $temp = array();
+        if (!is_array($list)) return [];
+        $temp = [];
         foreach ($list as $v) {
             $temp[$v[self::$config['id']]] = $v;
         }

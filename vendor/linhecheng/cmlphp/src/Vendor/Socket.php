@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 Socket客户端扩展
  * *********************************************************** */
 
@@ -16,13 +16,13 @@ namespace Cml\Vendor;
  */
 class Socket
 {
-    protected $config = array(
+    protected $config = [
         'persistent'    => false, //持久化
         'host'          => 'localhost',
         'protocol'      => 'tcp', //协议
         'port'          => 80,
         'timeout'       => 30
-    );
+    ];
 
     /**
      * 保存连接资源符
@@ -43,7 +43,7 @@ class Socket
      *
      * @param array $config 配置信息
      */
-    public function __construct($config = array())
+    public function __construct($config = [])
     {
         $this->config = array_merge($this->config, $config);
         if (!is_numeric($this->config['protocol'])) {

@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 文件上传扩展类
  * *********************************************************** */
 
@@ -18,10 +18,10 @@ use Cml\Cml;
  */
 class UploadFile
 {
-    private $config = array(
+    private $config = [
         'maxSize' => -1, //上传文件的最大值
-        'allowExts' => array(), //允许上传的文件后缀，留空则不做限制，不带点
-        'allowTypes' => array(), //允许上传的文件类型，留空不作检查
+        'allowExts' => [], //允许上传的文件后缀，留空则不做限制，不带点
+        'allowTypes' => [], //允许上传的文件类型，留空不作检查
         'thumb' => false, //对上传的图片进行缩略图处理
         'thumbMaxWidth' => '100',//缩略图的最大宽度
         'thumbMaxHeight' => '100', //缩略图的最大高度
@@ -35,7 +35,7 @@ class UploadFile
         'savePath' => '', //上传文件的保存路径
         'replace' => false, //替换同名文件
         'rename' => true,//是否生成唯一文件名
-    );
+    ];
 
     //上传失败的信息
     private $errorInfo = '';
@@ -89,7 +89,7 @@ class UploadFile
      *
      * @param array $config
      */
-    public function __construct($config = array())
+    public function __construct($config = [])
     {
         is_array($config) && $this->config = array_merge($this->config, $config);
     }
@@ -105,7 +105,7 @@ class UploadFile
     {
         is_null($savePath) && $savePath = $this->config['savePath'];
         $savePath = $savePath.'/';
-        $fileInfo = array();
+        $fileInfo = [];
         $isUpload = false;
 
         //获取上传的文件信息
@@ -195,7 +195,7 @@ class UploadFile
      */
     private function workingFiles($files)
     {
-        $fileArray = array();
+        $fileArray = [];
         $n = 0;
         foreach ($files as $key => $file) {
             if (is_array($file['name'])) { //一个表单name有多个文件
@@ -231,7 +231,7 @@ class UploadFile
         }
 
         //如果是图片，检查格式
-        if ( in_array(strtolower($file['extension']), array('gif', 'jpg', 'jpeg', 'bmp', 'png', 'swf'))
+        if ( in_array(strtolower($file['extension']), ['gif', 'jpg', 'jpeg', 'bmp', 'png', 'swf'])
             && false === getimagesize($file['tmp_name']) ) {
             $this->errorInfo = '非法图像文件';
             return false;
@@ -241,7 +241,7 @@ class UploadFile
             return false;
         }
 
-        if ($this->config['thumb'] && in_array(strtolower($file['extension']),array('gif','jpg','jpeg','bmp','png'))) {
+        if ($this->config['thumb'] && in_array(strtolower($file['extension']), ['gif', 'jpg', 'jpeg', 'bmp', 'png'])) {
             if ($image = getimagesize($filename)) {
                 //生成缩略图
                 $thumbPath = $this->config['thumbPath'] ? $this->config['thumbPath'] : dirname($filename);

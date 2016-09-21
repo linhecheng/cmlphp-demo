@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 memcache缓存驱动
  * *********************************************************** */
 namespace Cml\Cache;
@@ -70,7 +70,7 @@ class Memcache extends namespace\Base
         $singleNodeDownFunction = function($host, $port) {
             //这边挂掉调用此回调在几s内只会调用一次。其它情况使用memcache方法均返回flase不报错
             Plugin::hook('cml.cache_server_down', ['host' => $host, 'port' => $port]);
-            Log::emergency('memcache server down', array('downServer' => ['host' => $host, 'port' => $port]));
+            Log::emergency('memcache server down', ['downServer' => ['host' => $host, 'port' => $port]]);
         };
 
         $allNodeDownFunction = function($serverList) {
@@ -86,7 +86,7 @@ class Memcache extends namespace\Base
         if ($this->type == 2) {//memcache
             foreach ($this->conf['server'] as $val) {
                 if (!$this->memcache->addServer($val['host'], $val['port'])) {
-                    Log::emergency('memcache server down', array('downServer' => $val));
+                    Log::emergency('memcache server down', ['downServer' => $val]);
                 }
             }
 
@@ -109,7 +109,7 @@ class Memcache extends namespace\Base
             $this->memcache->resetServerList();
             $this->memcache->addServers(array_values($this->conf['server']));
 
-            $this->memcache->setOptions(array(
+            $this->memcache->setOptions([
                 \Memcached::OPT_PREFIX_KEY => $this->conf['prefix'],
                 \Memcached::OPT_DISTRIBUTION => \Memcached::DISTRIBUTION_CONSISTENT,
                 \Memcached::OPT_LIBKETAMA_COMPATIBLE => true,
@@ -117,7 +117,7 @@ class Memcache extends namespace\Base
                 \Memcached::OPT_RETRY_TIMEOUT => 30,
                 \Memcached::OPT_AUTO_EJECT_HOSTS => true,
                 \Memcached::OPT_REMOVE_FAILED_SERVERS => true
-            ));
+            ]);
 
             \Memcached::HAVE_JSON  && $this->memcache->setOption(\Memcached::OPT_SERIALIZER, \Memcached::SERIALIZER_JSON_ARRAY);
         }
@@ -225,7 +225,7 @@ class Memcache extends namespace\Base
     public function increment($key, $val = 1)
     {
         $this->type === 2 && $key = $this->conf['prefix'] . $key;
-        $this->memcache->increment($key, abs(intval($val)));
+        return $this->memcache->increment($key, abs(intval($val)));
     }
 
     /**
@@ -239,7 +239,7 @@ class Memcache extends namespace\Base
     public function decrement($key, $val = 1)
     {
         $this->type === 2 && $key = $this->conf['prefix'] . $key;
-        $this->memcache->decrement($key, abs(intval($val)));
+        return $this->memcache->decrement($key, abs(intval($val)));
     }
 
     /**

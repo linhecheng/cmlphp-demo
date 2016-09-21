@@ -3,16 +3,15 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 下午3:51
- * @version  2.6
+ * @version  2.7
  * cml框架 请求响应类
  * *********************************************************** */
 namespace Cml\Http;
 
+use Cml\Cml;
 use Cml\Config;
 use Cml\Lang;
-use Cml\Route;
 use Cml\Secure;
-use Cml\View;
 
 /**
  * 请求响应类,负责url跳转、url组装、http状态码响应等
@@ -52,7 +51,7 @@ class Response
     {
         self::sendHttpStatus(404);
         is_null($tpl) && $tpl = Config::get('404_page');
-        is_file($tpl) && require $tpl;
+        is_file($tpl) && Cml::requireFile($tpl);
         exit();
     }
 
@@ -63,7 +62,7 @@ class Response
      */
     public static function sendHttpStatus($code)
     {
-        static $_status = array(
+        static $_status = [
             // Informational 1xx
             100 => 'Continue',
             101 => 'Switching Protocols',
@@ -115,7 +114,7 @@ class Response
             504 => 'Gateway Timeout',
             505 => 'HTTP Version Not Supported',
             509 => 'Bandwidth Limit Exceeded'
-        );
+        ];
         if (isset($_status[$code])) {
             header('HTTP/1.1 '.$code.' '.$_status[$code]);
         }
@@ -145,7 +144,7 @@ class Response
         if (Config::get('url_model') == 1) {
             $return = $_SERVER['SCRIPT_NAME'].'/'.$url;
         } elseif (Config::get('url_model') == 2) {
-            $return = Route::$urlParams['root'].$url;
+            $return = Cml::getContainer()->make('cml_route')->getSubDirName().$url;
         } elseif (Config::get('url_model') == 3){
             $return = $_SERVER['SCRIPT_NAME'].'?'.Config::get('var_pathinfo').'=/'.$url;
         }
@@ -168,7 +167,7 @@ class Response
      */
     public static function sendContentTypeBySubFix($subFix = 'html')
     {
-        $mines = array(
+        $mines = [
             'html' => 'text/html',
             'htm' => 'text/html',
             'shtml' => 'text/html',
@@ -209,7 +208,7 @@ class Response
             'mp4' => 'video/mp4 ',
             'wmv' => 'video/x-ms-wmv',
             'avi' => 'video/x-msvideo'
-        );
+        ];
         $mine = isset($mines[$subFix]) ? $mines[$subFix] : 'text/html';
         header("Content-Type:{$mine};charset=utf-8");
     }

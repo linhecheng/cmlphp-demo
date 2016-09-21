@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架公用函数库
  * *********************************************************** */
 namespace Cml;
@@ -24,7 +24,7 @@ function dump($var, $getArgs = 0)
     if (Cml::$debug) {
         new outDebug($var);    //deBug模式直接输出
     } else {
-        static $args = array();
+        static $args = [];
         if (($getArgs == 1)) return $args;
         $args[] = $var;//输出到浏览器控制台
     }
@@ -99,9 +99,10 @@ function throwException($msg, $code = 0)
  *
  * @return mixed
  */
-function simpleFileCache($name, $value = '', $path = CML_RUNTIME_DATA_PATH)
+function simpleFileCache($name, $value = '', $path = null)
 {
-    static $_cache = array();
+    is_null($path) && $path = Cml::getApplicationDir('global_store_path') . DIRECTORY_SEPARATOR.'Data';
+    static $_cache = [];
     $filename = $path . '/'. $name . '.php';
     if ($value !== '') {
         if (is_null($value)) {
@@ -121,7 +122,7 @@ function simpleFileCache($name, $value = '', $path = CML_RUNTIME_DATA_PATH)
     if (isset($_cache[$name])) return $_cache[$name];
     // 获取缓存数据
     if (is_file($filename)) {
-        $value = require $filename;
+        $value = Cml::requireFile($filename);
         $_cache[$name] = $value;
     } else {
         $value = false;

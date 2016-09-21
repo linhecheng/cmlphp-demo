@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 字符串处理类
  * *********************************************************** */
 namespace Cml\Vendor;
@@ -41,7 +41,7 @@ class StringProcess
     {
         $mbStringToArrayFunc = function ($string) use ($encoding)
         {
-            $arrayResult = array();
+            $arrayResult = [];
             while ($iLen = mb_strlen($string, $encoding)) {
                 array_push($arrayResult, mb_substr($string, 0, 1, $encoding));
                 $string = mb_substr($string, 1, $iLen, $encoding);
@@ -50,7 +50,7 @@ class StringProcess
         };
 
         $countSameLetter = 0;
-        $d = array();
+        $d = [];
         $mbLen1 = mb_strlen($string1, $encoding);
         $mbLen2 = mb_strlen($string2, $encoding);
 
@@ -60,7 +60,7 @@ class StringProcess
         $maxCount = count($mbStr1) > count($mbStr2) ? count($mbStr1) : count($mbStr2);
 
         for ($i1 = 0; $i1 <= $mbLen1; $i1++) {
-            $d[$i1] = array();
+            $d[$i1] = [];
             $d[$i1][0] = $i1;
         }
 
@@ -86,7 +86,7 @@ class StringProcess
         $percent  = round(($maxCount - $d[$mbLen1][$mbLen2]) / $maxCount, 2);
 
         //return $d[$mbLen1][$mbLen2];
-        return array('distance' => $d[$mbLen1][$mbLen2], 'count_same_letter' => $countSameLetter, 'percent' => $percent);
+        return ['distance' => $d[$mbLen1][$mbLen2], 'count_same_letter' => $countSameLetter, 'percent' => $percent];
     }
 
     /**

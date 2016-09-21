@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 13-12-26 上午11:23
- * @version  2.6
+ * @version  2.7
  * cml框架 php多线程工作类
  * *********************************************************** */
 namespace Cml\Vendor;
@@ -41,21 +41,21 @@ class PhpThread
      *
      * @var array
      */
-    protected $queue = array();
+    protected $queue = [];
 
     /**
      * 当前任务队列
      *
      * @var array
      */
-    protected $tasks = array();
+    protected $tasks = [];
 
     /**
      * 已完成的任务队列(查看处理结果)
      *
      * @var array
      */
-    public $success = array();
+    public $success = [];
 
     /**
      * 保存处理结果
@@ -88,7 +88,7 @@ class PhpThread
      */
     public function add($host, $path = '/')
     {
-        $this->queue[] = array('host' => $host, 'path' => $path);
+        $this->queue[] = ['host' => $host, 'path' => $path];
     }
 
     /**
@@ -150,13 +150,13 @@ class PhpThread
         $item = $item['value'];
         $socket = @stream_socket_client($item['host'] . ':80', $errno, $errstr, $this->timeout, STREAM_CLIENT_ASYNC_CONNECT|STREAM_CLIENT_CONNECT);
         if ($socket) {
-            $this->tasks[] = array(
+            $this->tasks[] = [
                 'host'        => $item['host'],
                 'path'        => $item['path'],
                 'socket'        => $socket,
                 'response'    => '',
                 'status'        => 0, // -1=error, 0=ready, 1=active, 2=done
-            );
+            ];
             return 1;
         } else {
             return 0;
@@ -170,7 +170,7 @@ class PhpThread
      */
     private function processTask(&$task)
     {
-        $read = $write = array($task['socket']);
+        $read = $write = [$task['socket']];
         $n = stream_select($read, $write, $e = null, $this->timeout);
         if ($n > 0) {
             switch ($task['status']) {

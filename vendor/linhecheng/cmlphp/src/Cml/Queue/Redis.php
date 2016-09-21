@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-02-04 下午20:11
- * @version  2.6
+ * @version  2.7
  * cml框架 队列Redis驱动
  * *********************************************************** */
 use Cml\Config;
@@ -16,6 +16,17 @@ use Cml\Model;
  */
 class Redis extends Base
 {
+    private $useCache = '';
+
+    /**
+     * Redis队列驱动
+     *
+     * @param mixed $useCache 使用的缓存配置key,未传则获取redis_queue_use_cache中配置的key
+     */
+    public function __construct($useCache = false)
+    {
+        $this->useCache = $useCache ? $useCache : Config::get('redis_queue_use_cache');
+    }
 
     /**
      * 从列表头入队
@@ -91,6 +102,6 @@ class Redis extends Base
      */
     private function getDriver()
     {
-        return Model::getInstance()->cache(Config::get('queue_use_cache'))->getInstance();
+        return Model::getInstance()->cache($this->useCache)->getInstance();
     }
 }

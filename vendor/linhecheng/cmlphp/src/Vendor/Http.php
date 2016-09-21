@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 Http扩展类
  * *********************************************************** */
 namespace Cml\Vendor;
@@ -57,10 +57,12 @@ class Http
      *
      * @return mixed
      */
-    public static function fsockopenDownload($url, $conf = array())
+    public static function fsockopenDownload($url, $conf = [])
     {
         $return = '';
-        if (!is_array($conf)) return $return;
+        if (!is_array($conf)) {
+            return $return;
+        }
 
         $matches = parse_url($url);
         !isset($matches['host'])    && $matches['host']     = '';
@@ -71,14 +73,14 @@ class Http
         $path = $matches['path'] ? $matches['path'].($matches['query'] ? '?'.$matches['query'] : '') : '/';
         $port = !empty($matches['port']) ? $matches['port'] : 80;
 
-        $confArr = array(
+        $confArr = [
             'limit'     =>  0,
             'post'      =>  '',
             'cookie'    =>  '',
             'ip'        =>  '',
             'timeout'   =>  15,
             'block'     =>  true,
-        );
+        ];
 
         foreach (array_merge($confArr, $conf) as $k=>$v) ${$k} = $v;
         $post = '';
@@ -152,7 +154,6 @@ class Http
     */
     public static function download ($filename, $showname='',$content='',$expire=180)
     {
-        $length = 0;
         $uploadPath = CML_PROJECT_PATH . DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'Uploads'.DIRECTORY_SEPARATOR;
         if (is_file($filename)) {
             $length = filesize($filename);
@@ -228,7 +229,7 @@ class Http
      */
     public static function sendHttpStatus($code)
     {
-        static $_status = array(
+        static $_status = [
             // Informational 1xx
             100 => 'Continue',
             101 => 'Switching Protocols',
@@ -280,7 +281,7 @@ class Http
             504 => 'Gateway Timeout',
             505 => 'HTTP Version Not Supported',
             509 => 'Bandwidth Limit Exceeded'
-        );
+        ];
         if (isset($_status[$code])) {
             header('HTTP/1.1 '.$code.' '.$_status[$code]);
         }
@@ -295,7 +296,7 @@ class Http
      */
     public static function mimeContentType($filename)
     {
-        static $contentType = array(
+        static $contentType = [
             'ai'        => 'application/postscript',
             'aif'       => 'audio/x-aiff',
             'aifc'      => 'audio/x-aiff',
@@ -489,7 +490,7 @@ class Http
             'xyz'       => 'chemical/x-xyz',
             'z'         => 'application/x-compress',
             'zip'       => 'application/zip',
-        );
+        ];
         $type = strtolower(substr(strrchr($filename, '.'),1));
         if (isset($contentType[$type])) {
             $mime = $contentType[$type];

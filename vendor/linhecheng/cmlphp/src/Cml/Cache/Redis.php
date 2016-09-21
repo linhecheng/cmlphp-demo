@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 Redis缓存驱动
  * *********************************************************** */
 namespace Cml\Cache;
@@ -25,7 +25,7 @@ class Redis extends namespace\Base
     /**
      * @var array(\Redis)
      */
-    private $redis = array();
+    private $redis = [];
 
     /**
      * 使用的缓存配置 默认为使用default_cache配置的参数
@@ -58,28 +58,35 @@ class Redis extends namespace\Base
         if (!isset($this->redis[$success]) || !is_object($this->redis[$success])) {
             $instance = new \Redis();
 
-            $connectToRedisFunction = function($host, $port) use ($instance) {
-                return $instance->pconnect($host, $port, 1.5);
+            $connectToRedisFunction = function($host, $port, $isPersistentConnect) use ($instance) {
+                if ($isPersistentConnect) {
+                    return $instance->pconnect($host, $port, 1.5);
+                } else {
+                    return $instance->connect($host, $port, 1.5);
+                }
             };
 
-            $connectResult = $connectToRedisFunction($this->conf['server'][$success]['host'], $this->conf['server'][$success]['port']);
+            $isPersistentConnect = !(isset($this->conf['server'][$success]['pconnect']) && $this->conf['server'][$success]['pconnect'] === false);
+            $connectResult = $connectToRedisFunction($this->conf['server'][$success]['host'], $this->conf['server'][$success]['port'], $isPersistentConnect);
 
             $failOver = null;
 
             if (!$connectResult && !empty($this->conf['back'])) {
                 $failOver = $this->conf['back'];
-                $connectResult = $connectToRedisFunction($failOver['host'], $failOver['port']);
+                $isPersistentConnect = !(isset($failOver['pconnect']) && $failOver['pconnect'] === false);
+                $connectResult = $connectToRedisFunction($failOver['host'], $failOver['port'], $isPersistentConnect);
             }
 
             if (!$connectResult && $serverNum > 1) {
                 $failOver = $success + 1;
                 $failOver >= $serverNum && $failOver = $success - 1;
                 $failOver = $this->conf['server'][$failOver];
-                $connectResult = $connectToRedisFunction($failOver['host'], $failOver['port']);
+                $isPersistentConnect = !(isset($failOver['pconnect']) && $failOver['pconnect'] === false);
+                $connectResult = $connectToRedisFunction($failOver['host'], $failOver['port'], $isPersistentConnect);
             }
 
             if (!$connectResult) {
-                Plugin::hook('cml.cache_server_down', array($this->conf['server'][$success]));
+                Plugin::hook('cml.cache_server_down', [$this->conf['server'][$success]]);
 
                 throw new CacheConnectFailException(Lang::get('_CACHE_CONNECT_FAIL_', 'Redis',
                     $this->conf['server'][$success]['host'] . ':' . $this->conf['server'][$success]['port']
@@ -100,14 +107,14 @@ class Redis extends namespace\Base
 
                 isset($failOver['db']) && $instance->select($failOver['db']);
 
-                Log::emergency('redis server down', array('downServer' => $this->conf['server'][$success], 'failOverTo' => $failOver));
-                Plugin::hook('cml.redis_server_down_fail_over', array('downServer' => $this->conf['server'][$success], 'failOverTo' => $failOver));
+                Log::emergency('redis server down', ['downServer' => $this->conf['server'][$success], 'failOverTo' => $failOver]);
+                Plugin::hook('cml.redis_server_down_fail_over', ['downServer' => $this->conf['server'][$success], 'failOverTo' => $failOver]);
             }
 
             if ($password && !$instance->auth($password)) {
                 throw new \RuntimeException('redis password error!');
             }
-
+            $instance->setOption(\Redis::OPT_PREFIX, $this->conf['prefix']);
             $this->redis[$success] = $instance;
         }
         return $this->redis[$success];
@@ -122,7 +129,7 @@ class Redis extends namespace\Base
      */
     public function get($key)
     {
-        $return = json_decode($this->hash($key)->get($this->conf['prefix'] . $key), true);
+        $return = json_decode($this->hash($key)->get($key), true);
         is_null($return) && $return = false;
         return $return; //orm层做判断用
     }
@@ -140,9 +147,9 @@ class Redis extends namespace\Base
     {
         $value = json_encode($value, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
         if ($expire > 0) {
-            return $this->hash($key)->setex($this->conf['prefix'] . $key, $expire, $value);
+            return $this->hash($key)->setex($key, $expire, $value);
         } else {
-            return $this->hash($key)->set($this->conf['prefix'] . $key, $value);
+            return $this->hash($key)->set($key, $value);
         }
     }
 
@@ -157,11 +164,12 @@ class Redis extends namespace\Base
      */
     public function update($key, $value, $expire = 0)
     {
-        $array = $this->get($key);
-        if (!empty($array)) {
-            return $this->set($key, array_merge($array, $value), $expire);
+        $value = json_encode($value, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
+        if ($expire > 0) {
+            return $this->hash($key)->set($key, $value, ['xx', 'ex' => $expire]);
+        } else {
+            return $this->hash($key)->set($key, $value, ['xx']);
         }
-        return 0;
     }
 
     /**
@@ -173,7 +181,7 @@ class Redis extends namespace\Base
      */
     public function delete($key)
     {
-        return $this->hash($key)->del($this->conf['prefix'] . $key);
+        return $this->hash($key)->del($key);
     }
 
     /**
@@ -206,18 +214,7 @@ class Redis extends namespace\Base
      */
     public function increment($key, $val = 1)
     {
-        $val = abs(intval($val));
-        if ($val === 1) {
-            return $this->hash($key)->incr($this->conf['prefix'] . $key);
-        } else {
-            $return = true;
-            for($i = 0; $i < $val; $i++) {
-                if (!$this->hash($key)->incr($this->conf['prefix'] . $key)) {
-                    $return = false;
-                }
-            }
-            return $return;
-        }
+        return $this->hash($key)->incrBy($key, abs(intval($val)));
     }
 
     /**
@@ -230,19 +227,7 @@ class Redis extends namespace\Base
      */
     public function decrement($key, $val = 1)
     {
-        $val = abs(intval($val));
-        if ($val === 1) {
-            return $this->hash($key)->decr($this->conf['prefix'] . $key);
-        } else {
-            $return = true;
-            for($i = 0; $i < $val; $i++) {
-                if (!$this->hash($key)->decr($this->conf['prefix'] . $key)) {
-                    $return = false;
-                }
-            }
-            return $return;
-        }
-
+        return $this->hash($key)->decrBy($key, abs(intval($val)));
     }
 
     /**
@@ -254,7 +239,7 @@ class Redis extends namespace\Base
      */
     public function exists($key)
     {
-        return $this->hash($key)->exists($this->conf['prefix'] . $key);
+        return $this->hash($key)->exists($key);
     }
 
     /**
@@ -267,6 +252,17 @@ class Redis extends namespace\Base
     public function getInstance($key = '')
     {
         return $this->hash($key);
+    }
+
+    /**
+     * 定义析构方法。不用判断长短连接，长链接执行close无效
+     *
+     */
+    public function __destruct()
+    {
+        foreach ($this->redis  as $instance) {
+            $instance->close();
+        }
     }
 
 }

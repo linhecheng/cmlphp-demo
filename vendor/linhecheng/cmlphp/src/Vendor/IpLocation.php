@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架  IP 地理位置查询类 修改自 CoolCode.CN
  * 由于使用UTF8编码 如果使用纯真IP地址库的话 需要对返回结果进行编码转换
  * *********************************************************** */
@@ -269,7 +269,7 @@ class IpLocation
 
         // IP地址合法验证
         $long = sprintf("%u",ip2long($ip));
-        $ip   = $long ? array($ip, $long) : array('0.0.0.0', 0);
+        $ip   = $long ? [$ip, $long] : ['0.0.0.0', 0];
         return $ip[$type];
     }
 

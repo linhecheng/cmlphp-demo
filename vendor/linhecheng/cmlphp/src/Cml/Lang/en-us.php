@@ -3,20 +3,20 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml英文语言包
  * *********************************************************** */
-return array(
+return [
     //  core
-    '_CONTROLLER_NOT_FOUND_'=> 'Sorry! Your access module does not exist, you should create a file called %sController.php at %s directory, declare a class named %sController of class!',
+    '_CONTROLLER_NOT_FOUND_'=> 'Sorry! Your access module does not exist, please check the routing or access to the address is wrong!',
     '_CML_DEBUG_ADD_CLASS_TIP_' => '<b>%s</b> class',
     '_CML_ACTION_CONTROLLER_' => 'Current access controller is: <b> %s </b> file',
-    '_CML_ERROR_' => 'system error occurred',
+    '_CML_ERROR_' => 'System error occurred',
     '_ERROR_LINE_' => 'Error number of rows',
     '_NOT_FOUND_' => '%s does not exist',
     '_NOT_ALLOW_EMPTY_' => '%s can not be empty',
     '_ACTION_NOT_FOUND_' => 'Do not %s this operation!',
-    '_DB_PARAM_ERROR_WHERE_BETWEEN_' => 'whereBetween parameter error, you must whereBetween (field, section 1, section 2) or whereBetween (fields, array (section 1, section 2)',
+    '_DB_PARAM_ERROR_WHERE_BETWEEN_' => 'whereBetween parameter error, you must whereBetween (field, section 1, section 2) or whereBetween (fields, [section 1, section 2])',
     '_DB_PARAM_ERROR_PARSE_KEY_' => 'Failed to resolve %s, %s is empty',
     '_DB_PARAM_ERROR_PARSE_ON_' => 'Parsing SQL statement fails join table [%s] on condition can not be empty !',
     '_PARSE_SQL_ERROR_NO_TABLE_' => 'SQL statement Error: %s operation did not choose Data Sheet',
@@ -33,4 +33,13 @@ return array(
     '_CREATE_DIR_ERROR_' => 'Failed to create directory',
     '_NOT_OPEN_' => '%s Not Enabled',
     '_ROUTE_PARAM_ERROR_' => '[%s] Routing configuration errors, at least the 【controller / method】 two parameters',
-);
+    '_PHP_VERSION_' => 'PHP Version',
+    '_UPTIME_' => 'Uptime',
+    '_USED_MEMORY_' => 'Used Memory',
+    '_OPERATION_INFORMATION_' => 'Operation Information',
+    '_INCLUDE_LIB_' => 'Include Library',
+    '_INCLUDE_FILE_' => 'Include Files',
+    '_SYSTEM_INFORMATION_' => 'System Information',
+    '_SQL_STATEMENT_' => 'SQL Statement',
+    '_CONTAINER_MAKE_PARAMS_ERROR_' => 'To resolve the service %s does not exist, please first bind!',
+];

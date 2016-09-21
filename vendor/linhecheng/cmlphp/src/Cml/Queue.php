@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-02-04 下午20:11
- * @version  2.6
+ * @version  2.7
  * cml框架 队列调度中心
  * *********************************************************** */
 
@@ -17,17 +17,25 @@ class Queue
     /**
      * 获取Queue
      *
-     * @param string | null Queue使用的驱动
+     * @param mixed $useCache 如果该锁服务使用的是cache，则这边可传配置文件中配置的cache的key
      *
      * @return \Cml\Queue\Base
      */
-    public static function getQueue($driver = 'Redis')
+    public static function getQueue($useCache = false)
     {
-        static $instance = array();
-        if(!isset($instance[$driver])) {
-            $driver = '\\Cml\\Queue\\' . $driver;
-            $instance[$driver] = new $driver();
-        }
-        return $instance[$driver];
+       return Cml::getContainer()->make('cml_queue', $useCache);
+    }
+
+    /**
+     * 访问Cml::getContainer()->make('cml_queue')中其余方法
+     *
+     * @param string $name
+     * @param array $arguments
+     *
+     * @return mixed
+     */
+    public static function __callStatic($name, $arguments)
+    {
+        return call_user_func_array([Cml::getContainer()->make('cml_queue'), $name], $arguments);
     }
 }

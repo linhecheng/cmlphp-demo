@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 队列实现类
  * *********************************************************** */
 
@@ -17,7 +17,7 @@ namespace Cml\Vendor;
 class Quenue
 {
 
-    private static $queue = array(); //存放队列数据
+    private static $queue = []; //存放队列数据
 
     /**
      * 队列-设置值
@@ -59,6 +59,6 @@ class Quenue
      */
     public function clear()
     {
-        return self::$queue = array();
+        return self::$queue = [];
     }
 }

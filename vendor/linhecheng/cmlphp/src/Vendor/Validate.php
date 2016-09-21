@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 数据验证类
  * *********************************************************** */
 
@@ -25,42 +25,42 @@ class Validate
      * 要验证的数组
      * @var array
      */
-    private $data = array();
+    private $data = [];
 
     /**
      * 自定义的规则
      *
      * @var array
      */
-    private static $rules = array();
+    private static $rules = [];
 
     /**
      * 数据绑定的验证规则
      *
      * @var array
      */
-    private $dateBindRule = array();
+    private $dateBindRule = [];
 
     /**
      * 错误提示语
      *
      * @var array
      */
-    private static $errorTip = array();
+    private static $errorTip = [];
 
     /**
      * 验证后的错误信息
      *
      * @var array
      */
-    private $errorMsg = array();
+    private $errorMsg = [];
 
     /**
      * 字段别名
      *
      * @var array
      */
-    private $label = array();
+    private $label = [];
 
     /**
      * 初始化要检验的参数
@@ -69,7 +69,7 @@ class Validate
      * @param string|null $langDir 语言包所在的路径
      *
      */
-    public function __construct(array $data = array(), $langDir = null)
+    public function __construct(array $data = [], $langDir = null)
     {
         if (is_null($langDir)) {
             $langDir = __DIR__ . '/Validate/Lang/' . Config::get('lang') . '.php';
@@ -79,7 +79,7 @@ class Validate
             throw new FileCanNotReadableException(Lang::get('_NOT_FOUND_', 'lang dir ['.$langDir.']'));
         }
 
-        $errorTip = require $langDir;
+        $errorTip = Cml::requireFile($langDir);
         foreach($errorTip as $key => $val) {
             $key = strtolower($key);
             isset(self::$errorTip[$key]) || self::$errorTip[$key] = $val;
@@ -122,11 +122,11 @@ class Validate
 
         $params = array_slice(func_get_args(), 2);
 
-        $this->dateBindRule[] = array(
+        $this->dateBindRule[] = [
             'rule' => $rule,
             'field' => (array)$field,
             'params' => (array)$params
-        );
+        ];
         return $this;
     }
 
@@ -143,7 +143,7 @@ class Validate
             if (is_array($field) && is_array($field[0])) {
                 foreach ($field as $params) {
                     array_unshift($params, $rule);
-                    call_user_func_array(array($this, 'rule'), $params);
+                    call_user_func_array([$this, 'rule'], $params);
                 }
             } else {
                 $this->rule($rule, $field);
@@ -183,10 +183,10 @@ class Validate
                 if (isset(static::$rules[$field])) {
                     $callback = static::$rules[$field];
                 } else {
-                    $callback = array($this, 'is' . ucfirst($bind['rule']));
+                    $callback = [$this, 'is' . ucfirst($bind['rule'])];
                 }
 
-                is_array($values) || $values = array($values);
+                is_array($values) || $values = [$values];
 
                 $result = true;
                 foreach ($values as $value) {
@@ -243,9 +243,13 @@ class Validate
     {
         switch ($format) {
             case 1:
-                return json_encode($this->errorMsg);
+                return json_encode($this->errorMsg, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
             case 2:
-                return implode($delimiter, $this->errorMsg);
+                $return = '';
+                foreach($this->errorMsg as $val) {
+                    $return .= ($return == '' ? '' : $delimiter) . implode($delimiter, $val);
+                }
+                return $return;
         }
         return $this->errorMsg;
     }
@@ -441,7 +445,9 @@ class Validate
      */
     public static function isArr($value)
     {
-        if (!is_array($value) || empty($value)) return false;
+        if (!is_array($value) || empty($value)) {
+            return false;
+        }
         return true;
     }
 

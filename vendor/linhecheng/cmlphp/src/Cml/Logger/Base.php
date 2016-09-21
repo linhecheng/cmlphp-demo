@@ -1,20 +1,22 @@
-<?php namespace Cml\Logger;
+<?php
 /* * *********************************************************
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-12-22 下午1:11
- * @version  2.6
+ * @version  2.7
  * cml框架 Logger 抽象类 参考 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  * *********************************************************** */
+namespace Cml\Logger;
 
 use Cml\Config;
+use Cml\Interfaces\Logger;
 
 /**
  * Logger 抽象类
  *
  * @package Cml\Logger
  */
-abstract class Base
+abstract class Base implements Logger
 {
     const EMERGENCY = 'emergency';
     const ALERT     = 'alert';
@@ -30,7 +32,7 @@ abstract class Base
      *
      * @var array
      */
-    public $phpErrorToLevel = array(
+    public $phpErrorToLevel = [
         E_ERROR             => self::EMERGENCY,
         E_WARNING           => self::WARNING,
         E_PARSE             => self::EMERGENCY,
@@ -46,7 +48,7 @@ abstract class Base
         E_RECOVERABLE_ERROR => self::ERROR,
         E_DEPRECATED        => self::NOTICE,
         E_USER_DEPRECATED   => self::NOTICE,
-    );
+    ];
 
    /**
     * 系统不可用
@@ -56,7 +58,7 @@ abstract class Base
     *
     * @return null
     */
-    public function emergency($message, array $context = array())
+    public function emergency($message, array $context = [])
     {
         return $this->log(self::EMERGENCY, $message, $context);
     }
@@ -71,7 +73,7 @@ abstract class Base
      *
      * @return null
      */
-    public function alert($message, array $context = array())
+    public function alert($message, array $context = [])
     {
         return $this->log(self::ALERT, $message, $context);
     }
@@ -86,7 +88,7 @@ abstract class Base
      *
      * @return null
      */
-    public function critical($message, array $context = array())
+    public function critical($message, array $context = [])
     {
         return $this->log(self::CRITICAL, $message, $context);
     }
@@ -99,7 +101,7 @@ abstract class Base
      *
      * @return null
      */
-    public function error($message, array $context = array())
+    public function error($message, array $context = [])
     {
         return $this->log(self::ERROR, $message, $context);
     }
@@ -114,7 +116,7 @@ abstract class Base
      *
      * @return null
      */
-    public function warning($message, array $context = array())
+    public function warning($message, array $context = [])
     {
         return $this->log(self::WARNING, $message, $context);
     }
@@ -127,7 +129,7 @@ abstract class Base
      *
      * @return null
      */
-    public function notice($message, array $context = array())
+    public function notice($message, array $context = [])
     {
         return $this->log(self::NOTICE, $message, $context);
     }
@@ -142,7 +144,7 @@ abstract class Base
      *
      * @return null
      */
-    public function info($message, array $context = array())
+    public function info($message, array $context = [])
     {
         return $this->log(self::INFO, $message, $context);
     }
@@ -155,21 +157,10 @@ abstract class Base
      *
      * @return null
      */
-    public function debug($message, array $context = array())
+    public function debug($message, array $context = [])
     {
         return $this->log(self::DEBUG, $message, $context);
     }
-
-    /**
-     * 任意等级的日志记录
-     *
-     * @param mixed $level 日志的严重等级
-     * @param string $message 要记录到log的信息
-     * @param array $context 上下文信息
-     *
-     * @return null
-     */
-    abstract public function log($level, $message, array $context = array());
 
     /**
      * 格式化日志
@@ -179,7 +170,7 @@ abstract class Base
      *
      * @return string
      */
-    public function format($message, array $context = array())
+    public function format($message, array $context = [])
     {
          return '[' . date('Y-m-d H:i:s') . '] ' . Config::get('log_prefix', 'cml_log') . ': ' . $message . ' ' .json_encode($context, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
     }

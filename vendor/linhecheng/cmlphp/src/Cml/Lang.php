@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 下午1:51
- * @version  2.6
+ * @version  2.7
  * cml框架 语言处理类
  * *********************************************************** */
 namespace Cml;
@@ -20,9 +20,9 @@ class Lang extends Config
      * 
      * @var array
      */
-    protected  static $_content= array(
-        'normal' => array()
-    );
+    protected  static $_content= [
+        'normal' => []
+    ];
 
     /**
      * 获取语言 不区分大小写

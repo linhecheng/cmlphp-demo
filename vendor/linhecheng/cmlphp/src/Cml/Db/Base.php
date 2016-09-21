@@ -3,12 +3,15 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 Db 数据库抽象基类
  * *********************************************************** */
 namespace Cml\Db;
 
+use Cml\Cml;
 use Cml\Config;
+use Cml\Http\Input;
+use Cml\Interfaces\Db;
 use Cml\Lang;
 use Cml\Model;
 use Cml\Route;
@@ -18,7 +21,7 @@ use Cml\Route;
  *
  * @package Cml\Db
  */
-abstract class Base
+abstract class Base implements Db
 {
     /**
      * where操作需要加上and/or
@@ -35,7 +38,7 @@ abstract class Base
      *
      * @var array
      */
-    protected $bindParams = array();
+    protected $bindParams = [];
 
     /**
      * 配置信息
@@ -56,42 +59,42 @@ abstract class Base
      *
      * @var array
      */
-    protected $sql = array(
+    protected $sql = [
         'where' => '',
         'columns' => '',
         'limit' => '',
         'orderBy' => '',
         'groupBy' => '',
         'having' => '',
-    );
+    ];
 
     /**
      * 操作的表
      *
      * @var array
      */
-    protected $table = array();
+    protected $table = [];
 
     /**
-     * 是否内联 array(表名 => 条件)
+     * 是否内联 [表名 => 条件]
      *
      * @var array
      */
-    protected $join = array();
+    protected $join = [];
 
     /**
      * 是否左联结 写法同内联
      *
      * @var array
      */
-    protected $leftJoin = array();
+    protected $leftJoin = [];
 
     /**
      * 是否右联 写法同内联
      *
      * @var array
      */
-    protected $rightJoin = array();
+    protected $rightJoin = [];
 
     /**
      * UNION 写法同内联
@@ -108,12 +111,10 @@ abstract class Base
     protected $paramsAutoReset = true;
 
 
-    abstract public function __construct($conf);
-
     /**
      * 定义操作的表
      *
-     * @param string|array $table 表名 要取别名时使用 array(不带前缀表名 => 别名)
+     * @param string|array $table 表名 要取别名时使用 [不带前缀表名 => 别名]
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
      * @return $this
@@ -129,29 +130,11 @@ abstract class Base
     }
 
     /**
-     * 获取当前db所有表名
-     *
-     * @return array
-     */
-    abstract public function getTables();
-
-    /**
-     * 获取表字段
-     *
-     * @param string $table 表名
-     * @param mixed $tablePrefix 表前缀 为null时代表table已经带了前缀
-     * @param int $filter 0 获取表字段详细信息数组 1获取字段以,号相隔组成的字符串
-     *
-     * @return mixed
-     */
-    abstract public function getDbFields($table, $tablePrefix = null, $filter = 0);
-
-    /**
      * 魔术方法 自动获取相应db实例
      *
      * @param string $db 要连接的数据库类型
      *
-     * @return  resource 数据库 连接标识
+     * @return  resource|false 数据库 连接标识
      */
     public function __get($db)
     {
@@ -193,69 +176,19 @@ abstract class Base
     }
 
     /**
-     * 根据key取出数据
+     * 分页获取数据
      *
-     * @param string $key get('user-uid-123');
-     * @param bool $and 多个条件之间是否为and  true为and false为or
-     * @param bool|string $useMaster 是否使用主库 默认读取从库 此选项为字符串时为表前缀$tablePrefix
-     * @param null|string $tablePrefix 表前缀
-     *
-     * @return
-     */
-    abstract public function get($key, $and = true, $useMaster = false, $tablePrefix = null);
-
-    /**
-     * 根据key 新增 一条数据
-     *
-     * @param string $table
-     * @param array $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
-     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
-     *
-     * @return bool|int
-     */
-    abstract public function set($table, $data, $tablePrefix = null);
-
-    /**
-     * 根据key更新一条数据
-     *
-     * @param string $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
-     * @param array | null $data eg: array('username'=>'admin', 'email'=>'linhechengbush@live.com')
-     * @param bool $and 多个条件之间是否为and  true为and false为or
-     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
-     *
-     * @return boolean
-     */
-    abstract public function update($key, $data = null, $and = true, $tablePrefix = null);
-
-    /**
-     * 根据key值删除数据
-     *
-     * @param string $key eg: 'user-uid-$uid'
-     * @param bool $and 多个条件之间是否为and  true为and false为or
-     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
-     *
-     * @return boolean
-     */
-    abstract public function delete($key = '', $and = true, $tablePrefix = null);
-
-    /**
-     * 根据表名删除数据
-     *
-     * @param string $tableName 要清空的表名
-     *
-     * @return boolean
-     */
-    abstract public function truncate($tableName);
-
-    /**
-     * 获取多条数据
-     *
-     * @param int $offset 偏移量
-     * @param int $limit 返回的条数
+     * @param int $limit 每页返回的条数
+     * @param bool $useMaster 是否使用主库 默认读取从库
      *
      * @return array
      */
-    abstract public function select($offset = null, $limit = null);
+    public function paginate($limit, $useMaster = false)
+    {
+        $page = Input::requestInt(Config::get('var_page'), 1);
+        $page < 1 && $page = 1;
+        return call_user_func_array([$this, 'select'], [($page - 1) * $limit, $limit, $useMaster]);
+    }
 
     /**
      * 获取表主键
@@ -385,7 +318,7 @@ abstract class Base
      * where条件组装 not in
      *
      * @param string $column 如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
-     * @param array $value array(1,2,3)
+     * @param array $value [1,2,3]
      *
      * @return $this
      */
@@ -458,7 +391,7 @@ abstract class Base
      */
     protected function filterLike($val)
     {
-        return str_replace(array('_', '%'), array('\_', '\%'), $val);
+        return str_replace(['_', '%'], ['\_', '\%'], $val);
     }
 
     /**
@@ -478,7 +411,7 @@ abstract class Base
             }
             $val = $value;
         } else {
-            $val = array($value, $value2);
+            $val = [$value, $value2];
         }
         $this->conditionFactory($column, $val, 'BETWEEN');
         return $this;
@@ -501,7 +434,7 @@ abstract class Base
             }
             $val = $value;
         } else {
-            $val = array($value, $value2);
+            $val = [$value, $value2];
         }
         $this->conditionFactory($column, $val, 'NOT BETWEEN');
         return $this;
@@ -555,7 +488,7 @@ abstract class Base
         $this->whereNeedAddAndOrOr = 1;
 
         if ($operator == 'IN' || $operator == 'NOT IN') {
-            empty($value) && $value = array(0);
+            empty($value) && $value = [0];
             //这边可直接跳过不组装sql，但是为了给用户提示无条件 便于调试还是加上where field in(0)
             $inValue = '(';
             foreach ($value as $val) {
@@ -635,8 +568,8 @@ abstract class Base
     /**
      * 选择列
      *
-     * @param string|array $columns 默认选取所有 array('id, 'name')
-     * 选取id,name两列，array('article.id' => 'aid', 'article.title' =>　'article_title') 别名
+     * @param string|array $columns 默认选取所有 ['id, 'name']
+     * 选取id,name两列，['article.id' => 'aid', 'article.title' =>　'article_title'] 别名
      *
      * @return $this
      */
@@ -732,7 +665,7 @@ abstract class Base
     /**
      * join内联结
      *
-     * @param string|array $table 表名 要取别名时使用 array(不带前缀表名 => 别名)
+     * @param string|array $table 表名 要取别名时使用 [不带前缀表名 => 别名]
      * @param string $on 联结的条件 如：'c.cid = a.cid'
      * @param mixed $tablePrefix 表前缀
      *
@@ -753,7 +686,7 @@ abstract class Base
     /**
      * leftJoin左联结
      *
-     * @param string|array $table 表名 要取别名时使用 array(不带前缀表名 => 别名)
+     * @param string|array $table 表名 要取别名时使用 [不带前缀表名 => 别名]
      * @param string $on 联结的条件 如：'c.cid = a.cid'
      * @param mixed $tablePrefix 表前缀
      *
@@ -774,7 +707,7 @@ abstract class Base
     /**
      * rightJoin右联结
      *
-     * @param string|array $table 表名 要取别名时使用 array(不带前缀表名 => 别名)
+     * @param string|array $table 表名 要取别名时使用 [不带前缀表名 => 别名]
      * @param string $on 联结的条件 如：'c.cid = a.cid'
      * @param mixed $tablePrefix 表前缀
      *
@@ -816,10 +749,10 @@ abstract class Base
 
     protected function filterUnionSql($sql)
     {
-        return str_ireplace(array(
-            'insert', "update", "delete", "\/\*", "\.\.\/", "\.\/", "union", "into", "load_file", "outfile"
-        ),
-            array("", "", "", "", "", "", "", "", "", ""),
+        return str_ireplace([
+                'insert', "update", "delete", "\/\*", "\.\.\/", "\.\/", "union", "into", "load_file", "outfile"
+            ],
+            ["", "", "", "", "", "", "", "", "", ""],
             $sql);
     }
 
@@ -827,7 +760,7 @@ abstract class Base
      * 解析联结的on参数
      *
      * @param string $table 要联结的表名
-     * @param array $on array('on条件1', 'on条件2' =>true) on条件为数字索引时多条件默认为and为非数字引时 条件=>true为and 条件=>false为or
+     * @param array $on ['on条件1', 'on条件2' => true] on条件为数字索引时多条件默认为and为非数字引时 条件=>true为and 条件=>false为or
      *
      * @return string
      */
@@ -873,19 +806,19 @@ abstract class Base
             return;
         }
 
-        $this->sql = array(  //sql组装
+        $this->sql = [  //sql组装
             'where' => '',
             'columns' => '',
             'limit' => '',
             'orderBy' => '',
             'groupBy' => '',
             'having' => '',
-        );
+        ];
 
-        $this->table = array(); //操作的表
-        $this->join = array(); //是否内联
-        $this->leftJoin = array(); //是否左联结
-        $this->rightJoin = array(); //是否右联
+        $this->table = []; //操作的表
+        $this->join = []; //是否内联
+        $this->leftJoin = []; //是否左联结
+        $this->rightJoin = []; //是否右联
         $this->whereNeedAddAndOrOr = 0;
     }
 
@@ -896,7 +829,7 @@ abstract class Base
     protected function clearBindParams()
     {
         if ($this->paramsAutoReset) {
-            $this->bindParams = array();
+            $this->bindParams = [];
         }
     }
 
@@ -910,7 +843,7 @@ abstract class Base
      */
     protected function arrToCondition($arr, $tableName)
     {
-        empty($tableName) && $tableName = Route::$urlParams['controller'];
+        empty($tableName) && $tableName = Cml::getContainer()->make('cml_route')->getControllerName();
        /*
        //这个应该开发人员自己判断。框架不做额外开销
        $dbFields = $this->getDbFields($tableName, $tablePrefix);
@@ -919,7 +852,7 @@ abstract class Base
         }
        */
         $s = $p = '';
-        $params = array();
+        $params = [];
         foreach ($arr as $k => $v) {
             if (is_array($v)) { //自增或自减
                 switch(key($v)) {
@@ -943,7 +876,7 @@ abstract class Base
                     default ://计算类型
                         $conkey = key($v);
                         if (!isset($dbFields[$conkey])) $conkey = $k;
-                        if (!in_array(key(current($v)), array('+', '-', '*', '/', '%', '^', '&', '|', '<<', '>>', '~'))) {
+                        if (!in_array(key(current($v)), ['+', '-', '*', '/', '%', '^', '&', '|', '<<', '>>', '~'])) {
                             throw new \InvalidArgumentException(Lang::get('_PARSE_UPDATE_SQL_PARAMS_ERROR_'));
                         }
                         $p = "`{$k}`= `{$conkey}`" . key(current($v)) . abs(intval(current(current($v))));
@@ -968,7 +901,7 @@ abstract class Base
      * @param bool $noCondition 是否为无条件操作  set/delete/update操作的时候 condition为空是正常的不报异常
      * @param bool $noTable 是否可以没有数据表 当delete/update等操作的时候已经执行了table() table为空是正常的
      *
-     * @return array eg: array('forum', "`fid` = '1' AND `uid` = '2'")
+     * @return array eg: ['forum', "`fid` = '1' AND `uid` = '2'"]
      */
     protected function parseKey($key, $and = true, $noCondition = false, $noTable = false)
     {
@@ -987,175 +920,8 @@ abstract class Base
             throw new \InvalidArgumentException(Lang::get('_DB_PARAM_ERROR_PARSE_KEY_', $key, 'condition'));
         }
         empty($condition) || $condition = "($condition)";
-        return array($table, $condition);
+        return [$table, $condition];
     }
-
-    /**
-     * 获取 COUNT(字段名或*) 的结果
-     *
-     * @param string $field 要统计的字段名
-     * @param bool $isMulti 结果集是否为多条 默认只有一条
-     *
-     * @return mixed
-     */
-    abstract public function count($field = '*', $isMulti = false);
-
-    /**
-     * 获取 MAX(字段名或*) 的结果
-     *
-     * @param string $field 要统计的字段名
-     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
-     *
-     * @return mixed
-     */
-    abstract public function max($field = '*', $isMulti = false);
-
-    /**
-     * 获取 MIN(字段名或*) 的结果
-     *
-     * @param string $field 要统计的字段名
-     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
-     *
-     * @return mixed
-     */
-    abstract public function min($field = '*', $isMulti = false);
-
-    /**
-     * 获取 SUM(字段名或*) 的结果
-     *
-     * @param string $field 要统计的字段名
-     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
-     *
-     * @return mixed
-     */
-    abstract public function sum($field = '*', $isMulti = false);
-
-    /**
-     * 获取 AVG(字段名或*) 的结果
-     *
-     * @param string $field 要统计的字段名
-     * @param bool|string $isMulti 结果集是否为多条 默认只有一条。传字符串时相当于执行了 groupBy($isMulti)
-     *
-     * @return mixed
-     */
-    abstract public function avg($field = '*', $isMulti = false);
-
-    /**
-     * 返回INSERT，UPDATE 或 DELETE 查询所影响的记录行数。
-     *
-     * @param resource $handle mysql link
-     * @param int $type 执行的类型1:insert、2:update、3:delete
-     *
-     * @return int
-     */
-    abstract public function affectedRows($handle, $type);
-
-    /**
-     *获取上一INSERT的主键值
-     *
-     *@param resource $link
-     *
-     *@return int
-     */
-    abstract public function insertId($link = null);
-
-    /**
-     * 指定字段的值+1
-     *
-     * @param string $key 操作的key eg: user-id-1
-     * @param int $val
-     * @param string $field 要改变的字段
-     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
-     *
-     * @return bool
-     */
-    abstract public function increment($key, $val = 1, $field = null, $tablePrefix = null);
-
-    /**
-     * 指定字段的值-1
-     *
-     * @param string $key 操作的key user-id-1
-     * @param int $val
-     * @param string $field 要改变的字段
-     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
-     *
-     * @return bool
-     */
-    abstract public function decrement($key, $val = 1, $field = null, $tablePrefix = null);
-
-    /**
-     * Db连接
-     *
-     * @param string $host 数据库host
-     * @param string $username 数据库用户名
-     * @param string $password 数据库密码
-     * @param string $dbName 数据库名
-     * @param string $charset 字符集
-     * @param string $engine 引擎
-     * @param bool $pConnect 是否为长连接
-     *
-     * @return mixed
-     */
-    abstract public function connect($host, $username, $password, $dbName, $charset = 'utf8', $engine = '', $pConnect = false);
-
-    /**
-     *析构函数
-     *
-     */
-    abstract public function __destruct();
-
-    /**
-     *获取数据库 版本
-     *
-     *@param resource $link
-     *
-     *@return string
-     */
-    abstract public function version($link = null);
-
-    /**
-     * 开启事务
-     *
-     * @return bool
-     */
-    abstract public function  startTransAction();
-
-    /**
-     * 提交事务
-     *
-     * @return bool
-     */
-    abstract public function commit();
-
-    /**
-     * 设置一个事务保存点
-     *
-     * @param string $pointName 保存点名称
-     *
-     * @return bool
-     */
-    abstract public function savePoint($pointName);
-
-    /**
-     * 回滚事务
-     *
-     * @param bool $rollBackTo 是否为还原到某个保存点
-     *
-     * @return bool
-     */
-    abstract public function rollBack($rollBackTo = false);
-
-    /**
-     * 调用存储过程
-     * 如 : callProcedure('user_check ?,?  ', array(1, 1), true) pdo
-     *
-     * @param string $procedureName 要调用的存储过程名称
-     * @param array $bindParams 绑定的参数
-     * @param bool|true $isSelect 是否为返回数据集的语句
-     *
-     * @return array|int
-     */
-    abstract public function callProcedure($procedureName = '', $bindParams = array(), $isSelect = true);
 
     /**
      * 根据表名获取cache版本号

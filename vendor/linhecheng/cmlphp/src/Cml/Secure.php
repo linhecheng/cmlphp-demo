@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 系统安全类
  * *********************************************************** */
 namespace Cml;
@@ -124,6 +124,7 @@ class Secure
      */
     public static function filterScript($value)
     {
+        $value = preg_replace("/javascript:/i","&111",$value);
         $value = preg_replace("/(javascript:)?on(click|load|key|mouse|error|abort|move|unload|change|dblclick|move|reset|resize|submit)/i","&111n\\2",$value);
         $value = preg_replace("/<script(.*?)>(.*?)<\/script>/si","&ltscript\\1&gt\\2&lt/script&gt",$value);
         $value = preg_replace("/<iframe(.*?)>(.*?)<\/iframe>/si","&ltiframe\\1&gt\\2&lt/iframe&gt",$value);
@@ -140,11 +141,11 @@ class Secure
      */
     public static function filterStr($value)
     {
-        $value = str_replace(array("\0","%00","\r"), '', $value);
-        $value = preg_replace(array('/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/','/&(?!(#[0-9]+|[a-z]+);)/is'), array('', '&amp;'), $value);
-        $value = str_replace(array("%3C",'<'), '&lt;', $value);
-        $value = str_replace(array("%3E",'>'), '&gt;', $value);
-        $value = str_replace(array('"',"'","\t",'  '), array('&quot;','&#39;','    ','&nbsp;&nbsp;'), $value);
+        $value = str_replace(["\0","%00","\r"], '', $value);
+        $value = preg_replace(['/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/','/&(?!(#[0-9]+|[a-z]+);)/is'], ['', '&amp;'], $value);
+        $value = str_replace(["%3C", '<'], '&lt;', $value);
+        $value = str_replace(["%3E", '>'], '&gt;', $value);
+        $value = str_replace(['"', "'", "\t",'  '], ['&quot;','&#39;','    ','&nbsp;&nbsp;'], $value);
         return $value;
     }
 
@@ -157,8 +158,8 @@ class Secure
      */
     public static function filterSql($value)
     {
-        return str_ireplace(array("select", 'insert', "update", "delete", "\'", "\/\*", "\.\.\/", "\.\/", "union", "into", "load_file", "outfile"),
-            array("","","","","","","","","","","",""),
+        return str_ireplace(["select", 'insert', "update", "delete", "\'", "\/\*", "\.\.\/", "\.\/", "union", "into", "load_file", "outfile"],
+            ["","","","","","","","","","","",""],
             $value);
     }
 

@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.6
+ * @version  2.7
  * cml框架 插件类
  * *********************************************************** */
 namespace Cml;
@@ -20,7 +20,7 @@ class Plugin
      *
      * @var array
      */
-    private static $mountInfo = array();
+    private static $mountInfo = [];
 
     /**
      * 执行插件
@@ -30,7 +30,7 @@ class Plugin
      *
      * @return mixed
      */
-    public static function hook($hook, $params = array())
+    public static function hook($hook, $params = [])
     {
         $hookRun = isset(self::$mountInfo[$hook]) ? self::$mountInfo[$hook] : null;
         if (!is_null($hookRun)) {
@@ -39,7 +39,7 @@ class Plugin
                     $callBack = $val;
                 } else {
                     $plugin = new $key();
-                    $callBack = array($plugin, $val);
+                    $callBack = [$plugin, $val];
                 }
                 $return = call_user_func_array($callBack, array_slice(func_get_args(), 1));
 
@@ -53,19 +53,19 @@ class Plugin
 
     /**
      * 挂载插件到钩子
-    \Cml\Plugin::mount('hookName', array(
+    \Cml\Plugin::mount('hookName', [
         function() {//匿名函数
         },
         '\App\Test\Plugins' => 'run' //对象,
         '\App\Test\Plugins::run'////静态方法
-    );
+    ]);
      *
      * @param string $hook 要挂载的目标钩子
      * @param array $params 相应参数
      */
-    public static function mount($hook, $params = array())
+    public static function mount($hook, $params = [])
     {
-        is_array($params) || $params = array($params);
+        is_array($params) || $params = [$params];
         if (isset(self::$mountInfo[$hook])) {
             self::$mountInfo[$hook] += $params;
         } else {

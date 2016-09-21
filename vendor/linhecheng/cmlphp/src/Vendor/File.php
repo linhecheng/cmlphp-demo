@@ -3,7 +3,7 @@
  * [cml] (C)2012 - 3000 cml http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.6
+ * @version  2.7
  * cml框架 文件操作类
  * *********************************************************** */
 namespace Cml\Vendor;
@@ -35,7 +35,7 @@ class File
      *
      * @param  string $filename  文件名称
      * @param  string $content   写入文件的内容
-     * @param  string $type   类型，1=清空文件内容，写入新内容，2=再内容后街上新内容
+     * @param  int $type   类型，1=清空文件内容，写入新内容，2=再内容后街上新内容
      *
      * @return bool
      */
@@ -105,18 +105,20 @@ class File
      *
      * @param string $filename  文件名称
      *
-     * @return array('上次访问时间','inode 修改时间','取得文件修改时间','大小'，'类型')
+     * @return bool | array  ['上次访问时间','inode 修改时间','取得文件修改时间','大小'，'类型']
      */
     public static function getFileInfo($filename)
     {
-        if (!is_file($filename)) return false;
-        return array(
+        if (!is_file($filename)) {
+            return false;
+        }
+        return [
             'atime' => date("Y-m-d H:i:s", fileatime($filename)),
             'ctime' => date("Y-m-d H:i:s", filectime($filename)),
             'mtime' => date("Y-m-d H:i:s", filemtime($filename)),
             'size'  => filesize($filename),
             'type'  => filetype($filename)
-        );
+        ];
     }
 
     /**
