@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 下午3:51
- * @version  2.7
- * cml框架 请求响应类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 请求响应类
  * *********************************************************** */
 namespace Cml\Http;
 
@@ -116,7 +116,7 @@ class Response
             509 => 'Bandwidth Limit Exceeded'
         ];
         if (isset($_status[$code])) {
-            header('HTTP/1.1 '.$code.' '.$_status[$code]);
+            header('HTTP/1.1 ' . $code . ' ' . $_status[$code]);
         }
     }
 
@@ -142,11 +142,11 @@ class Response
         $url = implode($delimiter, explode('/', $url));
 
         if (Config::get('url_model') == 1) {
-            $return = $_SERVER['SCRIPT_NAME'].'/'.$url;
+            $return = $_SERVER['SCRIPT_NAME'] . '/' . $url;
         } elseif (Config::get('url_model') == 2) {
-            $return = Cml::getContainer()->make('cml_route')->getSubDirName().$url;
-        } elseif (Config::get('url_model') == 3){
-            $return = $_SERVER['SCRIPT_NAME'].'?'.Config::get('var_pathinfo').'=/'.$url;
+            $return = Cml::getContainer()->make('cml_route')->getSubDirName() . $url;
+        } elseif (Config::get('url_model') == 3) {
+            $return = $_SERVER['SCRIPT_NAME'] . '?' . Config::get('var_pathinfo') . '=/' . $url;
         }
 
         $return .= (Config::get('url_model') == 2 ? Config::get('url_html_suffix') : '');

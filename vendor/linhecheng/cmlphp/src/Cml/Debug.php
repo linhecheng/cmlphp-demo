@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 系统DEBUG调试类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 系统DEBUG调试类
  * *********************************************************** */
 namespace Cml;
 
@@ -209,12 +209,14 @@ class Debug implements DebugInterfaces
      *
      * @param string $msg 调试消息字符串
      * @param int $type 消息的类型
+     * @param string $color 是否要添加字体颜色
      *
      * @return void
      */
-    public static function addTipInfo($msg, $type = self::TIP_INFO_TYPE_INFO)
+    public static function addTipInfo($msg, $type = self::TIP_INFO_TYPE_INFO, $color = '')
     {
         if (Cml::$debug) {
+            $color && $msg = "<span style='color:{$color}'>" . $msg . '</span>';
             switch ($type) {
                 case self::TIP_INFO_TYPE_INFO:
                     self::$tipInfo[] = $msg;
@@ -241,7 +243,7 @@ class Debug implements DebugInterfaces
      */
     public static function addSqlInfo($sql, $type = self::SQL_TYPE_NORMAL, $other = 0)
     {
-        switch($type) {
+        switch ($type) {
             case self::SQL_TYPE_FROM_CACHE:
                 $sql .= "<span style='color:red;'>[from cache]</span>";
                 break;
@@ -262,9 +264,9 @@ class Debug implements DebugInterfaces
      *
      * @return string
      */
-    public static function codeSnippet( $file, $focus, $range = 7, $style = ['lineHeight' => 20, 'fontSize' => 13])
+    public static function codeSnippet($file, $focus, $range = 7, $style = ['lineHeight' => 20, 'fontSize' => 13])
     {
-        $html = highlight_file( $file, true );
+        $html = highlight_file($file, true);
         if (!$html) {
             return false;
         }
@@ -275,33 +277,33 @@ class Debug implements DebugInterfaces
         $codeHtml = '';
 
         // 获取相应范围起止索引
-        $start = ($focus - $range) < 1 ? 0 : ($focus - $range -1);
-        $end = ( ($focus + $range) > $lineNums ? $lineNums - 1 : ($focus + $range - 1) );
+        $start = ($focus - $range) < 1 ? 0 : ($focus - $range - 1);
+        $end = (($focus + $range) > $lineNums ? $lineNums - 1 : ($focus + $range - 1));
 
         // 修正开始标签
         // 有可能取到的片段缺少开始的span标签，而它包含代码着色的CSS属性
         // 如果缺少，片段开始的代码则没有颜色了，所以需要把它找出来
         if (substr($html[$start], 0, 5) !== '<span') {
-            while ( ($start - 1) >= 0 ) {
+            while (($start - 1) >= 0) {
                 $match = [];
                 preg_match('/<span style="color: #([\w]+)"(.(?!<\/span>))+$/', $html[--$start], $match);
-                if ( !empty($match) ) {
+                if (!empty($match)) {
                     $html[$start] = "<span style=\"color: #{$match[1]}\">" . $html[$start];
                     break;
                 }
             }
         }
 
-        for ( $line = $start; $line <= $end; $line++ ) {
+        for ($line = $start; $line <= $end; $line++) {
             // 在行号前填充0
-            $index_pad = str_pad($line + 1, strlen($end), 0, STR_PAD_LEFT );
-            ($line + 1) == $focus && $codeHtml .= "<p style='height: ".$style['lineHeight']."px; width: 100%; _width: 95%; background-color: red; opacity: 0.4; filter:alpha(opacity=40); font-size:15px; font-weight: bold;'>";
-            $codeHtml .= "<span style='margin-right: 10px;line-height: ".$style['lineHeight']."px; color: #807E7E;'>{$index_pad}</span>{$html[$line]}";
-            $codeHtml .= ( ($line + 1) == $focus ? '</p>' : ($line != $end ? '<br />' : '') );
+            $index_pad = str_pad($line + 1, strlen($end), 0, STR_PAD_LEFT);
+            ($line + 1) == $focus && $codeHtml .= "<p style='height: " . $style['lineHeight'] . "px; width: 100%; _width: 95%; background-color: red; opacity: 0.4; filter:alpha(opacity=40); font-size:15px; font-weight: bold;'>";
+            $codeHtml .= "<span style='margin-right: 10px;line-height: " . $style['lineHeight'] . "px; color: #807E7E;'>{$index_pad}</span>{$html[$line]}";
+            $codeHtml .= (($line + 1) == $focus ? '</p>' : ($line != $end ? '<br />' : ''));
         }
 
         // 修正结束标签
-        if ( substr( $codeHtml, -7 ) !== '</span>' ) {
+        if (substr($codeHtml, -7) !== '</span>') {
             $codeHtml .= '</span>';
         }
 
@@ -330,7 +332,7 @@ EOT;
                 ];
                 self::$sql && $deBugLogData['sql'] = self::$sql;
                 if (!empty($deBugLogData)) {
-                    Cml::requireFile(CML_CORE_PATH.DIRECTORY_SEPARATOR.'ConsoleLog.php', ['deBugLogData' => $deBugLogData]);
+                    Cml::requireFile(CML_CORE_PATH . DIRECTORY_SEPARATOR . 'ConsoleLog.php', ['deBugLogData' => $deBugLogData]);
                 }
             }
         } else {
@@ -347,22 +349,22 @@ EOT;
 }
 
 /**
-修改自dbug官方网站 http://dbug.ospinto.com/
-
-使用方法：
-include_once("dBug.php");
-new dBug($myVariable1);
-new dBug($myVariable2); //建议每次都创建一个新实例
-new dBug($arr);
-
-$test = new someClass('123');
-new dBug($test);
-
-$result = mysql_query('select * from tblname');
-new dBug($result);
-
-$xmlData = "./data.xml";
-new dBug($xmlData, "xml");
+ * 修改自dbug官方网站 http://dbug.ospinto.com/
+ *
+ * 使用方法：
+ * include_once("dBug.php");
+ * new dBug($myVariable1);
+ * new dBug($myVariable2); //建议每次都创建一个新实例
+ * new dBug($arr);
+ *
+ * $test = new someClass('123');
+ * new dBug($test);
+ *
+ * $result = mysql_query('select * from tblname');
+ * new dBug($result);
+ *
+ * $xmlData = "./data.xml";
+ * new dBug($xmlData, "xml");
  **/
 
 /**
@@ -396,7 +398,7 @@ class dBug
         $this->initJSandCSS();
         $arrAccept = ["array", "object", "xml"]; //array of variable types that can be "forced"
         $this->bCollapsed = $bCollapsed;
-        if (in_array($forceType,$arrAccept)) {
+        if (in_array($forceType, $arrAccept)) {
             $this->{"varIs" . ucfirst($forceType)}($var);
         } else {
             $this->checkType($var);
@@ -428,7 +430,7 @@ class dBug
 
         if (isset($arrFile)) {
             $arrLines = file($arrFile["file"]);
-            $code = $arrLines[($arrFile["line"]-1)];
+            $code = $arrLines[($arrFile["line"] - 1)];
 
             //find call to dBug class
             preg_match('/\bnew dBug\s*\(\s*(.+)\s*\);/i', $code, $arrMatches);
@@ -447,18 +449,18 @@ class dBug
         }
         $str_i = ($this->bCollapsed) ? "style=\"font-style:italic\" " : "";
 
-        echo "<table cellspacing=2 cellpadding=3 class=\"dBug_".$type."\">
+        echo "<table cellspacing=2 cellpadding=3 class=\"dBug_" . $type . "\">
                 <tr>
-                    <td ".$str_i."class=\"dBug_".$type."Header\" colspan=".$colspan." onClick='dBug_toggleTable(this)'>".$header."</td>
+                    <td " . $str_i . "class=\"dBug_" . $type . "Header\" colspan=" . $colspan . " onClick='dBug_toggleTable(this)'>" . $header . "</td>
                 </tr>";
     }
 
     //create the table row header
-    private function makeTDHeader($type,$header)
+    private function makeTDHeader($type, $header)
     {
         $str_d = ($this->bCollapsed) ? " style=\"display:none\"" : "";
-        echo "<tr".$str_d.">
-                <td valign=\"top\" onClick='dBug_toggleRow(this)' class=\"dBug_".$type."Key\">".$header."</td>
+        echo "<tr" . $str_d . ">
+                <td valign=\"top\" onClick='dBug_toggleRow(this)' class=\"dBug_" . $type . "Key\">" . $header . "</td>
                 <td>";
     }
 
@@ -469,7 +471,7 @@ class dBug
     }
 
     //error
-    private function  error($type)
+    private function error($type)
     {
         $error = "Error: Variable cannot be a";
         // this just checks if the type starts with a vowel or "x" and displays either "a" or "an"
@@ -478,7 +480,7 @@ class dBug
         ) {
             $error .= "n";
         }
-        return ($error." ".$type." type");
+        return ($error . " " . $type . " type");
     }
 
     //check variable type
@@ -501,8 +503,8 @@ class dBug
                 $this->varIsBoolean($var);
                 break;
             default:
-                $var=($var=="") ? "[empty string]" : $var;
-                echo "<table cellspacing=0><tr>\n<td>".$var."</td>\n</tr>\n</table>\n";
+                $var = ($var == "") ? "[empty string]" : $var;
+                echo "<table cellspacing=0><tr>\n<td>" . $var . "</td>\n</tr>\n</table>\n";
                 break;
         }
     }
@@ -516,7 +518,7 @@ class dBug
     //if variable is a boolean type
     private function varIsBoolean($var)
     {
-        $var = ($var==1) ? "true" : "false";
+        $var = ($var == 1) ? "true" : "false";
         echo $var;
     }
 
@@ -538,7 +540,7 @@ class dBug
                         $value = "*RECURSION*";
                 }
 
-                if (in_array(gettype($value),$this->arrType)) {
+                if (in_array(gettype($value), $this->arrType)) {
                     $this->checkType($value);
                 } else {
                     $value = (trim($value) == "") ? "[empty string]" : $value;
@@ -565,13 +567,13 @@ class dBug
             foreach ($arrObjVars as $key => $value) {
 
                 $value = (!is_object($value) && !is_array($value) && trim($value) == "") ? "[empty string]" : $value;
-                $this->makeTDHeader("object",$key);
+                $this->makeTDHeader("object", $key);
 
                 //check for recursion
                 if (is_object($value) || is_array($value)) {
                     $var_ser = serialize($value);
                     if (in_array($var_ser, $this->arrHistory, TRUE)) {
-                        $value = (is_object($value)) ? "*RECURSION* -> $".get_class($value) : "*RECURSION*";
+                        $value = (is_object($value)) ? "*RECURSION* -> $" . get_class($value) : "*RECURSION*";
 
                     }
                 }
@@ -585,10 +587,10 @@ class dBug
             $arrObjMethods = get_class_methods(get_class($var));
             foreach ($arrObjMethods as $key => $value) {
                 $this->makeTDHeader("object", $value);
-                echo "[function]".$this->closeTDRow();
+                echo "[function]" . $this->closeTDRow();
             }
         } else {
-            echo "<tr><td>".$this->error("object").$this->closeTDRow();
+            echo "<tr><td>" . $this->error("object") . $this->closeTDRow();
         }
         array_pop($this->arrHistory);
         echo "</table>";
@@ -607,7 +609,7 @@ class dBug
             case "sybase-db result":
             case "sybase-ct result":
             case "mysql result":
-                $db=current(explode(" ", get_resource_type($var)));
+                $db = current(explode(" ", get_resource_type($var)));
                 $this->varIsDBResource($var, $db);
                 break;
             case "gd":
@@ -620,7 +622,7 @@ class dBug
                 echo get_resource_type($var) . $this->closeTDRow();
                 break;
         }
-        echo $this->closeTDRow()."</table>\n";
+        echo $this->closeTDRow() . "</table>\n";
     }
 
     //if variable is a database resource type
@@ -633,42 +635,42 @@ class dBug
             $db = "sybase";
         }
         $arrFields = ["name", "type", "flags"];
-        $numrows = call_user_func($db."_num_rows",$var);
-        $numfields = call_user_func($db."_num_fields",$var);
-        $this->makeTableHeader("resource", $db." result", $numfields + 1);
+        $numrows = call_user_func($db . "_num_rows", $var);
+        $numfields = call_user_func($db . "_num_fields", $var);
+        $this->makeTableHeader("resource", $db . " result", $numfields + 1);
         echo "<tr><td class=\"dBug_resourceKey\">&nbsp;</td>";
         $field = [];
-        for ($i=0;$i<$numfields;$i++) {
+        for ($i = 0; $i < $numfields; $i++) {
             $field_header = $field_name = "";
             for ($j = 0; $j < count($arrFields); $j++) {
-                $db_func = $db."_field_".$arrFields[$j];
+                $db_func = $db . "_field_" . $arrFields[$j];
                 if (function_exists($db_func)) {
-                    $fheader = call_user_func($db_func, $var, $i). " ";
-                    if ($j==0) {
+                    $fheader = call_user_func($db_func, $var, $i) . " ";
+                    if ($j == 0) {
                         $field_name = $fheader;
                     } else {
                         $field_header .= $fheader;
                     }
                 }
             }
-            $field[$i] = call_user_func($db."_fetch_field", $var, $i);
-            echo "<td class=\"dBug_resourceKey\" title=\"".$field_header."\">".$field_name."</td>";
+            $field[$i] = call_user_func($db . "_fetch_field", $var, $i);
+            echo "<td class=\"dBug_resourceKey\" title=\"" . $field_header . "\">" . $field_name . "</td>";
         }
         echo "</tr>";
         for ($i = 0; $i < $numrows; $i++) {
-            $row=call_user_func($db."_fetch_array", $var, constant(strtoupper($db)."_ASSOC"));
+            $row = call_user_func($db . "_fetch_array", $var, constant(strtoupper($db) . "_ASSOC"));
             echo "<tr>\n";
-            echo "<td class=\"dBug_resourceKey\">".($i+1)."</td>";
+            echo "<td class=\"dBug_resourceKey\">" . ($i + 1) . "</td>";
             for ($k = 0; $k < $numfields; $k++) {
                 $fieldrow = $row[($field[$k]->name)];
                 $fieldrow = ($fieldrow == "") ? "[empty string]" : $fieldrow;
-                echo "<td>".$fieldrow."</td>\n";
+                echo "<td>" . $fieldrow . "</td>\n";
             }
             echo "</tr>\n";
         }
         echo "</table>";
         if ($numrows > 0) {
-            call_user_func($db."_data_seek", $var, 0);
+            call_user_func($db . "_data_seek", $var, 0);
         }
     }
 
@@ -677,11 +679,11 @@ class dBug
     {
         $this->makeTableHeader("resource", "gd", 2);
         $this->makeTDHeader("resource", "Width");
-        echo imagesx($var).$this->closeTDRow();
+        echo imagesx($var) . $this->closeTDRow();
         $this->makeTDHeader("resource", "Height");
-        echo imagesy($var).$this->closeTDRow();
+        echo imagesy($var) . $this->closeTDRow();
         $this->makeTDHeader("resource", "Colors");
-        echo imagecolorstotal($var).$this->closeTDRow();
+        echo imagecolorstotal($var) . $this->closeTDRow();
         echo "</table>";
     }
 
@@ -695,41 +697,40 @@ class dBug
     private function varIsXmlResource($var)
     {
         $xml_parser = xml_parser_create();
-        xml_parser_set_option($xml_parser, XML_OPTION_CASE_FOLDING,0);
+        xml_parser_set_option($xml_parser, XML_OPTION_CASE_FOLDING, 0);
         xml_set_element_handler($xml_parser, [&$this, "xmlStartElement"], [&$this, "xmlEndElement"]);
         xml_set_character_data_handler($xml_parser, [&$this, "xmlCharacterData"]);
         xml_set_default_handler($xml_parser, [&$this, "xmlDefaultHandler"]);
 
-        $this->makeTableHeader("xml", "xml document",2);
+        $this->makeTableHeader("xml", "xml document", 2);
         $this->makeTDHeader("xml", "xmlRoot");
 
         //attempt to open xml file
-        $bFile = (!($fp=@fopen($var, "r"))) ? false : true;
+        $bFile = (!($fp = @fopen($var, "r"))) ? false : true;
 
         //read xml file
         if ($bFile) {
             while ($data = str_replace("\n", "", fread($fp, 4096))) {
                 $this->xmlParse($xml_parser, $data, feof($fp));
             }
-        }
-        //if xml is not a file, attempt to read it as a string
+        } //if xml is not a file, attempt to read it as a string
         else {
             if (!is_string($var)) {
-                echo $this->error("xml").$this->closeTDRow()."</table>\n";
+                echo $this->error("xml") . $this->closeTDRow() . "</table>\n";
                 return;
             }
             $data = $var;
-            $this->xmlParse($xml_parser,$data,1);
+            $this->xmlParse($xml_parser, $data, 1);
         }
 
-        echo $this->closeTDRow()."</table>\n";
+        echo $this->closeTDRow() . "</table>\n";
 
     }
 
     //parse xml
     private function xmlParse($xml_parser, $data, $bFinal)
     {
-        if (!xml_parse($xml_parser,$data,$bFinal)) {
+        if (!xml_parse($xml_parser, $data, $bFinal)) {
             die(sprintf("XML error: %s at line %d\n",
                 xml_error_string(xml_get_error_code($xml_parser)),
                 xml_get_current_line_number($xml_parser)));
@@ -743,14 +744,14 @@ class dBug
         $this->xmlName[$this->xmlCount] = $name;
         $this->xmlSData[$this->xmlCount] = '$this->makeTableHeader("xml","xml element",2);';
         $this->xmlSData[$this->xmlCount] .= '$this->makeTDHeader("xml","xmlName");';
-        $this->xmlSData[$this->xmlCount] .= 'echo "<strong>'.$this->xmlName[$this->xmlCount].'</strong>".$this->closeTDRow();';
+        $this->xmlSData[$this->xmlCount] .= 'echo "<strong>' . $this->xmlName[$this->xmlCount] . '</strong>".$this->closeTDRow();';
         $this->xmlSData[$this->xmlCount] .= '$this->makeTDHeader("xml","xmlAttributes");';
-        if (count($attribs)>0) {
+        if (count($attribs) > 0) {
             $this->xmlSData[$this->xmlCount] .= '$this->varIsArray($this->xmlAttrib[' . $this->xmlCount . ']);';
         } else {
             $this->xmlSData[$this->xmlCount] .= 'echo "&nbsp;";';
         }
-        $this->xmlSData[$this->xmlCount].='echo $this->closeTDRow();';
+        $this->xmlSData[$this->xmlCount] .= 'echo $this->closeTDRow();';
         $this->xmlCount++;
     }
 
@@ -762,21 +763,21 @@ class dBug
             $this->makeTDHeader("xml", "xmlText");
             echo (!empty($this->xmlCData[$i])) ? $this->xmlCData[$i] : "&nbsp;";
             echo $this->closeTDRow();
-            $this->makeTDHeader("xml","xmlComment");
+            $this->makeTDHeader("xml", "xmlComment");
             echo (!empty($this->xmlDData[$i])) ? $this->xmlDData[$i] : "&nbsp;";
             echo $this->closeTDRow();
-            $this->makeTDHeader("xml","xmlChildren");
-            unset($this->xmlCData[$i],$this->xmlDData[$i]);
+            $this->makeTDHeader("xml", "xmlChildren");
+            unset($this->xmlCData[$i], $this->xmlDData[$i]);
         }
         echo $this->closeTDRow();
         echo "</table>";
-        $this->xmlCount=0;
+        $this->xmlCount = 0;
     }
 
     //xml: initiated when text between tags is encountered
-    private function xmlCharacterData($parser,$data)
+    private function xmlCharacterData($parser, $data)
     {
-        $count=$this->xmlCount-1;
+        $count = $this->xmlCount - 1;
         if (!empty($this->xmlCData[$count])) {
             $this->xmlCData[$count] .= $data;
         } else {
@@ -788,7 +789,7 @@ class dBug
     private function xmlDefaultHandler($parser, $data)
     {
         //strip '<!--' and '-->' off comments
-        $data = str_replace(["&lt;!--","--&gt;"], "", htmlspecialchars($data));
+        $data = str_replace(["&lt;!--", "--&gt;"], "", htmlspecialchars($data));
         $count = $this->xmlCount - 1;
         if (!empty($this->xmlDData[$count])) {
             $this->xmlDData[$count] .= $data;

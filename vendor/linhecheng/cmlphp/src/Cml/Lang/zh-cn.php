@@ -1,14 +1,14 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.7
+ * @version  @see \Cml\Cml::VERSION
  * cml简体中文语言包
  * *********************************************************** */
 return [
     //  核心
-    '_CONTROLLER_NOT_FOUND_'=> '对不起!你访问的模块不存在,请检查路由或访问地址是否有误！',
+    '_CONTROLLER_NOT_FOUND_' => '对不起!你访问的模块不存在,请检查路由或访问地址是否有误！',
     '_CML_DEBUG_ADD_CLASS_TIP_' => '<b>%s</b>类',
     '_CML_ACTION_CONTROLLER_' => '当前访问的控制器为：<b>%s</b>文件',
     '_CML_ERROR_' => '系统发生错误',
@@ -29,7 +29,7 @@ return [
     '_CACHE_NEW_INSTANCE_ERROR_' => '%s实例化失败',
     '_CACHE_CONNECT_FAIL_' => '无法连接%s,请检查配置是否正确【%s】',
     '_ILLEGAL_REQUEST_' => '非法请求',
-    '_TEMPLATE_FILE_NOT_FOUND_'=> '模板或布局文件[%s]未找到或者无法打开',
+    '_TEMPLATE_FILE_NOT_FOUND_' => '模板或布局文件[%s]未找到或者无法打开',
     '_CREATE_DIR_ERROR_' => '无法创建目录',
     '_NOT_OPEN_' => '%s未启用',
     '_ROUTE_PARAM_ERROR_' => '[%s]路由配置错误,【至少要控制器/方法】2个参数',

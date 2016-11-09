@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 13-9-4 下午4:35
- * @version  2.7
- * cml框架 验证码扩展类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 验证码扩展类
  * *********************************************************** */
 namespace Cml\Vendor;
 use Cml\Http\Cookie;

@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 视图 html渲染引擎
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 视图 html渲染引擎
  * *********************************************************** */
 
 namespace Cml\View;
@@ -14,7 +14,6 @@ use Cml\Config;
 use Cml\Exception\FileCanNotReadableException;
 use Cml\Exception\MkdirErrorException;
 use Cml\Lang;
-use Cml\Route;
 use Cml\Secure;
 
 /**
@@ -76,37 +75,44 @@ class Html extends Base
         //要替换的标签
         $this->pattern = [
             '#\<\?(=|php)(.+?)\?\>#s', //替换php标签
-            '#'.$this->options['leftDelimiter']."(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?);?".$this->options['rightDelimiter'].'#', //替换变量 $a['name']这种一维数组以及$a['name']['name']这种二维数组
-            '#'.$this->options['leftDelimiter']."(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+);?".$this->options['rightDelimiter'].'#', //替换$a.key这种一维数组
-            '#'.$this->options['leftDelimiter']."(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+)\\.([a-zA-Z0-9_\x7f-\xff]+);?".$this->options['rightDelimiter'].'#', //替换$a.key.key这种二维数组
-            '#'.$this->options['leftDelimiter'].'template\s+([a-z0-9A-Z_\.\/]+);?'.$this->options['rightDelimiter'].'[\n\r\t]*#',//替换模板载入命令
-            '#'.$this->options['leftDelimiter'].'eval\s+(.+?)'.$this->options['rightDelimiter'].'#s',//替换eval
-            '#'.$this->options['leftDelimiter'].'echo\s+(.+?)'.$this->options['rightDelimiter'].'#s', //替换 echo
-            '#'.$this->options['leftDelimiter'].'if\s+(.+?)'.$this->options['rightDelimiter'].'#s',//替换if
-            '#'.$this->options['leftDelimiter'].'(elseif|elseif)\s+(.+?)'.$this->options['rightDelimiter'].'#s', //替换 elseif
-            '#'.$this->options['leftDelimiter'].'else'.$this->options['rightDelimiter'].'#', //替换 else
-            '#'.$this->options['leftDelimiter'].'\/if'.$this->options['rightDelimiter'].'#',//替换 /if
-            '#'.$this->options['leftDelimiter'].'(loop|foreach)\s+(\S+)\s+(\S+)'.$this->options['rightDelimiter'].'#s',//替换loop|foreach
-            '#'.$this->options['leftDelimiter'].'(loop|foreach)\s+(\S+)\s+(\S+)\s+(\S+)'.$this->options['rightDelimiter'].'#s',//替换loop|foreach
-            '#'.$this->options['leftDelimiter'].'\/(loop|foreach)'.$this->options['rightDelimiter'].'#',//替换 /foreach|/loop
-            '#'.$this->options['leftDelimiter'].'hook\s+(\w+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 hook
-            '#'.$this->options['leftDelimiter'].'(get|post|request)\s+(\w+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 get/post/request
-            '#'.$this->options['leftDelimiter'].'lang\s+([A-Za-z0-9_\.]+)\s*'.$this->options['rightDelimiter'].'#i',//替换 lang
-            '#'.$this->options['leftDelimiter'].'config\s+([A-Za-z0-9_\.]+)\s*'.$this->options['rightDelimiter'].'#i',//替换 config
-            '#'.$this->options['leftDelimiter'].'url\s+(.*?)\s*'.$this->options['rightDelimiter'].'#i',//替换 url
-            '#'.$this->options['leftDelimiter'].'public'.$this->options['rightDelimiter'].'#i',//替换 {{public}}
-            '#'.$this->options['leftDelimiter'].'self'.$this->options['rightDelimiter'].'#i',//替换 {{self}}
-            '#'.$this->options['leftDelimiter'].'token'.$this->options['rightDelimiter'].'#i',//替换 {{token}}
-            '#'.$this->options['leftDelimiter'].'controller'.$this->options['rightDelimiter'].'#i',//替换 {{controller}}
-            '#'.$this->options['leftDelimiter'].'action'.$this->options['rightDelimiter'].'#i',//替换 {{action}}
-            '#'.$this->options['leftDelimiter'].'urldeper'.$this->options['rightDelimiter'].'#i',//替换 {{urldeper}}
-            '#'.$this->options['leftDelimiter'].' \\?\\>[\n\r]*\\<\\?'.$this->options['rightDelimiter'].'#', //删除 PHP 代码断间多余的空格及换行
+            '#' . $this->options['leftDelimiter'] . "(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?);?" . $this->options['rightDelimiter'] . '#', //替换变量 $a['name']这种一维数组以及$a['name']['name']这种二维数组
+            '#' . $this->options['leftDelimiter'] . "(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+);?" . $this->options['rightDelimiter'] . '#', //替换$a.key这种一维数组
+            '#' . $this->options['leftDelimiter'] . "(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+)\\.([a-zA-Z0-9_\x7f-\xff]+);?" . $this->options['rightDelimiter'] . '#', //替换$a.key.key这种二维数组
+
+            //htmlspecialchars
+            '#' . $this->options['leftDelimiter'] . "\\+(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?\\[\S+?\\]|\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?);?" . $this->options['rightDelimiter'] . '#', //替换变量 $a['name']这种一维数组以及$a['name']['name']这种二维数组
+            '#' . $this->options['leftDelimiter'] . "\\+(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+);?" . $this->options['rightDelimiter'] . '#', //替换$a.key这种一维数组
+            '#' . $this->options['leftDelimiter'] . "\\+(\\\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*?)\\.([a-zA-Z0-9_\x7f-\xff]+)\\.([a-zA-Z0-9_\x7f-\xff]+);?" . $this->options['rightDelimiter'] . '#', //替换$a.key.key这种二维数组
+            '#' . $this->options['leftDelimiter'] . '\\+echo\s+(.+?)' . $this->options['rightDelimiter'] . '#s', //替换 echo
+
+            '#' . $this->options['leftDelimiter'] . 'template\s+([a-z0-9A-Z_\.\/]+);?' . $this->options['rightDelimiter'] . '[\n\r\t]*#',//替换模板载入命令
+            '#' . $this->options['leftDelimiter'] . 'eval\s+(.+?)' . $this->options['rightDelimiter'] . '#s',//替换eval
+            '#' . $this->options['leftDelimiter'] . 'echo\s+(.+?)' . $this->options['rightDelimiter'] . '#s', //替换 echo
+            '#' . $this->options['leftDelimiter'] . 'if\s+(.+?)' . $this->options['rightDelimiter'] . '#s',//替换if
+            '#' . $this->options['leftDelimiter'] . '(elseif|elseif)\s+(.+?)' . $this->options['rightDelimiter'] . '#s', //替换 elseif
+            '#' . $this->options['leftDelimiter'] . 'else' . $this->options['rightDelimiter'] . '#', //替换 else
+            '#' . $this->options['leftDelimiter'] . '\/if' . $this->options['rightDelimiter'] . '#',//替换 /if
+            '#' . $this->options['leftDelimiter'] . '(loop|foreach)\s+(\S+)\s+(\S+)' . $this->options['rightDelimiter'] . '#s',//替换loop|foreach
+            '#' . $this->options['leftDelimiter'] . '(loop|foreach)\s+(\S+)\s+(\S+)\s+(\S+)' . $this->options['rightDelimiter'] . '#s',//替换loop|foreach
+            '#' . $this->options['leftDelimiter'] . '\/(loop|foreach)' . $this->options['rightDelimiter'] . '#',//替换 /foreach|/loop
+            '#' . $this->options['leftDelimiter'] . 'hook\s+(\w+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 hook
+            '#' . $this->options['leftDelimiter'] . '(get|post|request)\s+(\w+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 get/post/request
+            '#' . $this->options['leftDelimiter'] . 'lang\s+([A-Za-z0-9_\.]+)\s*(.*?)' . $this->options['rightDelimiter'] . '#i',//替换 lang
+            '#' . $this->options['leftDelimiter'] . 'config\s+([A-Za-z0-9_\.]+)\s*' . $this->options['rightDelimiter'] . '#i',//替换 config
+            '#' . $this->options['leftDelimiter'] . 'url\s+(.*?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 url
+            '#' . $this->options['leftDelimiter'] . 'public' . $this->options['rightDelimiter'] . '#i',//替换 {{public}}
+            '#' . $this->options['leftDelimiter'] . 'self' . $this->options['rightDelimiter'] . '#i',//替换 {{self}}
+            '#' . $this->options['leftDelimiter'] . 'token' . $this->options['rightDelimiter'] . '#i',//替换 {{token}}
+            '#' . $this->options['leftDelimiter'] . 'controller' . $this->options['rightDelimiter'] . '#i',//替换 {{controller}}
+            '#' . $this->options['leftDelimiter'] . 'action' . $this->options['rightDelimiter'] . '#i',//替换 {{action}}
+            '#' . $this->options['leftDelimiter'] . 'urldeper' . $this->options['rightDelimiter'] . '#i',//替换 {{urldeper}}
+            '#' . $this->options['leftDelimiter'] . ' \\?\\>[\n\r]*\\<\\?' . $this->options['rightDelimiter'] . '#', //删除 PHP 代码断间多余的空格及换行
             '#(href\s*?=\s*?"\s*?"|href\s*?=\s*?\'\s*?\')#',
             '#(src\s*?=\s*?"\s*?"|src\s*?=\s*?\'\s*?\')#',
-            '#'.$this->options['leftDelimiter'].'assert\s+(.+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 assert
-            '#'.$this->options['leftDelimiter'].'comment\s+(.+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 comment 模板注释
-            '#'.$this->options['leftDelimiter'].'acl\s+(.+?)\s*'.$this->options['rightDelimiter'].'#i',//替换 acl权限判断标识
-            '#'.$this->options['leftDelimiter'].'\/acl'.$this->options['rightDelimiter'].'#i',//替换 /acl
+            '#' . $this->options['leftDelimiter'] . 'assert\s+(.+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 assert
+            '#' . $this->options['leftDelimiter'] . 'comment\s+(.+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 comment 模板注释
+            '#' . $this->options['leftDelimiter'] . 'acl\s+(.+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 acl权限判断标识
+            '#' . $this->options['leftDelimiter'] . '\/acl' . $this->options['rightDelimiter'] . '#i',//替换 /acl
         ];
 
         //替换后的内容
@@ -115,6 +121,13 @@ class Html extends Base
             '<?php echo ${1};?>',
             '<?php echo ${1}[\'${2}\'];?>',
             '<?php echo ${1}[\'${2}\'][\'${3}\'];?>',
+
+            //htmlspecialchars
+            '<?php echo htmlspecialchars(${1});?>',
+            '<?php echo htmlspecialchars(${1}[\'${2}\']);?>',
+            '<?php echo htmlspecialchars(${1}[\'${2}\'][\'${3}\']);?>',
+            '<?php echo htmlspecialchars(${1});?>',
+
             '<?php require(\Cml\View::getEngine()->getFile(\'${1}\', 1)); ?>',
             '<?php ${1};?>',
             '<?php echo ${1};?>',
@@ -127,7 +140,7 @@ class Html extends Base
             '<?php } } ?>',
             '<?php \Cml\Plugin::hook("${1}");?>',
             '<?php echo \Cml\Http\Input::${1}String("${2}");?>',
-            '<?php echo \Cml\Lang::get("${1}");?>',
+            '<?php echo \Cml\Lang::get("${1}"${2});?>',
             '<?php echo \Cml\Config::get("${1}");?>',
             '<?php \Cml\Http\Response::url(${1});?>',
             '<?php echo \Cml\Config::get("static__path", \Cml\Cml::getContainer()->make("cml_route")->getSubDirName()."public/");?>',//替换 {{public}}
@@ -158,7 +171,7 @@ class Html extends Base
     public function addRule($pattern, $replacement, $haveDelimiter = true)
     {
         if ($pattern && $replacement) {
-            $this->pattern = $haveDelimiter ? '#'.$this->options['leftDelimiter'].$pattern.$this->options['rightDelimiter'].'#s' : "#{$pattern}#s";
+            $this->pattern = $haveDelimiter ? '#' . $this->options['leftDelimiter'] . $pattern . $this->options['rightDelimiter'] . '#s' : "#{$pattern}#s";
             $this->replacement = $replacement;
         }
         return $this;
@@ -167,8 +180,8 @@ class Html extends Base
     /**
      * 设定模板配置参数
      *
-     * @param  string | array $name  参数名称
-     * @param  mixed  $value 参数值
+     * @param  string | array $name 参数名称
+     * @param  mixed $value 参数值
      *
      * @return $this
      */
@@ -201,7 +214,7 @@ class Html extends Base
                 throw new FileCanNotReadableException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $tplFile));
             }
             if (!is_file($cacheFile)) {
-                if ($type !==1 && !is_null($this->layout)) {
+                if ($type !== 1 && !is_null($this->layout)) {
                     if (!is_readable($this->layout)) {
                         throw new FileCanNotReadableException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
                     }
@@ -219,14 +232,14 @@ class Html extends Base
                 $compile = true;
             }
 
-            if ($compile && $type !==1 && !is_null($this->layout)) {
+            if ($compile && $type !== 1 && !is_null($this->layout)) {
                 if (!is_readable($this->layout)) {
                     throw new FileCanNotReadableException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
                 }
             }
 
             //当子模板未修改时判断布局模板是否修改
-            if (!$compile && $type !==1 && !is_null($this->layout)) {
+            if (!$compile && $type !== 1 && !is_null($this->layout)) {
                 if (!is_readable($this->layout)) {
                     throw new FileCanNotReadableException(Lang::get('_TEMPLATE_FILE_NOT_FOUND_', $this->layout));
                 }
@@ -246,7 +259,7 @@ class Html extends Base
     /**
      * 对模板文件进行缓存
      *
-     * @param  string  $tplFile    模板文件名
+     * @param  string $tplFile 模板文件名
      * @param  string $cacheFile 模板缓存文件名
      * @param int $type 缓存类型0当前操作的模板的缓存 1包含的模板的缓存
      *
@@ -263,10 +276,10 @@ class Html extends Base
 
         if (!Cml::$debug) {
             /* 去除html空格与换行 */
-            $find = ['~>\s+<~','~>(\s+\n|\r)~'];
-            $replace = ['><','>'];
+            $find = ['~>\s+<~', '~>(\s+\n|\r)~'];
+            $replace = ['><', '>'];
             $template = preg_replace($find, $replace, $template);
-            $template = str_replace('?><?php','',$template);
+            $template = str_replace('?><?php', '', $template);
         }
 
         //添加 头信息
@@ -298,7 +311,7 @@ class Html extends Base
 
             //获取子模板内容
             $presult = preg_match_all(
-                '#'.$this->options['leftDelimiter'].'to\s+([a_zA-Z]+?)'.$this->options['rightDelimiter'].'(.*?)'.$this->options['leftDelimiter'].'\/to'.$this->options['rightDelimiter'].'#is',
+                '#' . $this->options['leftDelimiter'] . 'to\s+([a_zA-Z]+?)' . $this->options['rightDelimiter'] . '(.*?)' . $this->options['leftDelimiter'] . '\/to' . $this->options['rightDelimiter'] . '#is',
                 $tplCon,
                 $tmpl
             );
@@ -315,13 +328,13 @@ class Html extends Base
             //将子模板内容替换到布局文件返回
             $layoutBlockData = &$this->layoutBlockData;
             $layoutCon = preg_replace_callback(
-                '#'.$this->options['leftDelimiter'].'block\s+([a_zA-Z]+?)'.$this->options['rightDelimiter'].'(.*?)'.$this->options['leftDelimiter'].'\/block'.$this->options['rightDelimiter'].'#is',
-                function($matches) use($layoutBlockData) {
+                '#' . $this->options['leftDelimiter'] . 'block\s+([a_zA-Z]+?)' . $this->options['rightDelimiter'] . '(.*?)' . $this->options['leftDelimiter'] . '\/block' . $this->options['rightDelimiter'] . '#is',
+                function ($matches) use ($layoutBlockData) {
                     array_shift($matches);
                     if (isset($layoutBlockData[$matches[0]])) {
                         //替换{parent}标签并返回
                         return str_replace(
-                            $this->options['rightDelimiter'].'parent'.$this->options['rightDelimiter'],
+                            $this->options['rightDelimiter'] . 'parent' . $this->options['rightDelimiter'],
                             $matches[1],
                             $layoutBlockData[$matches[0]]
                         );
@@ -360,13 +373,13 @@ class Html extends Base
      */
     private function getCacheFile($file)
     {
-        return $this->options['cacheDir'].$file.'.cache.php';
+        return $this->options['cacheDir'] . $file . '.cache.php';
     }
 
     /**
      * 根据指定的路径创建不存在的文件夹
      *
-     * @param  string  $path 路径/文件夹名称
+     * @param  string $path 路径/文件夹名称
      *
      * @return string
      */
@@ -374,7 +387,7 @@ class Html extends Base
     {
         $path = dirname($path);
         if (!is_dir($path) && !mkdir($path, 0700, true)) {
-            throw new MkdirErrorException(Lang::get('_CREATE_DIR_ERROR_')."[{$path}]");
+            throw new MkdirErrorException(Lang::get('_CREATE_DIR_ERROR_') . "[{$path}]");
         }
         return true;
     }
@@ -387,24 +400,27 @@ class Html extends Base
      *
      * @return string
      */
-    private function initBaseDir($templateFile, $inOtherApp = false) {
-        $baseDir = $inOtherApp
-            ? $inOtherApp
-            : Cml::getContainer()->make('cml_route')->getAppName();
-        $baseDir .=  '/'. Cml::getApplicationDir('app_view_path_name') . (Config::get('html_theme') != '' ? DIRECTORY_SEPARATOR . Config::get('html_theme') : '');
+    private function initBaseDir($templateFile, $inOtherApp = false)
+    {
 
-        if ($templateFile === '' ) {
-            $baseDir .=  '/' . Cml::getContainer()->make('cml_route')->getControllerName() . '/';
+        $baseDir = Cml::getApplicationDir('app_view_path_name') . (Config::get('html_theme') != '' ? DIRECTORY_SEPARATOR . Config::get('html_theme') : '');
+
+        if (!Cml::getApplicationDir('app_controller_path')) {
+            $baseDir = ($inOtherApp ? $inOtherApp : Cml::getContainer()->make('cml_route')->getAppName()) . '/' . $baseDir;
+        }
+
+        if ($templateFile === '') {
+            $baseDir .= '/' . Cml::getContainer()->make('cml_route')->getControllerName() . '/';
             $file = Cml::getContainer()->make('cml_route')->getActionName();
         } else {
             $templateFile = str_replace('.', '/', $templateFile);
-            $baseDir .= DIRECTORY_SEPARATOR . dirname($templateFile).DIRECTORY_SEPARATOR;
+            $baseDir .= DIRECTORY_SEPARATOR . dirname($templateFile) . DIRECTORY_SEPARATOR;
             $file = basename($templateFile);
         }
 
         $options = [
             'templateDir' => Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $baseDir, //指定模板文件存放目录
-            'cacheDir' => Cml::getApplicationDir('runtime_cache_path').DIRECTORY_SEPARATOR. $baseDir, //指定缓存文件存放目录
+            'cacheDir' => Cml::getApplicationDir('runtime_cache_path') . DIRECTORY_SEPARATOR . $baseDir, //指定缓存文件存放目录
             'autoUpdate' => true, //当模板修改时自动更新缓存
         ];
 
@@ -423,7 +439,7 @@ class Html extends Base
     public function display($templateFile = '', $inOtherApp = false)
     {
         // 网页字符编码
-        header('Content-Type:text/html; charset='.Config::get('default_charset'));
+        header('Content-Type:text/html; charset=' . Config::get('default_charset'));
         echo $this->fetch($templateFile, $inOtherApp);
         Cml::cmlStop();
     }
@@ -464,7 +480,7 @@ class Html extends Base
             }
             empty($this->args) || extract($this->args, EXTR_PREFIX_SAME, "xxx");
             $return = $this->compile($tplFile, false, 0);
-            eval('?>'.$return.'<?php ');
+            eval('?>' . $return . '<?php ');
         } else {
             Cml::requireFile($this->getFile(($doNotSetDir ? $templateFile : $this->initBaseDir($templateFile, $inOtherApp))), $this->args);
         }
@@ -485,9 +501,9 @@ class Html extends Base
     public function displayWithLayout($templateFile = '', $layout = 'master', $layoutInOtherApp = false, $tplInOtherApp = false)
     {
         $this->layout = Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR
-            . ($layoutInOtherApp ? $layoutInOtherApp :  Cml::getContainer()->make('cml_route')->getAppName())
+            . ($layoutInOtherApp ? $layoutInOtherApp : Cml::getContainer()->make('cml_route')->getAppName())
             . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_view_path_name') . DIRECTORY_SEPARATOR
-            . (Config::get('html_theme') != '' ? Config::get('html_theme').DIRECTORY_SEPARATOR : '')
+            . (Config::get('html_theme') != '' ? Config::get('html_theme') . DIRECTORY_SEPARATOR : '')
             . 'layout' . DIRECTORY_SEPARATOR . $layout . Config::get('html_template_suffix');
         $this->display($templateFile, $tplInOtherApp);
     }

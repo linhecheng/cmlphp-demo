@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.7
- * cml框架 数据验证类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 数据验证类
  * *********************************************************** */
 
 namespace Cml\Vendor;
@@ -243,7 +243,7 @@ class Validate
     {
         switch ($format) {
             case 1:
-                return json_encode($this->errorMsg, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
+                return json_encode($this->errorMsg, JSON_UNESCAPED_UNICODE);
             case 2:
                 $return = '';
                 foreach($this->errorMsg as $val) {

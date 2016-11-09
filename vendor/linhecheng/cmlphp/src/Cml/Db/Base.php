@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 Db 数据库抽象基类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Db 数据库抽象基类
  * *********************************************************** */
 namespace Cml\Db;
 
@@ -207,6 +207,23 @@ abstract class Base implements Db
             }
         }
         return false;
+    }
+
+    /**
+     * 获取多条数据
+     *
+     * @param bool $useMaster 是否使用主库 默认读取从库
+     *
+     * @return array | bool
+     */
+    public function getOne($useMaster = false)
+    {
+        $result = $this->select(0, 1, $useMaster);
+        if (isset($result[0])) {
+            return $result[0];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -834,28 +851,19 @@ abstract class Base implements Db
     }
 
     /**
-     *SQL语句条件组装
+     * SQL语句条件组装
      *
-     *@param array $arr; 要组装的数组
-     *@param string $tableName 当前操作的数据表名
+     * @param array $arr 要组装的数组
      *
-     *@return string
+     * @return string
      */
-    protected function arrToCondition($arr, $tableName)
+    protected function arrToCondition($arr)
     {
-        empty($tableName) && $tableName = Cml::getContainer()->make('cml_route')->getControllerName();
-       /*
-       //这个应该开发人员自己判断。框架不做额外开销
-       $dbFields = $this->getDbFields($tableName, $tablePrefix);
-        foreach (array_keys($arr) as $key) {
-            if (!isset($dbFields[$key]))  unset($arr[$key]); //过滤db表中不存在的字段
-        }
-       */
         $s = $p = '';
         $params = [];
         foreach ($arr as $k => $v) {
             if (is_array($v)) { //自增或自减
-                switch(key($v)) {
+                switch (key($v)) {
                     case 'inc':
                         $p = "`{$k}`= `{$k}`+" . abs(intval(current($v)));
                         break;
@@ -865,13 +873,13 @@ abstract class Base implements Db
                     case 'func':
                         $func = strtoupper(key(current($v)));
                         $funcParams = current(current($v));
-                        foreach($funcParams as $key => $val) {
+                        foreach ($funcParams as $key => $val) {
                             if (!isset($dbFields[$val])) {
                                 $funcParams[$key] = '%s';
                                 $params[] = $val;
                             }
                         }
-                        $p =  "`{$k}`= {$func}(" . implode($funcParams, ','). ')';
+                        $p = "`{$k}`= {$func}(" . implode($funcParams, ',') . ')';
                         break;
                     default ://计算类型
                         $conkey = key($v);
@@ -887,7 +895,7 @@ abstract class Base implements Db
                 $params[] = $v;
             }
 
-            $s .= (empty($s) ? '' : ',').$p;
+            $s .= (empty($s) ? '' : ',') . $p;
         }
         $this->bindParams = array_merge($params, $this->bindParams);
         return $s;
@@ -909,7 +917,7 @@ abstract class Base implements Db
         $arr = explode('-', $key);
         $len = count($arr);
         for ($i = 1; $i < $len; $i += 2) {
-            isset($arr[$i + 1]) &&  $condition .= ($condition ? ($and ? ' AND ' : ' OR ') : '')."`{$arr[$i]}` = %s";
+            isset($arr[$i + 1]) && $condition .= ($condition ? ($and ? ' AND ' : ' OR ') : '') . "`{$arr[$i]}` = %s";
             $this->bindParams[] = $arr[$i + 1];
         }
         $table = strtolower($arr[0]);
@@ -958,5 +966,4 @@ abstract class Base implements Db
 
         Model::getInstance()->cache()->set($this->conf['mark'] . '_db_cache_version_' . $table, microtime(true), $this->conf['cache_expire']);
     }
-
 }

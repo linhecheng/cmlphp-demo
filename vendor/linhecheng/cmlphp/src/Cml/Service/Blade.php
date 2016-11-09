@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-9-6 下午3:07
- * @version  2.7
- * cml框架 Blade封装实现 使用请先安装依赖composer require pfinal/blade
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Blade封装实现 使用请先安装依赖composer require pfinal/blade
  * *********************************************************** */
 namespace Cml\Service;
 
@@ -39,23 +39,23 @@ class Blade extends Base
     private function initBaseDir($templateFile)
     {
         $baseDir = Cml::getContainer()->make('cml_route')->getAppName();
-        $baseDir .=  '/'. Cml::getApplicationDir('app_view_path_name') . (Config::get('html_theme') != '' ? DIRECTORY_SEPARATOR . Config::get('html_theme') : '');
+        $baseDir .= '/' . Cml::getApplicationDir('app_view_path_name') . (Config::get('html_theme') != '' ? DIRECTORY_SEPARATOR . Config::get('html_theme') : '');
 
         $layOutRootDir = $baseDir;
-        if ($templateFile === '' ) {
-            $baseDir .=  '/' . Cml::getContainer()->make('cml_route')->getControllerName() . '/';
+        if ($templateFile === '') {
+            $baseDir .= '/' . Cml::getContainer()->make('cml_route')->getControllerName() . '/';
             $file = Cml::getContainer()->make('cml_route')->getActionName();
         } else {
             $templateFile = str_replace('.', '/', $templateFile);
-            $baseDir .= DIRECTORY_SEPARATOR . dirname($templateFile).DIRECTORY_SEPARATOR;
+            $baseDir .= DIRECTORY_SEPARATOR . dirname($templateFile) . DIRECTORY_SEPARATOR;
             $file = basename($templateFile);
         }
 
         return [
             'layoutDir' => Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $layOutRootDir,
-            'layoutCacheRootPath' => Cml::getApplicationDir('runtime_cache_path').DIRECTORY_SEPARATOR . $layOutRootDir . DIRECTORY_SEPARATOR,
+            'layoutCacheRootPath' => Cml::getApplicationDir('runtime_cache_path') . DIRECTORY_SEPARATOR . $layOutRootDir . DIRECTORY_SEPARATOR,
             'templateDir' => Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $baseDir, //指定模板文件存放目录
-            'cacheDir' => Cml::getApplicationDir('runtime_cache_path').DIRECTORY_SEPARATOR. $baseDir, //指定缓存文件存放目录
+            'cacheDir' => Cml::getApplicationDir('runtime_cache_path') . DIRECTORY_SEPARATOR . $baseDir, //指定缓存文件存放目录
             'file' => $file
         ];
     }
@@ -129,7 +129,7 @@ class Blade extends Base
             return '<?php endif; ?>';
         });
 
-        foreach($this->rule as $pattern => $func) {
+        foreach ($this->rule as $pattern => $func) {
             $compiler->directive($pattern, $func);
         }
 
@@ -140,7 +140,7 @@ class Blade extends Base
 
         $factory = new Factory($compiler, $finder);
 
-        header('Content-Type:text/html; charset='.Config::get('default_charset'));
+        header('Content-Type:text/html; charset=' . Config::get('default_charset'));
         echo $factory->make($options['file'], $this->args)->render();
         Cml::cmlStop();
     }

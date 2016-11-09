@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 Log处理类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Log处理类
  * *********************************************************** */
 namespace Cml;
 
@@ -131,11 +131,10 @@ class Log
     public static function catcherPhpError($errorType, $errorTip, $errorFile, $errorLine)
     {
         if (in_array($errorType, [E_NOTICE, E_STRICT, E_DEPRECATED, E_USER_DEPRECATED, E_USER_NOTICE])) {
-            return ;//只记录warning以上级别日志
+            return;//只记录warning以上级别日志
         }
 
         self::getLogger()->log(self::getLogger()->phpErrorToLevel[$errorType], $errorTip, ['file' => $errorFile, 'line' => $errorLine]);
         return;
     }
-
 }

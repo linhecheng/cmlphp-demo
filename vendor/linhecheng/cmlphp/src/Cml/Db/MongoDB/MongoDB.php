@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-3-1 下午18:07
- * @version  2.7
- * cml框架 MongoDB数据库MongoDB驱动类 http://php.net/manual/zh/set.mongodb.php
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 MongoDB数据库MongoDB驱动类 http://php.net/manual/zh/set.mongodb.php
  * *********************************************************** */
 namespace Cml\Db\MongoDB;
 
@@ -42,7 +42,7 @@ class MongoDB extends Base
     /**
      * @var array sql组装
      */
-    protected  $sql = [
+    protected $sql = [
         'where' => [],
         'columns' => [],
         'limit' => [0, 5000],
@@ -110,7 +110,7 @@ class MongoDB extends Base
     {
         $return = [];
         $collections = $this->getTables();
-        foreach($collections as $collection) {
+        foreach ($collections as $collection) {
             $res = $this->runMongoCommand(['collStats' => $collection]);
             $return[substr($res[0]['ns'], strrpos($res[0]['ns'], '.') + 1)] = $res[0];
         }
@@ -179,9 +179,9 @@ class MongoDB extends Base
         $table = strtolower(array_shift($keys));
         $len = count($keys);
         $condition = [];
-        for($i = 0; $i < $len; $i += 2) {
-            $val = is_numeric($keys[$i+1]) ? intval($keys[$i+1]) : $keys[$i+1];
-            $and ? $condition[$keys[$i]] =  $val : $condition['$or'][][$keys[$i]] = $val;
+        for ($i = 0; $i < $len; $i += 2) {
+            $val = is_numeric($keys[$i + 1]) ? intval($keys[$i + 1]) : $keys[$i + 1];
+            $and ? $condition[$keys[$i]] = $val : $condition['$or'][][$keys[$i]] = $val;
         }
 
         if (empty($table) && !$noTable) {
@@ -232,7 +232,7 @@ class MongoDB extends Base
      * @param bool|string $useMaster 是否使用主库
      * @return array
      */
-    public function runMongoQuery($tableName, $condition = [], $queryOptions  = [], $useMaster = false)
+    public function runMongoQuery($tableName, $condition = [], $queryOptions = [], $useMaster = false)
     {
         Cml::$debug && $this->debugLogSql('Query', $tableName, $condition, $queryOptions);
 
@@ -253,7 +253,7 @@ class MongoDB extends Base
      * orm参数重置
      *
      */
-    protected  function reset()
+    protected function reset()
     {
         if (!$this->paramsAutoReset) {
             $this->sql['columns'] = [];
@@ -336,8 +336,8 @@ class MongoDB extends Base
             Debug::addSqlInfo(sprintf(
                 "［MongoDB {$type}］ Collection: %s, Condition: %s, Other: %s",
                 $this->getDbName() . ".{$tableName}",
-                json_encode($condition, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0),
-                json_encode($options, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0)
+                json_encode($condition, JSON_UNESCAPED_UNICODE),
+                json_encode($options, JSON_UNESCAPED_UNICODE)
             ));
         }
     }
@@ -495,6 +495,7 @@ class MongoDB extends Base
      */
     public function truncate($tableName)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -525,11 +526,11 @@ class MongoDB extends Base
 
         if ($this->opIsAnd) {
             if (isset($this->sql['where'][$column][$operator])) {
-                throw new \InvalidArgumentException('Mongodb Where Op key Is Exists['.$column.$operator.']');
+                throw new \InvalidArgumentException('Mongodb Where Op key Is Exists[' . $column . $operator . ']');
             }
         } else if ($this->bracketsIsOpen) {
             if (isset($this->sql['where']['$or'][$currentOrIndex][$column][$operator])) {
-                throw new \InvalidArgumentException('Mongodb Where Op key Is Exists['.$column.$operator.']');
+                throw new \InvalidArgumentException('Mongodb Where Op key Is Exists[' . $column . $operator . ']');
             }
         }
 
@@ -542,7 +543,7 @@ class MongoDB extends Base
                 if ($this->opIsAnd) {
                     $this->sql['where'][$column][$operator == 'IN' ? '$in' : '$nin'] = $value;
                 } else if ($this->bracketsIsOpen) {
-                    $this->sql['where']['$or'][$currentOrIndex][$column][$operator == 'IN' ? '$in' : '$nin'] = $value ;
+                    $this->sql['where']['$or'][$currentOrIndex][$column][$operator == 'IN' ? '$in' : '$nin'] = $value;
                 } else {
                     $this->sql['where']['$or'][][$column] = $operator == 'IN' ? ['$in' => $value] : ['$nin' => $value];
                 }
@@ -659,7 +660,7 @@ class MongoDB extends Base
     /**
      * where条件组装 LIKE
      *
-     * @param string $column  如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
+     * @param string $column 如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
      * @param bool $leftBlur 是否开始左模糊匹配
      * @param string |int $value
      * @param bool $rightBlur 是否开始右模糊匹配
@@ -670,7 +671,7 @@ class MongoDB extends Base
     {
         $this->conditionFactory(
             $column,
-            ($leftBlur ? '' : '^').preg_quote($this->filterLike($value)).($rightBlur ? '' : '$'),
+            ($leftBlur ? '' : '^') . preg_quote($this->filterLike($value)) . ($rightBlur ? '' : '$'),
             'LIKE'
         );
         return $this;
@@ -679,7 +680,7 @@ class MongoDB extends Base
     /**
      * where条件组装 LIKE
      *
-     * @param string $column  如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
+     * @param string $column 如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
      * @param bool $leftBlur 是否开始左模糊匹配
      * @param string |int $value
      * @param bool $rightBlur 是否开始右模糊匹配
@@ -690,7 +691,7 @@ class MongoDB extends Base
     {
         $this->conditionFactory(
             $column,
-            ($leftBlur ? '' : '^').preg_quote($this->filterLike($value)).($rightBlur ? '' : '$'),
+            ($leftBlur ? '' : '^') . preg_quote($this->filterLike($value)) . ($rightBlur ? '' : '$'),
             'NOT LIKE'
         );
         return $this;
@@ -708,7 +709,7 @@ class MongoDB extends Base
         if (false === is_array($columns) && $columns != '*') {
             $columns = func_get_args();
         }
-        foreach($columns as $column) {
+        foreach ($columns as $column) {
             $this->sql['columns'][$column] = 1;
         }
         return $this;
@@ -737,6 +738,7 @@ class MongoDB extends Base
      */
     public function groupBy($column)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -751,6 +753,7 @@ class MongoDB extends Base
      */
     public function having($column, $operator = '=', $value)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -765,6 +768,7 @@ class MongoDB extends Base
      */
     public function join($table, $on, $tablePrefix = null)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -779,6 +783,7 @@ class MongoDB extends Base
      */
     public function leftJoin($table, $on, $tablePrefix = null)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -793,6 +798,7 @@ class MongoDB extends Base
      */
     public function rightJoin($table, $on, $tablePrefix = null)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -806,6 +812,7 @@ class MongoDB extends Base
      */
     public function union($sql, $all = false)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -962,12 +969,12 @@ class MongoDB extends Base
         ];
         $pipe[] = [
             '$group' => [
-                '_id' => $isMulti ? '$'.$isMulti :  '0',
-                'count' => [$operation => '$'.$field]
+                '_id' => $isMulti ? '$' . $isMulti : '0',
+                'count' => [$operation => '$' . $field]
             ]
         ];
         $res = $this->mongoDbAggregate($pipe, [], $useMaster);
-        if ($isMulti ===  false) {
+        if ($isMulti === false) {
             return $res[0]['count'];
         } else {
             return $res;
@@ -997,7 +1004,7 @@ class MongoDB extends Base
      * MongoDb的aggregate封装
      *
      * @param array $pipeline List of pipeline operations
-     * @param array $options  Command options
+     * @param array $options Command options
      * @param bool|string $useMaster 是否使用主库 默认读取从库
      *
      * @return mixed
@@ -1039,6 +1046,21 @@ class MongoDB extends Base
     }
 
     /**
+     * 构建sql
+     *
+     * @param null $offset 偏移量
+     * @param null $limit 返回的条数
+     * @param bool $isSelect 是否为select调用， 是则不重置查询参数并返回cacheKey/否则直接返回sql并重置查询参数
+     *
+     * @return string|array
+     */
+    public function buildSql($offset = null, $limit = null, $isSelect = false)
+    {
+        $this->logNotSupportMethod(__METHOD__);
+        return $this;
+    }
+
+    /**
      * 获取多条数据
      *
      * @param int $offset 偏移量
@@ -1047,7 +1069,7 @@ class MongoDB extends Base
      *
      * @return array
      */
-    public function select($offset = null, $limit = null,  $useMaster = false)
+    public function select($offset = null, $limit = null, $useMaster = false)
     {
         is_null($offset) || $this->limit($offset, $limit);
 
@@ -1162,7 +1184,7 @@ class MongoDB extends Base
             $authString = "{$username}:{$password}@";
         }
 
-        $replicaSet && $replicaSet = '?replicaSet='.$replicaSet;
+        $replicaSet && $replicaSet = '?replicaSet=' . $replicaSet;
         $dsn = "mongodb://{$authString}{$host}/{$dbName}{$replicaSet}";
 
         return new Manager($dsn);
@@ -1186,7 +1208,7 @@ class MongoDB extends Base
         }
         $val = abs(intval($val));
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
-        $tableName = $tablePrefix.$tableName;
+        $tableName = $tablePrefix . $tableName;
 
         $bulk = new BulkWrite();
         $bulk->update($condition, ['$inc' => [$field => $val]], ['multi' => true]);
@@ -1216,7 +1238,7 @@ class MongoDB extends Base
         $val = abs(intval($val));
 
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
-        $tableName = $tablePrefix.$tableName;
+        $tableName = $tablePrefix . $tableName;
 
         $bulk = new BulkWrite();
         $bulk->update($condition, ['$inc' => [$field => -$val]], ['multi' => true]);
@@ -1250,9 +1272,9 @@ class MongoDB extends Base
     /**
      *获取mysql 版本
      *
-     *@param \PDO $link
+     * @param \PDO $link
      *
-     *@return string
+     * @return string
      */
     public function version($link = null)
     {
@@ -1271,8 +1293,9 @@ class MongoDB extends Base
      *
      * @return bool | $this
      */
-    public function  startTransAction()
+    public function startTransAction()
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -1283,6 +1306,7 @@ class MongoDB extends Base
      */
     public function commit()
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -1295,6 +1319,7 @@ class MongoDB extends Base
      */
     public function savePoint($pointName)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -1307,6 +1332,7 @@ class MongoDB extends Base
      */
     public function rollBack($rollBackTo = false)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -1321,6 +1347,7 @@ class MongoDB extends Base
      */
     public function callProcedure($procedureName = '', $bindParams = [], $isSelect = true)
     {
+        $this->logNotSupportMethod(__METHOD__);
         return $this;
     }
 
@@ -1334,9 +1361,19 @@ class MongoDB extends Base
     public function serverSupportFeature($version = 3)
     {
         $info = $this->getSlave()->selectServer(new ReadPreference(ReadPreference::RP_PRIMARY))->getInfo();
-        $maxWireVersion = isset($info['maxWireVersion']) ? (integer) $info['maxWireVersion'] : 0;
-        $minWireVersion = isset($info['minWireVersion']) ? (integer) $info['minWireVersion'] : 0;
+        $maxWireVersion = isset($info['maxWireVersion']) ? (integer)$info['maxWireVersion'] : 0;
+        $minWireVersion = isset($info['minWireVersion']) ? (integer)$info['minWireVersion'] : 0;
 
         return ($minWireVersion <= $version && $maxWireVersion >= $version);
+    }
+
+    /**
+     * 记录不支持的方法
+     *
+     * @param int $method
+     */
+    private function logNotSupportMethod($method)
+    {
+        Cml::$debug && Debug::addTipInfo('MongoDb NotSupport [' . $method . '] Method', Debug::TIP_INFO_TYPE_INFO, 'red');
     }
 }

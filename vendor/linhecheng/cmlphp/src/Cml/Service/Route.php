@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-9-6 下午3:07
- * @version  2.7
- * cml框架 自带路由实现
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 自带路由实现
  * *********************************************************** */
 namespace Cml\Service;
 
@@ -266,8 +266,8 @@ class Route implements RouteInterface
             if (
                 $rulesMethod != $rMethod
                 && $rulesMethod != self::REQUEST_METHOD_ANY
-                && $rulesMethod != self::REST_ROUTE)
-            { //此条路由不符合当前请求方式
+                && $rulesMethod != self::REST_ROUTE
+            ) { //此条路由不符合当前请求方式
                 continue;
             }
             unset($v);
@@ -281,7 +281,7 @@ class Route implements RouteInterface
                         if (strpos($val, '\d') && !is_numeric($pathInfo[$key + 1])) {//数字变量
                             $route[$k] = false;//匹配失败
                             break 1;
-                        } elseif (strpos($val, ':') === false && $val != $pathInfo[$key + 1]){//字符串
+                        } elseif (strpos($val, ':') === false && $val != $pathInfo[$key + 1]) {//字符串
                             $route[$k] = false;//匹配失败
                             break 1;
                         }
@@ -303,7 +303,7 @@ class Route implements RouteInterface
             $returnArr[0] = false;
         } else {
             //匹配到多条路由时 选择最长的一条（匹配更精确）
-            usort($isSuccess, function($item1, $item2) {
+            usort($isSuccess, function ($item1, $item2) {
                 return strlen($item1) >= strlen($item2) ? 0 : 1;
             });
 
@@ -316,7 +316,7 @@ class Route implements RouteInterface
 
             //判断路由的正确性
             if (!is_array($route[$isSuccess[0]]) && count(explode('/', $route[$isSuccess[0]])) < 2) {
-                throw new \InvalidArgumentException(Lang::get('_ROUTE_PARAM_ERROR_',  substr($isSuccess[0], 1)));
+                throw new \InvalidArgumentException(Lang::get('_ROUTE_PARAM_ERROR_', substr($isSuccess[0], 1)));
             }
 
             $returnArr[0] = true;
@@ -329,9 +329,9 @@ class Route implements RouteInterface
                 unset($pathInfo[$key]);
             }
 
-            if (substr($isSuccess[0], 0 , 1) == self::REST_ROUTE) {
+            if (substr($isSuccess[0], 0, 1) == self::REST_ROUTE) {
                 $actions = explode('/', $route[$isSuccess[0]]);
-                $arrKey = count($actions)-1;
+                $arrKey = count($actions) - 1;
                 $actions[$arrKey] = strtolower($httpMethod) . ucfirst($actions[$arrKey]);
                 $route[$isSuccess[0]] = implode('/', $actions);
             }
@@ -352,14 +352,14 @@ class Route implements RouteInterface
         $actionController = (
             $isOld ?
                 $isOld . self::getAppName()
-                : Cml::getApplicationDir('apps_path'). '/'. self::getAppName() . '/' . Cml::getApplicationDir('app_controller_path_name')
+                : Cml::getApplicationDir('apps_path') . '/' . self::getAppName() . '/' . Cml::getApplicationDir('app_controller_path_name')
             )
             . '/' . self::getControllerName() . 'Controller.php';
 
         if (is_file($actionController)) {
             $className = self::getControllerName() . 'Controller';
             $className = ($isOld ? '\Controller\\' : '')
-                . self::getAppName().
+                . self::getAppName() .
                 ($isOld ? '/' : '/Controller' . '/') .
                 "{$className}";
             $className = str_replace('/', '\\', $className);

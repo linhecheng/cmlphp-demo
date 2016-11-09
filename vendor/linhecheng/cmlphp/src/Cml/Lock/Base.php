@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-1-25 下午3:07
- * @version  2.7
- * cml框架 锁机制驱动抽象类基类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 锁机制驱动抽象类基类
  * *********************************************************** */
 namespace Cml\Lock;
 
@@ -26,7 +26,8 @@ abstract class Base implements Lock
      */
     protected $useCache = '';
 
-    public function __construct($useCache) {
+    public function __construct($useCache)
+    {
         $useCache || $useCache = Config::get('locker_use_cache', 'default_cache');
         $this->useCache = $useCache;
     }
@@ -69,7 +70,7 @@ abstract class Base implements Lock
      */
     protected function getKey($key)
     {
-        return Config::get('lock_prefix').$key;
+        return Config::get('lock_prefix') . $key;
     }
 
     /**

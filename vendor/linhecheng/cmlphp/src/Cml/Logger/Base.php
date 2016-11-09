@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-12-22 下午1:11
- * @version  2.7
- * cml框架 Logger 抽象类 参考 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Logger 抽象类 参考 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  * *********************************************************** */
 namespace Cml\Logger;
 
@@ -19,13 +19,13 @@ use Cml\Interfaces\Logger;
 abstract class Base implements Logger
 {
     const EMERGENCY = 'emergency';
-    const ALERT     = 'alert';
-    const CRITICAL  = 'critical';
-    const ERROR     = 'error';
-    const WARNING   = 'warning';
-    const NOTICE    = 'notice';
-    const INFO      = 'info';
-    const DEBUG     = 'debug';
+    const ALERT = 'alert';
+    const CRITICAL = 'critical';
+    const ERROR = 'error';
+    const WARNING = 'warning';
+    const NOTICE = 'notice';
+    const INFO = 'info';
+    const DEBUG = 'debug';
 
     /**
      * php错误相对应的错误等级
@@ -33,31 +33,31 @@ abstract class Base implements Logger
      * @var array
      */
     public $phpErrorToLevel = [
-        E_ERROR             => self::EMERGENCY,
-        E_WARNING           => self::WARNING,
-        E_PARSE             => self::EMERGENCY,
-        E_NOTICE            => self::NOTICE,
-        E_CORE_ERROR        => self::EMERGENCY,
-        E_CORE_WARNING      => self::EMERGENCY,
-        E_COMPILE_ERROR     => self::EMERGENCY,
-        E_COMPILE_WARNING   => self::EMERGENCY,
-        E_USER_ERROR        => self::ERROR,
-        E_USER_WARNING      => self::WARNING,
-        E_USER_NOTICE       => self::NOTICE,
-        E_STRICT            => self::NOTICE,
+        E_ERROR => self::EMERGENCY,
+        E_WARNING => self::WARNING,
+        E_PARSE => self::EMERGENCY,
+        E_NOTICE => self::NOTICE,
+        E_CORE_ERROR => self::EMERGENCY,
+        E_CORE_WARNING => self::EMERGENCY,
+        E_COMPILE_ERROR => self::EMERGENCY,
+        E_COMPILE_WARNING => self::EMERGENCY,
+        E_USER_ERROR => self::ERROR,
+        E_USER_WARNING => self::WARNING,
+        E_USER_NOTICE => self::NOTICE,
+        E_STRICT => self::NOTICE,
         E_RECOVERABLE_ERROR => self::ERROR,
-        E_DEPRECATED        => self::NOTICE,
-        E_USER_DEPRECATED   => self::NOTICE,
+        E_DEPRECATED => self::NOTICE,
+        E_USER_DEPRECATED => self::NOTICE,
     ];
 
-   /**
-    * 系统不可用
-    *
-    * @param string $message 要记录到log的信息
-    * @param array $context 上下文信息
-    *
-    * @return null
-    */
+    /**
+     * 系统不可用
+     *
+     * @param string $message 要记录到log的信息
+     * @param array $context 上下文信息
+     *
+     * @return null
+     */
     public function emergency($message, array $context = [])
     {
         return $this->log(self::EMERGENCY, $message, $context);
@@ -172,6 +172,6 @@ abstract class Base implements Logger
      */
     public function format($message, array $context = [])
     {
-         return '[' . date('Y-m-d H:i:s') . '] ' . Config::get('log_prefix', 'cml_log') . ': ' . $message . ' ' .json_encode($context, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
+        return '[' . date('Y-m-d H:i:s') . '] ' . Config::get('log_prefix', 'cml_log') . ': ' . $message . ' ' . json_encode($context, JSON_UNESCAPED_UNICODE);
     }
 }

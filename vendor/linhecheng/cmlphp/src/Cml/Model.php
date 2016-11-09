@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 系统默认Model
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 系统默认Model
  * *********************************************************** */
 namespace Cml;
 
@@ -51,7 +51,7 @@ class Model
      */
     public function db($conf = '')
     {
-        $conf == '' &&  $conf = $this->getDbConf();
+        $conf == '' && $conf = $this->getDbConf();
         if (is_array($conf)) {
             $config = $conf;
             $conf = md5(json_encode($conf));
@@ -64,7 +64,7 @@ class Model
             return self::$dbInstance[$conf];
         } else {
             $pos = strpos($config['driver'], '.');
-            self::$dbInstance[$conf] = Cml::getContainer()->make('db_'.strtolower($pos ? substr($config['driver'], 0, $pos) : $config['driver']), $config);
+            self::$dbInstance[$conf] = Cml::getContainer()->make('db_' . strtolower($pos ? substr($config['driver'], 0, $pos) : $config['driver']), $config);
             return self::$dbInstance[$conf];
         }
     }
@@ -100,7 +100,7 @@ class Model
             return self::$cacheInstance[$conf];
         } else {
             if ($config['on']) {
-                self::$cacheInstance[$conf] = Cml::getContainer()->make('cache_'. strtolower($config['driver']), $config);
+                self::$cacheInstance[$conf] = Cml::getContainer()->make('cache_' . strtolower($config['driver']), $config);
                 return self::$cacheInstance[$conf];
             } else {
                 throw new \InvalidArgumentException(Lang::get('_NOT_OPEN_', $conf));
@@ -191,7 +191,8 @@ class Model
      *
      * @return int
      */
-    public function set($data, $tableName = null, $tablePrefix = null){
+    public function set($data, $tableName = null, $tablePrefix = null)
+    {
         is_null($tableName) && $tableName = $this->getTableName();
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         return $this->db($this->getDbConf())->set($tableName, $data, $tablePrefix);
@@ -271,7 +272,7 @@ class Model
         is_array($order) || $order = [$this->db($this->getDbConf())->getPk($tableName, $tablePrefix) => $order];
 
         $dbInstance = $this->db($this->getDbConf())->table($tableName, $tablePrefix);
-        foreach($order as $key => $val)  {
+        foreach ($order as $key => $val) {
             $dbInstance->orderBy($key, $val);
         }
         return $dbInstance->limit($offset, $limit)
@@ -295,7 +296,7 @@ class Model
         is_array($order) || $order = [$this->db($this->getDbConf())->getPk($tableName, $tablePrefix) => $order];
 
         $dbInstance = $this->db($this->getDbConf())->table($tableName, $tablePrefix);
-        foreach($order as $key => $val)  {
+        foreach ($order as $key => $val) {
             $dbInstance->orderBy($key, $val);
         }
         return $dbInstance->paginate($limit);
@@ -346,5 +347,4 @@ class Model
     {
         return call_user_func_array([static::getInstance()->db(static::getInstance()->getDbConf()), $dbMethod], $arguments);
     }
-
 }

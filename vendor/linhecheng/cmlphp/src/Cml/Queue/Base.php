@@ -1,10 +1,11 @@
 <?php namespace Cml\Queue;
+
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-02-04 下午20:11
- * @version  2.7
- * cml框架 队列基类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 队列基类
  * *********************************************************** */
 use Cml\Interfaces\Queue;
 
@@ -24,7 +25,7 @@ abstract class Base implements Queue
      */
     protected function encodeDate($data)
     {
-        return json_encode($data, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
+        return json_encode($data, JSON_UNESCAPED_UNICODE);
     }
 
     /**

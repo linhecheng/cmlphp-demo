@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 文件缓存驱动
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 文件缓存驱动
  * *********************************************************** */
 namespace Cml\Cache;
 
@@ -26,12 +26,12 @@ class File extends namespace\Base
     /**
      * 使用的缓存配置 默认为使用default_cache配置的参数
      *
-     * @param bool｜array $conf
+     * @param bool ｜array $conf
      */
     public function __construct($conf = false)
     {
         $this->conf = $conf ? $conf : Config::get('default_cache');
-        $this->conf['CACHE_PATH'] = isset($this->conf['CACHE_PATH']) ? $this->conf['CACHE_PATH'] : Cml::getApplicationDir('runtime_cache_path').DIRECTORY_SEPARATOR.'FileCache'.DIRECTORY_SEPARATOR;
+        $this->conf['CACHE_PATH'] = isset($this->conf['CACHE_PATH']) ? $this->conf['CACHE_PATH'] : Cml::getApplicationDir('runtime_cache_path') . DIRECTORY_SEPARATOR . 'FileCache' . DIRECTORY_SEPARATOR;
         is_dir($this->conf['CACHE_PATH']) || mkdir($this->conf['CACHE_PATH'], 0700, true);
     }
 
@@ -63,7 +63,7 @@ class File extends namespace\Base
         $pos = strpos($data, ')');
         $cacheTime = substr($data, 24, $pos - 24);
         $data = substr($data, $pos + 1);
-        if ($cacheTime == 0) return unserialize ($data);
+        if ($cacheTime == 0) return unserialize($data);
 
         if (Cml::$nowTime > (intval($fileTime) + intval($cacheTime))) {
             unlink($fileName);
@@ -84,7 +84,7 @@ class File extends namespace\Base
      */
     public function set($key, $value, $expire = 0)
     {
-        $value = '<?php exit;?>'.time()."($expire)".serialize($value);
+        $value = '<?php exit;?>' . time() . "($expire)" . serialize($value);
 
         if ($this->lock) {//自增自减
             fseek($this->lock, 0);
@@ -184,7 +184,7 @@ class File extends namespace\Base
         $this->lock = true;
         $v = $this->get($key);
         if (is_int($v)) {
-            return $this->update($key,  $v + abs(intval($val)));
+            return $this->update($key, $v + abs(intval($val)));
         } else {
             return false;
         }
@@ -203,7 +203,7 @@ class File extends namespace\Base
         $this->lock = true;
         $v = $this->get($key);
         if (is_int($v)) {
-            return $this->update($key,  $v - abs(intval($val)));
+            return $this->update($key, $v - abs(intval($val)));
         } else {
             return false;
         }
@@ -221,9 +221,9 @@ class File extends namespace\Base
         $md5Key = md5($this->conf['prefix'] . $key);
 
         $dir = $this->conf['CACHE_PATH'] . substr($key, 0, strrpos($key, '/')) . DIRECTORY_SEPARATOR;
-        $dir .=  substr($md5Key, 0, 2) . DIRECTORY_SEPARATOR . substr($md5Key, 2, 2);
+        $dir .= substr($md5Key, 0, 2) . DIRECTORY_SEPARATOR . substr($md5Key, 2, 2);
         is_dir($dir) || mkdir($dir, 0700, true);
-        return  $dir.DIRECTORY_SEPARATOR. $md5Key . '.php';
+        return $dir . DIRECTORY_SEPARATOR . $md5Key . '.php';
     }
 
     /**
@@ -233,5 +233,7 @@ class File extends namespace\Base
      *
      * @return void
      */
-    public function getInstance($key = '') {}
+    public function getInstance($key = '')
+    {
+    }
 }

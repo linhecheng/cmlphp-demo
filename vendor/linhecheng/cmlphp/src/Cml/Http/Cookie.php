@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午2:51
- * @version  2.7
- * cml框架 Cookie管理类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Cookie管理类
  * *********************************************************** */
 namespace Cml\Http;
 
@@ -28,7 +28,7 @@ class Cookie
      */
     public static function isExist($key)
     {
-        return isset($_COOKIE[Config::get('cookie_prefix').$key]);
+        return isset($_COOKIE[Config::get('cookie_prefix') . $key]);
     }
 
     /**
@@ -41,7 +41,7 @@ class Cookie
     public static function get($name)
     {
         if (!self::isExist($name)) return false;
-        $value   = $_COOKIE[Config::get('cookie_prefix').$name];
+        $value = $_COOKIE[Config::get('cookie_prefix') . $name];
         return Encry::decrypt($value);
     }
 
@@ -56,7 +56,7 @@ class Cookie
      *
      * @return void
      */
-    public static function set($name, $value, $expire = 0,$path = '', $domain = '')
+    public static function set($name, $value, $expire = 0, $path = '', $domain = '')
     {
         empty($expire) && $expire = Config::get('cookie_expire');
         empty($path) && $path = Config::get('cookie_path');
@@ -64,8 +64,8 @@ class Cookie
 
         $expire = empty($expire) ? 0 : Cml::$nowTime + $expire;
         $value = Encry::encrypt($value);
-        setcookie(Config::get('cookie_prefix').$name, $value, $expire, $path, $domain);
-        $_COOKIE[Config::get('cookie_prefix').$name] = $value;
+        setcookie(Config::get('cookie_prefix') . $name, $value, $expire, $path, $domain);
+        $_COOKIE[Config::get('cookie_prefix') . $name] = $value;
     }
 
     /**
@@ -78,7 +78,7 @@ class Cookie
     public static function delete($name)
     {
         self::set($name, '', Cml::$nowTime - 3600);
-        unset($_COOKIE[Config::get('cookie_prefix').$name]);
+        unset($_COOKIE[Config::get('cookie_prefix') . $name]);
     }
 
     /**

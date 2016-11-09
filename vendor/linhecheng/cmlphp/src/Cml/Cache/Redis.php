@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 Redis缓存驱动
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Redis缓存驱动
  * *********************************************************** */
 namespace Cml\Cache;
 
@@ -30,13 +30,13 @@ class Redis extends namespace\Base
     /**
      * 使用的缓存配置 默认为使用default_cache配置的参数
      *
-     * @param bool｜array $conf
+     * @param bool ｜array $conf
      */
     public function __construct($conf = false)
     {
         $this->conf = $conf ? $conf : Config::get('default_cache');
 
-        if (!extension_loaded('redis') ) {
+        if (!extension_loaded('redis')) {
             throw new PhpExtendNotInstall(Lang::get('_CACHE_EXTEND_NOT_INSTALL_', 'Redis'));
         }
     }
@@ -58,7 +58,7 @@ class Redis extends namespace\Base
         if (!isset($this->redis[$success]) || !is_object($this->redis[$success])) {
             $instance = new \Redis();
 
-            $connectToRedisFunction = function($host, $port, $isPersistentConnect) use ($instance) {
+            $connectToRedisFunction = function ($host, $port, $isPersistentConnect) use ($instance) {
                 if ($isPersistentConnect) {
                     return $instance->pconnect($host, $port, 1.5);
                 } else {
@@ -145,7 +145,7 @@ class Redis extends namespace\Base
      */
     public function set($key, $value, $expire = 0)
     {
-        $value = json_encode($value, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
+        $value = json_encode($value, JSON_UNESCAPED_UNICODE);
         if ($expire > 0) {
             return $this->hash($key)->setex($key, $expire, $value);
         } else {
@@ -164,7 +164,7 @@ class Redis extends namespace\Base
      */
     public function update($key, $value, $expire = 0)
     {
-        $value = json_encode($value, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
+        $value = json_encode($value, JSON_UNESCAPED_UNICODE);
         if ($expire > 0) {
             return $this->hash($key)->set($key, $value, ['xx', 'ex' => $expire]);
         } else {
@@ -191,9 +191,9 @@ class Redis extends namespace\Base
     public function truncate()
     {
         foreach ($this->conf['server'] as $key => $val) {
-            if(!isset($this->redis[$key]) || !is_object($this->redis[$key])) {
+            if (!isset($this->redis[$key]) || !is_object($this->redis[$key])) {
                 $instance = new \Redis();
-                if($instance->pconnect($val['host'], $val['port'], 1.5)) {
+                if ($instance->pconnect($val['host'], $val['port'], 1.5)) {
                     $this->redis[$key] = $instance;
                 } else {
                     throw new \RuntimeException(Lang::get('_CACHE_NEW_INSTANCE_ERROR_', 'Redis'));
@@ -260,9 +260,8 @@ class Redis extends namespace\Base
      */
     public function __destruct()
     {
-        foreach ($this->redis  as $instance) {
+        foreach ($this->redis as $instance) {
             $instance->close();
         }
     }
-
 }

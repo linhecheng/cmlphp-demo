@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 Apc缓存驱动
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Apc缓存驱动
  * *********************************************************** */
 namespace Cml\Cache;
 
@@ -22,7 +22,7 @@ class Apc extends namespace\Base
     /**
      * 使用的缓存配置 默认为使用default_cache配置的参数
      *
-     * @param bool｜array $conf
+     * @param bool ｜array $conf
      *
      * @throws PhpExtendNotInstall
      */
@@ -122,7 +122,7 @@ class Apc extends namespace\Base
      *
      * @return bool
      */
-    public function decrement($key, $val =1)
+    public function decrement($key, $val = 1)
     {
         return apc_dec($this->conf['prefix'] . $key, abs(intval($val)));
     }
@@ -134,5 +134,7 @@ class Apc extends namespace\Base
      *
      * @return void
      */
-    public function getInstance($key = '') {}
+    public function getInstance($key = '')
+    {
+    }
 }

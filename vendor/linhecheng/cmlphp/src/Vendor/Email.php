@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 13-10-22 下午5:06
- * @version  2.7
- * cml框架 stmp邮件发送
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 stmp邮件发送
  * *********************************************************** */
 namespace Cml\Vendor;
 

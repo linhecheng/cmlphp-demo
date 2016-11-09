@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午2:51
- * @version  2.7
- * cml框架 session 管理类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 session 管理类
  * *********************************************************** */
 namespace Cml\Http;
 
@@ -28,18 +28,18 @@ class Session
      * 设置session值
      *
      * @param  string $key 可以为单个key值，也可以为数组
-     * @param  string $value  value值
+     * @param  string $value value值
      *
      * @return string
      */
-    public static function set($key, $value='')
+    public static function set($key, $value = '')
     {
         empty(self::$prefix) && self::$prefix = Config::get('session_prefix');
-        if (!is_array($key)) { 
-            $_SESSION[self::$prefix.$key] = $value;
+        if (!is_array($key)) {
+            $_SESSION[self::$prefix . $key] = $value;
         } else {
             foreach ($key as $k => $v) {
-                $_SESSION[self::$prefix.$k] = $v;
+                $_SESSION[self::$prefix . $k] = $v;
             }
         }
         return true;
@@ -55,7 +55,7 @@ class Session
     public static function get($key)
     {
         empty(self::$prefix) && self::$prefix = Config::get('session_prefix');
-        return (isset($_SESSION[self::$prefix.$key])) ? $_SESSION[self::$prefix.$key] : null;
+        return (isset($_SESSION[self::$prefix . $key])) ? $_SESSION[self::$prefix . $key] : null;
     }
 
     /**
@@ -69,11 +69,11 @@ class Session
     {
         empty(self::$prefix) && self::$prefix = Config::get('session_prefix');
         if (is_array($key)) {
-            foreach ($key as $k){
-                if (isset($_SESSION[self::$prefix.$k])) unset($_SESSION[self::$prefix.$k]);
+            foreach ($key as $k) {
+                if (isset($_SESSION[self::$prefix . $k])) unset($_SESSION[self::$prefix . $k]);
             }
         } else {
-            if (isset($_SESSION[self::$prefix.$key])) unset($_SESSION[self::$prefix.$key]);
+            if (isset($_SESSION[self::$prefix . $key])) unset($_SESSION[self::$prefix . $key]);
         }
         return true;
     }

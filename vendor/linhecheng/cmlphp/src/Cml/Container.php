@@ -1,11 +1,11 @@
 <?php
 namespace Cml;
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-09-10 下午2:51
- * @version  2.7
- * cml框架 容器
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 容器
  * *********************************************************** */
 
 class Container
@@ -74,8 +74,8 @@ class Container
     /**
      * 绑定一个别名
      *
-     * @param  string  $abstract 服务的名称
-     * @param  string  $alias 别名
+     * @param  string $abstract 服务的名称
+     * @param  string $alias 别名
      * @return $this
      */
     public function alias($abstract, $alias)
@@ -87,7 +87,7 @@ class Container
     /**
      * 获取绑定的别名
      *
-     * @param  string  $alias 别名
+     * @param  string $alias 别名
      * @return mixed
      */
     public function getAlias($alias)
@@ -98,7 +98,7 @@ class Container
     /**
      * 判断别名是否存在
      *
-     * @param  string  $alias 别名
+     * @param  string $alias 别名
      *
      * @return bool
      */
@@ -122,8 +122,8 @@ class Container
     /**
      * 绑定单例服务
      *
-     * @param  string|array  $abstract 服务的名称
-     * @param  \Closure|string|null  $concrete
+     * @param  string|array $abstract 服务的名称
+     * @param  \Closure|string|null $concrete
      * @return $this
      */
     public function singleton($abstract, $concrete = null)

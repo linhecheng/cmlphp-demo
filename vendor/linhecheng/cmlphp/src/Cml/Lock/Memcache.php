@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-1-25 下午3:07
- * @version  2.7
- * cml框架 锁机制Memcache驱动
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 锁机制Memcache驱动
  * *********************************************************** */
 
 namespace Cml\Lock;
@@ -30,7 +30,7 @@ class Memcache extends Base
      */
     public function lock($key, $wouldBlock = false)
     {
-        if(empty($key)) {
+        if (empty($key)) {
             return false;
         }
         $key = $this->getKey($key);

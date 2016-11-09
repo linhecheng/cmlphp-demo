@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.7
- * cml框架公用函数库
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架公用函数库
  * *********************************************************** */
 namespace Cml;
 
@@ -101,9 +101,9 @@ function throwException($msg, $code = 0)
  */
 function simpleFileCache($name, $value = '', $path = null)
 {
-    is_null($path) && $path = Cml::getApplicationDir('global_store_path') . DIRECTORY_SEPARATOR.'Data';
+    is_null($path) && $path = Cml::getApplicationDir('global_store_path') . DIRECTORY_SEPARATOR . 'Data';
     static $_cache = [];
-    $filename = $path . '/'. $name . '.php';
+    $filename = $path . '/' . $name . '.php';
     if ($value !== '') {
         if (is_null($value)) {
             // 删除缓存
@@ -114,7 +114,7 @@ function simpleFileCache($name, $value = '', $path = null)
             // 目录不存在则创建
             is_dir($dir) || mkdir($dir, 0700, true);
             $_cache[$name] = $value;
-            return file_put_contents($filename, "<?php\treturn ".var_export($value, true).";?>", LOCK_EX);
+            return file_put_contents($filename, "<?php\treturn " . var_export($value, true) . ";?>", LOCK_EX);
         } else {
             return false;
         }
@@ -137,36 +137,37 @@ function simpleFileCache($name, $value = '', $path = null)
  *
  * @return bool|string
  */
-function  friendlyDate($from){
+function friendlyDate($from)
+{
     static $now = NULL;
     $now == NULL && $now = time();
-    ! is_numeric( $from ) && $from = strtotime( $from );
+    !is_numeric($from) && $from = strtotime($from);
     $seconds = $now - $from;
-    $minutes = floor( $seconds / 60 );
-    $hours   = floor( $seconds / 3600 );
-    $day     = round( ( strtotime( date( 'Y-m-d', $now ) ) - strtotime( date( 'Y-m-d', $from ) ) ) / 86400 );
-    if ( $seconds == 0 ) {
+    $minutes = floor($seconds / 60);
+    $hours = floor($seconds / 3600);
+    $day = round((strtotime(date('Y-m-d', $now)) - strtotime(date('Y-m-d', $from))) / 86400);
+    if ($seconds == 0) {
         return '刚刚';
     }
-    if ( ( $seconds >= 0 ) && ( $seconds <= 60 ) ) {
+    if (($seconds >= 0) && ($seconds <= 60)) {
         return "{$seconds}秒前";
     }
-    if ( ($minutes >= 0) && ($minutes <= 60) ) {
+    if (($minutes >= 0) && ($minutes <= 60)) {
         return "{$minutes}分钟前";
     }
-    if ( ($hours >= 0) && ($hours <= 24) ){
+    if (($hours >= 0) && ($hours <= 24)) {
         return "{$hours}小时前";
     }
-    if ( (date('Y') - date('Y', $from)) > 0 ) {
-        return date( 'Y-m-d', $from );
+    if ((date('Y') - date('Y', $from)) > 0) {
+        return date('Y-m-d', $from);
     }
 
-    switch ($day){
+    switch ($day) {
         case 0:
-            return date( '今天H:i', $from );
+            return date('今天H:i', $from);
             break;
         case 1:
-            return date( '昨天H:i', $from );
+            return date('昨天H:i', $from);
             break;
         default:
             return "{$day} 天前";
@@ -180,6 +181,6 @@ function  friendlyDate($from){
  */
 function createUnique()
 {
-    $data = $_SERVER['HTTP_USER_AGENT'].$_SERVER['REMOTE_ADDR'].Cml::$nowMicroTime.rand();
+    $data = $_SERVER['HTTP_USER_AGENT'] . $_SERVER['REMOTE_ADDR'] . Cml::$nowMicroTime . rand();
     return sha1($data);
 }

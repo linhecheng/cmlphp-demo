@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-1-25 下午3:07
- * @version  2.7
- * cml框架 锁机制Redis驱动
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 锁机制Redis驱动
  * *********************************************************** */
 
 namespace Cml\Lock;
@@ -29,7 +29,7 @@ class Redis extends Base
      */
     public function lock($key, $wouldBlock = false)
     {
-        if(empty($key)) {
+        if (empty($key)) {
             return false;
         }
         $key = $this->getKey($key);
@@ -45,7 +45,8 @@ class Redis extends Base
             $key,
             Cml::$nowMicroTime,
             ['nx', 'ex' => $this->expire]
-        )) {
+        )
+        ) {
             $this->lockCache[$key] = (string)Cml::$nowMicroTime;
             return true;
         }

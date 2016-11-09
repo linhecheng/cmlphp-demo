@@ -1,14 +1,15 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-9-6 下午3:07
- * @version  2.7
- * cml框架 异常、错误捕获 使用第三方错误捕获插件 必须封装实现本接口
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 异常、错误捕获 使用第三方错误捕获插件 必须封装实现本接口
  * *********************************************************** */
 
 namespace Cml;
 
+use Cml\Console\IO\Output;
 use Cml\Http\Request;
 use \Cml\Interfaces\ErrorOrException as ErrorOrExceptionInterface;
 
@@ -36,7 +37,7 @@ class ErrorOrException implements ErrorOrExceptionInterface
         }
 
         if (Request::isCli()) {
-            pd($error);
+            Output::writeException(sprintf("%s\n[%s]\n%s", isset($error['files']) ? implode($error['files'][0], ':') : '', 'Fatal Error', $error['message']));
         } else {
             header('HTTP/1.1 500 Internal Server Error');
             View::getEngine('html')->reset()->assign('error', $error);
@@ -73,7 +74,7 @@ class ErrorOrException implements ErrorOrExceptionInterface
         }
 
         if (Request::isCli()) {
-            pd($error);
+            Output::writeException(sprintf("%s\n[%s]\n%s", isset($error['files']) ? implode($error['files'][0], ':') : '', get_class($e), $error['message']));
         } else {
             header('HTTP/1.1 500 Internal Server Error');
             View::getEngine('html')->reset()->assign('error', $error);

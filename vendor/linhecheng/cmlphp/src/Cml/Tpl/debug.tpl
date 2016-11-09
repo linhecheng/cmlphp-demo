@@ -1,7 +1,7 @@
 <div id="cmlphp_console_info" style="font-family:Microsoft YaHei;letter-spacing: -.0em;position: fixed;bottom:0;right:0;font-size:14px;width:100%;z-index: 999999;color: #000;text-align:left;">
-    <div id="cmlphp_console_info_switch" style="height: 28px; bottom: 0; color: rgb(0, 0, 0); cursor: pointer; display: block; width: 100%; border-top: 3px rgb(255, 102, 0) solid;">
-        <div style="background:#232323;color:#FFF;padding:2px 6px;height:28px;font-size:14px;">
-            <span id="cmlphp_console_info_simpleinfo">{{lang _PHP_VERSION_}}:<i>{{echo phpversion();}}</i> &nbsp;&nbsp; {{lang _UPTIME_}}:<i>{{$usetime}}s</i> &nbsp;&nbsp; {{lang _USED_MEMORY_}}:<i>{{$usememory}}</i> {{if isset($_SERVER['SERVER_ADDR']) }} &nbsp;&nbsp;IP: {{echo $_SERVER['SERVER_ADDR']}} {{/if}}</span>
+    <div id="cmlphp_console_info_switch" style="box-sizing:border-box;height: 31px; bottom: 0; color: rgb(0, 0, 0); cursor: pointer; display: block; width: 100%; border-top: 3px rgb(255, 102, 0) solid;">
+        <div style="box-sizing:border-box;background:#232323;color:#FFF;padding:2px 6px;height:32px;font-size:14px;">
+            <span id="cmlphp_console_info_simpleinfo">CmlPHP: {{echo \Cml\Cml::VERSION}} &nbsp;&nbsp; {{lang _PHP_VERSION_}}:<i>{{echo phpversion();}}</i> &nbsp;&nbsp; {{lang _UPTIME_}}:<i>{{$usetime}}s</i> &nbsp;&nbsp; {{lang _USED_MEMORY_}}:<i>{{$usememory}}</i> {{if isset($_SERVER['SERVER_ADDR']) }} &nbsp;&nbsp;IP: {{echo $_SERVER['SERVER_ADDR']}} {{/if}}</span>
             <div style="float:right;margin:0 auto;width:110px;text-align:center;">
                 <svg id="cmlphp_console_info_logo" width="85" height="25" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                     <g>
@@ -21,41 +21,41 @@
             </div>
         </div>
     </div>
-    <div id="cmlphp_console_info_content" style="display: none;background:white; margin:0; height: 450px; padding-bottom:8px; border-bottom: 3px solid #cddc39;">
-        <div style="height:30px;padding: 6px 12px 0;border-bottom:1px solid #ececec;border-top:1px solid #ececec;font-size:16px">
+    <div id="cmlphp_console_info_content" style="box-sizing:border-box;display: none;background:white; margin:0; height: 461px; padding-bottom:8px; border-bottom: 3px solid #cddc39;">
+        <div style="box-sizing:border-box;height:38px;padding: 6px 12px 0;border-bottom:1px solid #ececec;border-top:1px solid #ececec;font-size:16px">
             <span>{{lang _OPERATION_INFORMATION_}}</span>
         </div>
         <div style="overflow:auto;height:420px;padding: 0; line-height: 24px">
             <ul style="padding: 0; margin:0">
 
                 {{if count($tipInfo) > 0 }}
-                    <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _SYSTEM_INFORMATION_}}</b></li>
-                    {{loop $tipInfo $info}}
-                        <li style='font-size:14px;padding:0 0 0 60px;'>{{$info}}</li>
-                    {{/loop}}
+                <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _SYSTEM_INFORMATION_}}</b></li>
+                {{loop $tipInfo $info}}
+                <li style='font-size:14px;padding:0 0 0 60px;'>{{$info}}</li>
+                {{/loop}}
                 {{/if}}
 
                 {{if count($sqls) > 0 }}
-                    <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _SQL_STATEMENT_}}</b><span style="color:red">({{echo count($sqls);}})</span></li>
-                    {{loop $sqls $sql}}
-                        <li style='font-size:14px;padding:0 0 0 60px;'>{{$sql}}</li>
-                    {{/loop}}
+                <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _SQL_STATEMENT_}}</b><span style="color:red">({{echo count($sqls);}})</span></li>
+                {{loop $sqls $sql}}
+                <li style='font-size:14px;padding:0 0 0 60px;'>{{$sql}}</li>
+                {{/loop}}
                 {{/if}}
 
                 {{if count($includeLib) > 0 }}
-                    <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _INCLUDE_LIB_}}</b><span style="color:red">({{echo count($includeLib);}})</span></li>
-                    <li style="font-size:14px;padding:0 0 0 50px;">
-                        {{loop $includeLib $file}}
-                            <span style='padding-left:10px;'>【{{$file}}】</span>
-                        {{/loop}}
-                    </li>
+                <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _INCLUDE_LIB_}}</b><span style="color:red">({{echo count($includeLib);}})</span></li>
+                <li style="font-size:14px;padding:0 0 0 50px;">
+                    {{loop $includeLib $file}}
+                    <span style='padding-left:10px;'>【{{$file}}】</span>
+                    {{/loop}}
+                </li>
                 {{/if}}
 
                 {{if count($includeFile) > 0 }}
-                    <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _INCLUDE_FILE_}}</b><span style="color:red">({{echo count($includeFile);}})</span></li>
-                    {{loop $includeFile $file}}
-                        <li style='font-size:14px;padding:0 0 0 60px;'>{{$file}}</li>
-                    {{/loop}}
+                <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _INCLUDE_FILE_}}</b><span style="color:red">({{echo count($includeFile);}})</span></li>
+                {{loop $includeFile $file}}
+                <li style='font-size:14px;padding:0 0 0 60px;'>{{$file}}</li>
+                {{/loop}}
                 {{/if}}
             </ul>
         </div>
@@ -79,14 +79,20 @@
             cmlphp_console_info_simpleinfo.style.display="none"
         };
 
-        cmlphp_console_info_logo.onclick = function() {
+        var $showFunc = function() {
             cmlphp_console_info_minisize.style.display = "inline-block";
             cmlphp_console_info_simpleinfo.style.display = "inline-block";
             cmlphp_console_info.style.width = "100%";
         };
+        cmlphp_console_info_logo.onclick = $showFunc;
 
         switchShow.onclick = function(){
-            trace.style.display = show ?  'none' : 'block';
+            if (show) {
+                trace.style.display = 'none';
+            } else {
+                $showFunc();
+                trace.style.display = 'block';
+            }
             show = !show;
         };
     })();

@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 上午11:01
- * @version  2.7
- * cml框架 配置处理类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 配置处理类
  * *********************************************************** */
 namespace Cml;
 
@@ -64,7 +64,7 @@ class Config
 
         $domain = substr($host, strrpos($host, '.') + 1);
 
-        if($domain == 'dev' || $domain == 'loc') {
+        if ($domain == 'dev' || $domain == 'loc') {
             self::$isLocal = 'development';
             return true;
         }
@@ -150,13 +150,13 @@ class Config
         } else {
             $file =
                 (
-                    $global
+                $global
                     ? Cml::getApplicationDir('global_config_path')
                     : Cml::getApplicationDir('apps_path')
-                        .  '/' . Cml::getContainer()->make('cml_route')->getAppName(). '/'
-                        . Cml::getApplicationDir('app_config_path_name')
+                    . '/' . Cml::getContainer()->make('cml_route')->getAppName() . '/'
+                    . Cml::getApplicationDir('app_config_path_name')
                 )
-                . '/'. ( $global ? self::$isLocal.DIRECTORY_SEPARATOR : '' ).$file.'.php';
+                . '/' . ($global ? self::$isLocal . DIRECTORY_SEPARATOR : '') . $file . '.php';
 
             if (!is_file($file)) {
                 throw new ConfigNotFoundException(Lang::get('_NOT_FOUND_', $file));

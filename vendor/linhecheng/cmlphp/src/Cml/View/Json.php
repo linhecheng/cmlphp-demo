@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 视图 Json渲染引擎
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 视图 Json渲染引擎
  * *********************************************************** */
 namespace Cml\View;
 
@@ -24,8 +24,9 @@ class Json extends Base
      * 输出数据
      *
      */
-    public function display() {
-        header('Content-Type: application/json;charset='.Config::get('default_charset'));
+    public function display()
+    {
+        header('Content-Type: application/json;charset=' . Config::get('default_charset'));
         if (Cml::$debug) {
             $sql = Debug::getSqls();
             if (Config::get('dump_use_php_console')) {
@@ -44,7 +45,6 @@ class Json extends Base
             }
         }
 
-        exit(json_encode($this->args, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0));
+        exit(json_encode($this->args, JSON_UNESCAPED_UNICODE));
     }
-
 }

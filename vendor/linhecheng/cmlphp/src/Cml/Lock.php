@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-4-15
- * @version  2.7
- * cml框架 Lock处理类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Lock处理类
  * *********************************************************** */
 namespace Cml;
 

@@ -1,23 +1,23 @@
 [
     {
         "name": "linhecheng/cmlphp",
-        "version": "v2.7.0",
-        "version_normalized": "2.7.0.0",
+        "version": "v2.7.1",
+        "version_normalized": "2.7.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/linhecheng/cmlphp.git",
-            "reference": "09ea3c8576ae53d1fe4178e9d4250e6d4858676d"
+            "reference": "2680452f8697649f18050b890dd774a56ea39971"
         },
         "dist": {
             "type": "zip",
-            "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/09ea3c8576ae53d1fe4178e9d4250e6d4858676d.zip",
-            "reference": "09ea3c8576ae53d1fe4178e9d4250e6d4858676d",
+            "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/2680452f8697649f18050b890dd774a56ea39971.zip",
+            "reference": "2680452f8697649f18050b890dd774a56ea39971",
             "shasum": ""
         },
         "require": {
             "php": ">=5.4.0"
         },
-        "time": "2016-09-21 09:02:37",
+        "time": "2016-11-08 12:40:47",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

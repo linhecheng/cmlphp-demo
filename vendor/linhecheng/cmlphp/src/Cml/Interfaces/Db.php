@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-9-6 下午3:07
- * @version  2.7
- * cml框架 缓存驱动抽象接口
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 缓存驱动抽象接口
  * *********************************************************** */
 namespace Cml\Interfaces;
 
@@ -109,6 +109,17 @@ interface Db
     public function truncate($tableName);
 
     /**
+     * 构建sql
+     *
+     * @param null $offset 偏移量
+     * @param null $limit 返回的条数
+     * @param bool $isSelect 是否为select调用， 是则不重置查询参数并返回cacheKey/否则直接返回sql并重置查询参数
+     *
+     * @return string|array
+     */
+    public function buildSql($offset = null, $limit = null, $isSelect = false);
+
+    /**
      * 获取多条数据
      *
      * @param int $offset 偏移量
@@ -117,7 +128,7 @@ interface Db
      *
      * @return array
      */
-    public function select($offset = null, $limit = null,  $useMaster = false);
+    public function select($offset = null, $limit = null, $useMaster = false);
 
     /**
      * 分页获取数据
@@ -493,9 +504,9 @@ interface Db
     /**
      *获取上一INSERT的主键值
      *
-     *@param resource $link
+     * @param resource $link
      *
-     *@return int
+     * @return int
      */
     public function insertId($link = null);
 
@@ -547,9 +558,9 @@ interface Db
     /**
      *获取数据库 版本
      *
-     *@param resource $link
+     * @param resource $link
      *
-     *@return string
+     * @return string
      */
     public function version($link = null);
 
@@ -558,7 +569,7 @@ interface Db
      *
      * @return bool
      */
-    public function  startTransAction();
+    public function startTransAction();
 
     /**
      * 提交事务

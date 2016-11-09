@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-9-6 下午3:07
- * @version  2.7
- * cml框架 Logger 抽象接口 参考 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Logger 抽象接口 参考 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  * *********************************************************** */
 namespace Cml\Interfaces;
 
@@ -15,14 +15,14 @@ namespace Cml\Interfaces;
  */
 interface Logger
 {
-   /**
-    * 系统不可用
-    *
-    * @param string $message 要记录到log的信息
-    * @param array $context 上下文信息
-    *
-    * @return null
-    */
+    /**
+     * 系统不可用
+     *
+     * @param string $message 要记录到log的信息
+     * @param array $context 上下文信息
+     *
+     * @return null
+     */
     public function emergency($message, array $context = []);
 
     /**

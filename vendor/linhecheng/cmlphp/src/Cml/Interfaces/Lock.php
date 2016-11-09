@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-9-6 下午3:07
- * @version  2.7
- * cml框架 Lock 抽象接口 参考 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 Lock 抽象接口 参考 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  * *********************************************************** */
 namespace Cml\Interfaces;
 

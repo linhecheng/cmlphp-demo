@@ -1,14 +1,14 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.7
+ * @version  @see \Cml\Cml::VERSION
  * cml英文语言包
  * *********************************************************** */
 return [
     //  core
-    '_CONTROLLER_NOT_FOUND_'=> 'Sorry! Your access module does not exist, please check the routing or access to the address is wrong!',
+    '_CONTROLLER_NOT_FOUND_' => 'Sorry! Your access module does not exist, please check the routing or access to the address is wrong!',
     '_CML_DEBUG_ADD_CLASS_TIP_' => '<b>%s</b> class',
     '_CML_ACTION_CONTROLLER_' => 'Current access controller is: <b> %s </b> file',
     '_CML_ERROR_' => 'System error occurred',
@@ -29,7 +29,7 @@ return [
     '_CACHE_NEW_INSTANCE_ERROR_' => '%s Instance of failure',
     '_CACHE_CONNECT_FAIL_' => 'Unable to connect %s, please check the configuration【%s】',
     '_ILLEGAL_REQUEST_' => 'Illegal request',
-    '_TEMPLATE_FILE_NOT_FOUND_'=> 'template or layout file[%s] was not found or could not be opened',
+    '_TEMPLATE_FILE_NOT_FOUND_' => 'template or layout file[%s] was not found or could not be opened',
     '_CREATE_DIR_ERROR_' => 'Failed to create directory',
     '_NOT_OPEN_' => '%s Not Enabled',
     '_ROUTE_PARAM_ERROR_' => '[%s] Routing configuration errors, at least the 【controller / method】 two parameters',

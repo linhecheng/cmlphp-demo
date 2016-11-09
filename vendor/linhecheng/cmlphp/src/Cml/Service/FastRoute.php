@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-9-6 下午3:07
- * @version  2.7
- * cml框架 FastRoute封装实现 使用请先安装依赖composer require nikic/fast-route
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 FastRoute封装实现 使用请先安装依赖composer require nikic/fast-route
  * *********************************************************** */
 namespace Cml\Service;
 
@@ -126,7 +126,7 @@ class FastRoute implements Route
      */
     public function parseUrl()
     {
-        $dispatcher =  \FastRoute\simpleDispatcher(function (RouteCollector $r) {
+        $dispatcher = \FastRoute\simpleDispatcher(function (RouteCollector $r) {
             foreach ($this->routes as $route) {
                 $r->addRoute($route['method'], $route['uri'], $route['action']);
             }
@@ -166,9 +166,9 @@ class FastRoute implements Route
             self::$urlParams['path'] = $uri[0];
             self::$urlParams['controller'] = $uri[1];
             if (isset($uri['__rest'])) {
-                self::$urlParams['action'] = strtolower(isset($_POST['_method']) ? $_POST['_method'] : $_SERVER['REQUEST_METHOD']). ucfirst($uri[2]);
+                self::$urlParams['action'] = strtolower(isset($_POST['_method']) ? $_POST['_method'] : $_SERVER['REQUEST_METHOD']) . ucfirst($uri[2]);
             } else {
-                self::$urlParams['action'] =$uri[2];
+                self::$urlParams['action'] = $uri[2];
             }
         } else {
             $rest = false;
@@ -179,7 +179,7 @@ class FastRoute implements Route
             $path = '/';
             $routeArr = explode('/', $uri);
             if ($rest) {
-                self::$urlParams['action'] = strtolower(isset($_POST['_method']) ? $_POST['_method'] : $_SERVER['REQUEST_METHOD']). ucfirst(array_pop($routeArr));
+                self::$urlParams['action'] = strtolower(isset($_POST['_method']) ? $_POST['_method'] : $_SERVER['REQUEST_METHOD']) . ucfirst(array_pop($routeArr));
             } else {
                 self::$urlParams['action'] = array_pop($routeArr);
             }
@@ -222,7 +222,7 @@ class FastRoute implements Route
         $actionController = (
             $isOld ?
                 $isOld . self::getAppName()
-                : Cml::getApplicationDir('apps_path') . '/'. self::getAppName() . '/' .Cml::getApplicationDir('app_controller_path_name')
+                : Cml::getApplicationDir('apps_path') . '/' . self::getAppName() . '/' . Cml::getApplicationDir('app_controller_path_name')
             )
             . '/' . self::getControllerName() . 'Controller.php';
 
@@ -353,7 +353,7 @@ class FastRoute implements Route
      */
     public function rest($pattern, $action)
     {
-        is_array($action) ? $action['__rest'] = 1 :  $action = ['__rest' => 0, '__action' => $action];
+        is_array($action) ? $action['__rest'] = 1 : $action = ['__rest' => 0, '__action' => $action];
         $this->addRoute($this->httpMethod, $pattern, $action);
     }
 
@@ -379,9 +379,9 @@ class FastRoute implements Route
     /**
      * 添加一个路由
      *
-     * @param  array|string  $method
-     * @param  string  $pattern
-     * @param  mixed  $action
+     * @param  array|string $method
+     * @param  string $pattern
+     * @param  mixed $action
      * @return void
      */
     private function addRoute($method, $pattern, $action)
@@ -389,10 +389,10 @@ class FastRoute implements Route
 
         if (is_array($method)) {
             foreach ($method as $verb) {
-                $this->routes[$verb.$pattern] = ['method' => $verb, 'uri' => self::patternFactory($pattern), 'action' => $action];
+                $this->routes[$verb . $pattern] = ['method' => $verb, 'uri' => self::patternFactory($pattern), 'action' => $action];
             }
         } else {
-            $this->routes[$method.$pattern] = ['method' => $method, 'uri' => self::patternFactory($pattern), 'action' => $action];
+            $this->routes[$method . $pattern] = ['method' => $method, 'uri' => self::patternFactory($pattern), 'action' => $action];
         }
     }
 

@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-21 下午2:23
- * @version  2.7
- * cml框架惯例配置文件
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架惯例配置文件
  * *********************************************************** */
 
 return [
@@ -162,7 +162,7 @@ return [
     'redis_queue_use_cache' => 'default_cache',//只有在该缓存的驱动为redis的时候才有效,否则会报错
 
     /*系统路由-统一用小写url*/
-    'cmlframework_system_command' => [
+    'cmlframework_system_route' => [
         'cmlframeworkstaticparse' => '\\Cml\\Tools\\StaticResource::parseResourceFile'
     ],
     'static_file_version' => 'v1', //开发模式会自动在静态文件后加时间缀，实时过期,线上模板版本号固定，如有需要在这里改版本号强制过期

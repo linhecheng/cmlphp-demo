@@ -1,13 +1,14 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 15-1-25 下午3:07
- * @version  2.7
- * cml框架 锁机制File驱动
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 锁机制File驱动
  * *********************************************************** */
 
 namespace Cml\Lock;
+
 use Cml\Cml;
 
 /**
@@ -27,7 +28,7 @@ class File extends Base
      */
     public function lock($key, $wouldBlock = false)
     {
-        if(empty($key)) {
+        if (empty($key)) {
             return false;
         }
 
@@ -36,7 +37,7 @@ class File extends Base
         }
 
         $fileName = $this->getFileName($key);
-        if(!$fp = fopen($fileName, 'w+')) {
+        if (!$fp = fopen($fileName, 'w+')) {
             return false;
         }
 
@@ -64,7 +65,8 @@ class File extends Base
      *
      * @param string $key 要解锁的锁的key
      */
-    public function unlock($key) {
+    public function unlock($key)
+    {
         $fileName = $this->getFileName($key);
 
         if (isset($this->lockCache[$fileName])) {
@@ -79,7 +81,8 @@ class File extends Base
     /**
      * 定义析构函数 自动释放获得的锁
      */
-    public function __destruct() {
+    public function __destruct()
+    {
         foreach ($this->lockCache as $key => $fp) {
             flock($fp, LOCK_UN);//5.3.2 在文件资源句柄关闭时不再自动解锁。现在要解锁必须手动进行。
             fclose($fp);
@@ -100,9 +103,9 @@ class File extends Base
     {
         $md5Key = md5($this->getKey($key));
 
-        $dir = Cml::getApplicationDir('runtime_cache_path').DIRECTORY_SEPARATOR.'LockFileCache'.DIRECTORY_SEPARATOR . substr($key, 0, strrpos($key, '/')) . DIRECTORY_SEPARATOR;
-        $dir .=  substr($md5Key, 0, 2) . DIRECTORY_SEPARATOR . substr($md5Key, 2, 2);
+        $dir = Cml::getApplicationDir('runtime_cache_path') . DIRECTORY_SEPARATOR . 'LockFileCache' . DIRECTORY_SEPARATOR . substr($key, 0, strrpos($key, '/')) . DIRECTORY_SEPARATOR;
+        $dir .= substr($md5Key, 0, 2) . DIRECTORY_SEPARATOR . substr($md5Key, 2, 2);
         is_dir($dir) || mkdir($dir, 0700, true);
-        return  $dir.DIRECTORY_SEPARATOR. $md5Key . '.php';
+        return $dir . DIRECTORY_SEPARATOR . $md5Key . '.php';
     }
 }

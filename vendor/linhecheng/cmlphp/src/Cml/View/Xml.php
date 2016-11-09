@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 视图 Xml渲染引擎
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 视图 Xml渲染引擎
  * *********************************************************** */
 namespace Cml\View;
 
@@ -22,8 +22,9 @@ class Xml extends Base
      * 输出数据
      *
      */
-    public function display() {
-        header('Content-Type: application/xml;charset='.Config::get('default_charset'));
+    public function display()
+    {
+        header('Content-Type: application/xml;charset=' . Config::get('default_charset'));
         exit($this->array2xml($this->args));
     }
 
@@ -35,8 +36,9 @@ class Xml extends Base
      *
      * @return string
      */
-    private  function array2xml($arr, $level = 1) {
-        $str = ($level == 1) ? "<?xml version=\"1.0\" encoding=\"".Config::get('default_charset')."\"?>\r\n<root>\r\n" : '';
+    private function array2xml($arr, $level = 1)
+    {
+        $str = ($level == 1) ? "<?xml version=\"1.0\" encoding=\"" . Config::get('default_charset') . "\"?>\r\n<root>\r\n" : '';
         $space = str_repeat("\t", $level);
         foreach ($arr as $key => $val) {
             if (is_numeric($key)) {
@@ -44,12 +46,12 @@ class Xml extends Base
             }
             if (!is_array($val)) {
                 if (is_string($val) && preg_match('/[&<>"\'\?]+/', $val)) {
-                    $str .= $space."<$key><![CDATA[".$val.']]>'."</$key>\r\n";
+                    $str .= $space . "<$key><![CDATA[" . $val . ']]>' . "</$key>\r\n";
                 } else {
-                    $str .= $space."<$key>".$val."</$key>\r\n";
+                    $str .= $space . "<$key>" . $val . "</$key>\r\n";
                 }
             } else {
-                $str .= $space."<$key>\r\n".self::array2xml($val, $level+1).$space."</$key>\r\n";
+                $str .= $space . "<$key>\r\n" . self::array2xml($val, $level + 1) . $space . "</$key>\r\n";
             }
         }
         if ($level == 1) {
@@ -57,5 +59,4 @@ class Xml extends Base
         }
         return $str;
     }
-
 }

@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 下午5:30
- * @version  2.7
- * cml框架 请求类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 请求类
  * *********************************************************** */
 namespace Cml\Http;
 
@@ -20,7 +20,8 @@ class Request
      *
      * @return string
      */
-    public static function ip() {
+    public static function ip()
+    {
         if (isset($_SERVER['HTTP_CLIENT_IP'])) {
             return strip_tags($_SERVER['HTTP_CLIENT_IP']);
         }
@@ -38,7 +39,8 @@ class Request
      *
      * @return string
      */
-    public static function userAgent() {
+    public static function userAgent()
+    {
         return strip_tags($_SERVER['HTTP_USER_AGENT']);
     }
 
@@ -46,9 +48,10 @@ class Request
      * 获取主机名称
      * @return string
      */
-    public static function host() {
+    public static function host()
+    {
         if ($_SERVER['SERVER_NAME']) {
-            return strip_tags( $_SERVER['SERVER_NAME'].($_SERVER['SERVER_PORT'] == '80' ? '' : ':'.$_SERVER['SERVER_PORT']) );
+            return strip_tags($_SERVER['SERVER_NAME'] . ($_SERVER['SERVER_PORT'] == '80' ? '' : ':' . $_SERVER['SERVER_PORT']));
         }
         return strip_tags($_SERVER['HTTP_HOST']);
     }
@@ -58,7 +61,8 @@ class Request
      *
      * @return string
      */
-    public static function baseUrl() {
+    public static function baseUrl()
+    {
         $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://';
         return $protocol . self::host();
     }
@@ -68,7 +72,8 @@ class Request
      *
      * @return mixed
      */
-    public static function requestTime() {
+    public static function requestTime()
+    {
         return $_SERVER['REQUEST_TIME'];
     }
 
@@ -208,7 +213,7 @@ class Request
         }
 
         if ($type == 'json') {
-            $queryStr = json_encode($parameter, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0);
+            $queryStr = json_encode($parameter, JSON_UNESCAPED_UNICODE);
             //$queryStr = str_replace(['\/','[]'], ['/','{}'], $queryStr);//兼容
 
             curl_setopt($ch, CURLOPT_POST, 1);
@@ -223,10 +228,10 @@ class Request
             $queryStr = '';
             if (is_array($queryStr)) {
                 foreach ($parameter as $key => $val) {
-                    $queryStr .= $key .'=' .$val . '&';
+                    $queryStr .= $key . '=' . $val . '&';
                 }
                 $queryStr = substr($queryStr, 0, -1);
-                $url .= '?'.$queryStr;
+                $url .= '?' . $queryStr;
             }
         }
         curl_setopt($ch, CURLOPT_URL, $url);

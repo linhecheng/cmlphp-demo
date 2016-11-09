@@ -1,10 +1,11 @@
 <?php namespace Cml\Queue;
+
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 16-02-04 下午20:11
- * @version  2.7
- * cml框架 队列Redis驱动
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 队列Redis驱动
  * *********************************************************** */
 use Cml\Config;
 use Cml\Model;

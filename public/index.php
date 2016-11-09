@@ -54,10 +54,12 @@ Cml::runApp(function() {
     Cml::getContainer()->singleton('cml_route', \Cml\Service\Route::class);
     //Cml::getContainer()->singleton('cml_route', \Cml\Service\FastRoute::class);   //composer require nikic/fast-route
 
-
     //开发模式必须绑定。Debug调试信息
     //如果想使用第三方的调试台只要简单封装一个服务。实现\Cml\Interfaces\Debug接口即可/当然直接修改模板也可以。配置项 'debug_page' => CML_CORE_PATH.'/Tpl/debug.tpl', // debug调试信息模板
     Cml::getContainer()->singleton('cml_debug', \Cml\Debug::class);
+
+    //必须绑定。命令行组件
+    Cml::getContainer()->singleton('cml_console', \Cml\Console\Console::class);
 
     //可选，队列服务 内置 \Cml\Queue\Redis::class.(内置的redis服务与缓存挂钩)参考 http://doc.cmlphp.com/devintro/quenue.html
     //自定义服务实现\Cml\Interfaces\Queue接口即可或继承\Cml\Queue\Base再按需重载

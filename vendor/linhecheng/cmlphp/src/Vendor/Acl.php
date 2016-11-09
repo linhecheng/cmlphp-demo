@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-11 下午2:23
- * @version  2.7
- * cml框架 权限控制类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 权限控制类
  * *********************************************************** */
 namespace Cml\Vendor;
 
@@ -127,7 +127,7 @@ class Acl
 
         //Cookie::set本身有一重加密 这里再加一重
         $sso && Model::getInstance()->cache()->set("SSOSingleSignOn{$uid}", (string)Cml::$nowMicroTime);
-        Cookie::set(Config::get('userauthid'), Encry::encrypt(json_encode($user, PHP_VERSION >= '5.4.0' ? JSON_UNESCAPED_UNICODE : 0), self::$encryptKey), 0);
+        Cookie::set(Config::get('userauthid'), Encry::encrypt(json_encode($user, JSON_UNESCAPED_UNICODE), self::$encryptKey), 0);
     }
 
     /**

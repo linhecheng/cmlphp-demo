@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 系统安全类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 系统安全类
  * *********************************************************** */
 namespace Cml;
 
@@ -124,11 +124,11 @@ class Secure
      */
     public static function filterScript($value)
     {
-        $value = preg_replace("/javascript:/i","&111",$value);
-        $value = preg_replace("/(javascript:)?on(click|load|key|mouse|error|abort|move|unload|change|dblclick|move|reset|resize|submit)/i","&111n\\2",$value);
-        $value = preg_replace("/<script(.*?)>(.*?)<\/script>/si","&ltscript\\1&gt\\2&lt/script&gt",$value);
-        $value = preg_replace("/<iframe(.*?)>(.*?)<\/iframe>/si","&ltiframe\\1&gt\\2&lt/iframe&gt",$value);
-        $value = preg_replace ("/<object.+<\/object>/isU", '', $value);
+        $value = preg_replace("/javascript:/i", "&111", $value);
+        $value = preg_replace("/(javascript:)?on(click|load|key|mouse|error|abort|move|unload|change|dblclick|move|reset|resize|submit)/i", "&111n\\2", $value);
+        $value = preg_replace("/<script(.*?)>(.*?)<\/script>/si", "&ltscript\\1&gt\\2&lt/script&gt", $value);
+        $value = preg_replace("/<iframe(.*?)>(.*?)<\/iframe>/si", "&ltiframe\\1&gt\\2&lt/iframe&gt", $value);
+        $value = preg_replace("/<object.+<\/object>/isU", '', $value);
         return $value;
     }
 
@@ -141,11 +141,11 @@ class Secure
      */
     public static function filterStr($value)
     {
-        $value = str_replace(["\0","%00","\r"], '', $value);
-        $value = preg_replace(['/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/','/&(?!(#[0-9]+|[a-z]+);)/is'], ['', '&amp;'], $value);
+        $value = str_replace(["\0", "%00", "\r"], '', $value);
+        $value = preg_replace(['/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/', '/&(?!(#[0-9]+|[a-z]+);)/is'], ['', '&amp;'], $value);
         $value = str_replace(["%3C", '<'], '&lt;', $value);
         $value = str_replace(["%3E", '>'], '&gt;', $value);
-        $value = str_replace(['"', "'", "\t",'  '], ['&quot;','&#39;','    ','&nbsp;&nbsp;'], $value);
+        $value = str_replace(['"', "'", "\t", '  '], ['&quot;', '&#39;', '    ', '&nbsp;&nbsp;'], $value);
         return $value;
     }
 
@@ -159,7 +159,7 @@ class Secure
     public static function filterSql($value)
     {
         return str_ireplace(["select", 'insert', "update", "delete", "\'", "\/\*", "\.\.\/", "\.\/", "union", "into", "load_file", "outfile"],
-            ["","","","","","","","","","","",""],
+            ["", "", "", "", "", "", "", "", "", "", "", ""],
             $value);
     }
 
@@ -190,7 +190,7 @@ class Secure
      */
     public static function checkCsrf($type = 1)
     {
-        if ( $type !==0 && isset($_SERVER['HTTP_REFERER']) && !strpos($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST']) ) {
+        if ($type !== 0 && isset($_SERVER['HTTP_REFERER']) && !strpos($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST'])) {
             if ($type == 1) {
                 if (!empty($_POST)) {
                     Response::sendHttpStatus(403);
@@ -206,7 +206,7 @@ class Secure
     /**
      * 类加载-获取全局TOKEN，防止CSRF攻击
      *
-     *  @return string
+     * @return string
      */
     public static function getToken()
     {
@@ -216,7 +216,7 @@ class Secure
     /**
      * 类加载-检测token值
      *
-     *  @return bool
+     * @return bool
      */
     public static function checkToken()
     {
@@ -230,12 +230,12 @@ class Secure
     /**
      * 类加载-设置全局TOKEN，防止CSRF攻击
      *
-     *  @return void
+     * @return void
      */
     public static function setToken()
     {
         if (!isset($_COOKIE['CML_TOKEN']) || empty($_COOKIE['CML_TOKEN'])) {
-            $str = substr(md5(Cml::$nowTime. Request::getService('HTTP_USER_AGENT')), 5, 8);
+            $str = substr(md5(Cml::$nowTime . Request::getService('HTTP_USER_AGENT')), 5, 8);
             setcookie('CML_TOKEN', $str, null, '/');
             $_COOKIE['CML_TOKEN'] = $str;
         }

@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-13 下午1:51
- * @version  2.7
- * cml框架 语言处理类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 语言处理类
  * *********************************************************** */
 namespace Cml;
 
@@ -17,10 +17,10 @@ class Lang extends Config
 {
     /**
      * 存放了所有语言信息
-     * 
+     *
      * @var array
      */
-    protected  static $_content= [
+    protected static $_content = [
         'normal' => []
     ];
 
@@ -36,20 +36,26 @@ class Lang extends Config
      */
     public static function get($key = null, $default = '')
     {
-        if(empty($key)) {
+        if (empty($key)) {
             return '';
         }
-
-        $replace = func_get_args();
         $key = strtolower($key);
-
         $val = Cml::doteToArr($key, self::$_content['normal']);
 
         if (is_null($val)) {
-            return $default;
+            return is_array($default) ? '' : $default;
         } else {
-            $replace[0] = $val;
-            return call_user_func_array('sprintf', array_values($replace));
+            if (is_array($default)) {
+                $keys = array_keys($default);
+                $keys = array_map(function ($key) {
+                    return '{' . $key . '}';
+                }, $keys);
+                return str_replace($keys, array_values($default), $val);
+            } else {
+                $replace = func_get_args();
+                $replace[0] = $val;
+                return call_user_func_array('sprintf', array_values($replace));
+            }
         }
     }
 }

@@ -1,10 +1,10 @@
 <?php
 /* * *********************************************************
- * [cml] (C)2012 - 3000 cml http://cmlphp.com
+ * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
  * @Date: 14-2-8 下午3:07
- * @version  2.7
- * cml框架 URL解析类
+ * @version  @see \Cml\Cml::VERSION
+ * cmlphp框架 URL解析类
  * *********************************************************** */
 namespace Cml;
 
@@ -33,43 +33,47 @@ class Route
     public static function parsePathInfo()
     {
         $urlModel = Config::get('url_model');
-        $pathInfo = [];
-        $isCli = Request::isCli(); //是否为命令行访问
-        if ($isCli) {
-            isset($_SERVER['argv'][1]) && $pathInfo = explode('/', $_SERVER['argv'][1]);
-        } else {
-            if ($urlModel === 1 || $urlModel === 2) { //pathInfo模式(含显示、隐藏index.php两种)SCRIPT_NAME
-                if (isset($_GET[Config::get('var_pathinfo')])) {
-                    $param = $_GET[Config::get('var_pathinfo')];
-                } else {
-                    $param = preg_replace('/(.*)\/(.*)\.php(.*)/i', '\\1\\3', $_SERVER['REQUEST_URI']);
-                    $scriptName =  preg_replace('/(.*)\/(.*)\.php(.*)/i', '\\1', $_SERVER['SCRIPT_NAME']);
 
-                    if (!empty($scriptName)) {
-                        $param = substr($param, strpos($param, $scriptName) + strlen($scriptName));
+        $pathInfo = self::$pathInfo;
+
+        if (empty($pathInfo)) {
+            $isCli = Request::isCli(); //是否为命令行访问
+            if ($isCli) {
+                isset($_SERVER['argv'][1]) && $pathInfo = explode('/', $_SERVER['argv'][1]);
+            } else {
+                if ($urlModel === 1 || $urlModel === 2) { //pathInfo模式(含显示、隐藏index.php两种)SCRIPT_NAME
+                    if (isset($_GET[Config::get('var_pathinfo')])) {
+                        $param = $_GET[Config::get('var_pathinfo')];
+                    } else {
+                        $param = preg_replace('/(.*)\/(.*)\.php(.*)/i', '\\1\\3', $_SERVER['REQUEST_URI']);
+                        $scriptName = preg_replace('/(.*)\/(.*)\.php(.*)/i', '\\1', $_SERVER['SCRIPT_NAME']);
+
+                        if (!empty($scriptName)) {
+                            $param = substr($param, strpos($param, $scriptName) + strlen($scriptName));
+                        }
                     }
-                }
-                $param = ltrim($param, '/');
+                    $param = ltrim($param, '/');
 
-                if (!empty($param)) { //无参数时直接跳过取默认操作
-                    //获取参数
-                    $pathInfo = explode(Config::get('url_pathinfo_depr'), trim(preg_replace(
-                        [
-                            '/\\'.Config::get('url_html_suffix').'/',
-                            '/\&.*/', '/\?.*/'
-                        ],
+                    if (!empty($param)) { //无参数时直接跳过取默认操作
+                        //获取参数
+                        $pathInfo = explode(Config::get('url_pathinfo_depr'), trim(preg_replace(
+                            [
+                                '/\\' . Config::get('url_html_suffix') . '/',
+                                '/\&.*/', '/\?.*/'
+                            ],
+                            '',
+                            $param
+                        ), Config::get('url_pathinfo_depr')));
+                    }
+                } elseif ($urlModel === 3 && isset($_GET[Config::get('var_pathinfo')])) {//兼容模式
+                    $urlString = $_GET[Config::get('var_pathinfo')];
+                    unset($_GET[Config::get('var_pathinfo')]);
+                    $pathInfo = explode(Config::get('url_pathinfo_depr'), trim(str_replace(
+                        Config::get('url_html_suffix'),
                         '',
-                        $param
+                        ltrim($urlString, '/')
                     ), Config::get('url_pathinfo_depr')));
                 }
-            } elseif ($urlModel === 3 && isset($_GET[Config::get('var_pathinfo')])) {//兼容模式
-                $urlString = $_GET[Config::get('var_pathinfo')];
-                unset($_GET[Config::get('var_pathinfo')]);
-                $pathInfo = explode(Config::get('url_pathinfo_depr'), trim(str_replace(
-                    Config::get('url_html_suffix'),
-                    '',
-                    ltrim($urlString, '/')
-                ), Config::get('url_pathinfo_depr')));
             }
         }
 
@@ -208,6 +212,18 @@ class Route
     }
 
     /**
+     * 设置pathInfo信息
+     *
+     * @param array $pathInfo
+     *
+     * @return array
+     */
+    public static function setPathInfo($pathInfo)
+    {
+        return self::$pathInfo = $pathInfo;
+    }
+
+    /**
      * 访问Cml::getContainer()->make('cml_route')中其余方法
      *
      * @param string $name
@@ -228,12 +244,12 @@ class Route
     public static function loadAppRoute($app = 'web')
     {
         static $loaded = [];
-        if (isset($loaded[$app]) ) {
+        if (isset($loaded[$app])) {
             return;
         }
-        $appRoute = Cml::getApplicationDir('apps_path').DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.Cml::getApplicationDir('app_config_path_name').DIRECTORY_SEPARATOR.'route.php';
+        $appRoute = Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $app . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_config_path_name') . DIRECTORY_SEPARATOR . 'route.php';
         if (!is_file($appRoute)) {
-            throw new \InvalidArgumentException(Lang::get('_NOT_FOUND_', $app.DIRECTORY_SEPARATOR.Cml::getApplicationDir('app_config_path_name').DIRECTORY_SEPARATOR.'route.php'));
+            throw new \InvalidArgumentException(Lang::get('_NOT_FOUND_', $app . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_config_path_name') . DIRECTORY_SEPARATOR . 'route.php'));
         }
 
         $loaded[$app] = 1;
