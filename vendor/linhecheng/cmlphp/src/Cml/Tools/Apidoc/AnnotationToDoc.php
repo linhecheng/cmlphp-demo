@@ -24,7 +24,7 @@ class AnnotationToDoc
     public static function parse()
     {
         $result = [];
-        $config = Config::load('api', Cml::getApplicationDir('app_controller_path') ? true : false);
+        $config = Config::load('api', Config::get('route_app_hierarchy', 1) < 1 ? true : false);
         foreach ($config['version'] as $version => $apiList) {
             isset($result[$version]) || $result[$version] = [];
             foreach ($apiList as $model => $api) {

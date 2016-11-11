@@ -26,6 +26,13 @@ use Cml\Plugin;
 class Pdo extends Base
 {
     /**
+     * 启用数据缓存
+     *
+     * @var bool
+     */
+    protected $openCache = true;
+
+    /**
      * 当前执行的sql 异常情况用来显示在错误页/日志
      *
      * @var string
@@ -50,6 +57,7 @@ class Pdo extends Base
         $this->conf = $conf;
         isset($this->conf['log_slow_sql']) || $this->conf['log_slow_sql'] = false;
         $this->tablePrefix = $this->conf['master']['tableprefix'];
+        $this->conf['cache_expire'] === false && $this->openCache = false;
     }
 
     /**
@@ -161,13 +169,18 @@ class Pdo extends Base
         $tableName = $tablePrefix . $tableName;
         $sql = "SELECT * FROM {$tableName} WHERE {$condition} LIMIT 0, 1000";
 
-        $cacheKey = md5($sql . json_encode($this->bindParams)) . $this->getCacheVer($tableName);
-        $return = Model::getInstance()->cache()->get($cacheKey);
+        if ($this->openCache) {
+            $cacheKey = md5($sql . json_encode($this->bindParams)) . $this->getCacheVer($tableName);
+            $return = Model::getInstance()->cache()->get($cacheKey);
+        } else {
+            $return = false;
+        }
+
         if ($return === false) { //cache中不存在这条记录
             $stmt = $this->prepare($sql, $useMaster ? $this->wlink : $this->rlink);
             $this->execute($stmt);
             $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            Model::getInstance()->cache()->set($cacheKey, $return, $this->conf['cache_expire']);
+            $this->openCache && Model::getInstance()->cache()->set($cacheKey, $return, $this->conf['cache_expire']);
         } else {
             if (Cml::$debug) {
                 $this->currentSql = $sql;
@@ -525,13 +538,18 @@ class Pdo extends Base
     {
         list($sql, $cacheKey) = $this->buildSql($offset, $limit, true);
 
-        $cacheKey = md5($sql . json_encode($this->bindParams)) . implode('', $cacheKey);
-        $return = Model::getInstance()->cache()->get($cacheKey);
+        if ($this->openCache) {
+            $cacheKey = md5($sql . json_encode($this->bindParams)) . implode('', $cacheKey);
+            $return = Model::getInstance()->cache()->get($cacheKey);
+        } else {
+            $return = false;
+        }
+
         if ($return === false) {
             $stmt = $this->prepare($sql, $useMaster ? $this->wlink : $this->rlink);
             $this->execute($stmt);
             $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            Model::getInstance()->cache()->set($cacheKey, $return, $this->conf['cache_expire']);
+            $this->openCache && Model::getInstance()->cache()->set($cacheKey, $return, $this->conf['cache_expire']);
         } else {
             if (Cml::$debug) {
                 $this->currentSql = $sql;

@@ -28,7 +28,12 @@ return [
             'engine' => ''//数据库引擎
         ],
         'slaves'=>[],
-        'cache_expire' => 3600,//查询数据缓存时间
+
+        //查询数据缓存时间，表数据有变动会自动更新缓存。设置为0表示表数据没变动时缓存不过期。
+        //这边设置为3600意思是即使表数据没变动也让缓存每3600s失效一次,这样可以让缓存空间更合理的利用.
+        //如果不想启用缓存直接配置为false
+        'cache_expire' => 3600,
+
         //是否记录执行慢的sql语句。只针对mysql有效。这个不能长期开，只能要分析sql性能的时候比如只开个5会钟有一定的log后就应该关掉。默认为false。
         //为整形的时候则为执行时间大于这个时间的sql都记录到log下 比如配置为1则为执行超过1s的sql都记录到 notice.log里
         'log_slow_sql' => false,
@@ -163,7 +168,7 @@ return [
 
     /*系统路由-统一用小写url*/
     'cmlframework_system_route' => [
-        'cmlframeworkstaticparse' => '\\Cml\\Tools\\StaticResource::parseResourceFile'
+        'cmlframeworkstaticparse' => '\\Cml\\Tools\\StaticResource::parseResourceFile',//解析静态资源
     ],
     'static_file_version' => 'v1', //开发模式会自动在静态文件后加时间缀，实时过期,线上模板版本号固定，如有需要在这里改版本号强制过期
 
@@ -180,4 +185,6 @@ return [
     'emergency_mode_not_real_time_refresh_mysql_query_cache' => false, //配置成int型则为缓存刷新周期。如配置成 300 则为数据变更时每五分钟更新一次mysql查询缓存
 
     'var_page' => 'page', //分页时传递当前页数的变量名
+
+    'route_app_hierarchy' => 1, //路由找控制器的时候遍历应用目录的层级，默认为1
 ];

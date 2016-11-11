@@ -24,6 +24,13 @@ use Cml\Route;
 abstract class Base implements Db
 {
     /**
+     * 启用数据缓存
+     *
+     * @var bool
+     */
+    protected $openCache = false;
+
+    /**
      * where操作需要加上and/or
      * 0 : 初始化两个都不加
      * 1 : 要加and
@@ -940,6 +947,10 @@ abstract class Base implements Db
      */
     public function getCacheVer($table)
     {
+        if (!$this->openCache) {
+            return '';
+        }
+
         $version = Model::getInstance()->cache()->get($this->conf['mark'] . '_db_cache_version_' . $table);
         if (!$version) {
             $version = microtime(true);
@@ -955,6 +966,10 @@ abstract class Base implements Db
      */
     public function setCacheVer($table)
     {
+        if (!$this->openCache) {
+            return;
+        }
+
         $isOpenEmergencyMode = Config::get('emergency_mode_not_real_time_refresh_mysql_query_cache');
         if ($isOpenEmergencyMode !== false && $isOpenEmergencyMode > 0) {//开启了紧急模式
             $expireTime = Model::getInstance()->cache()->get("emergency_mode_not_real_time_refresh_mysql_query_cache_{$table}");

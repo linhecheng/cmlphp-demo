@@ -39,7 +39,8 @@ class Blade extends Base
     private function initBaseDir($templateFile)
     {
         $baseDir = Cml::getContainer()->make('cml_route')->getAppName();
-        $baseDir .= '/' . Cml::getApplicationDir('app_view_path_name') . (Config::get('html_theme') != '' ? DIRECTORY_SEPARATOR . Config::get('html_theme') : '');
+        $baseDir && $baseDir .= '/';
+        $baseDir .= Cml::getApplicationDir('app_view_path_name') . (Config::get('html_theme') != '' ? DIRECTORY_SEPARATOR . Config::get('html_theme') : '');
 
         $layOutRootDir = $baseDir;
         if ($templateFile === '') {
@@ -143,6 +144,7 @@ class Blade extends Base
         header('Content-Type:text/html; charset=' . Config::get('default_charset'));
         echo $factory->make($options['file'], $this->args)->render();
         Cml::cmlStop();
+        return;
     }
 
     /**

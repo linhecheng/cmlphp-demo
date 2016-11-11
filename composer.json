@@ -13,8 +13,8 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
-        "linhecheng/cmlphp": "2.7.*"
+        "php": ">=5.4.0",
+        "linhecheng/cmlphp": "dev-dev"
     },
     "autoload": {
         "psr-4": {

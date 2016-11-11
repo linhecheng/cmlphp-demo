@@ -9,6 +9,7 @@
 namespace Cml\Service;
 
 use Cml\Cml;
+use Cml\Config;
 use Cml\Interfaces\Route;
 use Cml\Lang;
 use FastRoute\Dispatcher;
@@ -187,9 +188,10 @@ class FastRoute implements Route
             self::$urlParams['controller'] = ucfirst(array_pop($routeArr));
             $controllerPath = '';
 
-            $isOld = Cml::getApplicationDir('app_controller_path');
+            $routeAppHierarchy = Config::get('route_app_hierarchy', 1);
+            $i = 0;
             while ($dir = array_shift($routeArr)) {
-                if (!$isOld || $path == '/') {
+                if ($i++ < $routeAppHierarchy) {
                     $path .= $dir . '/';
                 } else {
                     $controllerPath .= $dir . '/';
@@ -217,21 +219,14 @@ class FastRoute implements Route
      */
     public function getControllerAndAction()
     {
-        $isOld = Cml::getApplicationDir('app_controller_path');
         //控制器所在路径
-        $actionController = (
-            $isOld ?
-                $isOld . self::getAppName()
-                : Cml::getApplicationDir('apps_path') . '/' . self::getAppName() . '/' . Cml::getApplicationDir('app_controller_path_name')
-            )
-            . '/' . self::getControllerName() . 'Controller.php';
+        $appName = self::getAppName();
+        $actionController = Cml::getApplicationDir('apps_path') . '/' . $appName . ($appName ? '/' : '')
+            . Cml::getApplicationDir('app_controller_path_name') . '/' . self::getControllerName() . 'Controller.php';
 
         if (is_file($actionController)) {
             $className = self::getControllerName() . 'Controller';
-            $className = ($isOld ? '\Controller\\' : '')
-                . self::getAppName() .
-                ($isOld ? '/' : '/Controller' . '/') .
-                "{$className}";
+            $className = $appName . '/Controller/' . $className;
             $className = str_replace('/', '\\', $className);
 
             return ['class' => $className, 'action' => self::getActionName()];

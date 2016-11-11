@@ -215,13 +215,18 @@ class Request
         if ($type == 'json') {
             $queryStr = json_encode($parameter, JSON_UNESCAPED_UNICODE);
             //$queryStr = str_replace(['\/','[]'], ['/','{}'], $queryStr);//兼容
-
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $queryStr);
         } else if ($type == 'post') {
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($parameter));
         } else if ($type == 'file') {
+            $isOld = substr($parameter['file'], 0, 1) == '@';
+            if (function_exists('curl_file_create')) {
+                $parameter['file'] = curl_file_create($isOld ? substr($parameter['file'], 1) : $parameter['file'], '');
+            } else {
+                $isOld || $parameter['file'] = '@' . $parameter['file'];
+            }
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $parameter);
         } else {

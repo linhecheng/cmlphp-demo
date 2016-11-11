@@ -9,6 +9,7 @@
 namespace Cml\Service;
 
 use Cml\Cml;
+use Cml\Config;
 use Cml\Lang;
 use Cml\Interfaces\Route as RouteInterface;
 
@@ -195,8 +196,10 @@ class Route implements RouteInterface
                     self::$urlParams['controller'] = ucfirst(array_pop($routeArr));
                     $controllerPath = '';
 
+                    $routeAppHierarchy = Config::get('route_app_hierarchy', 1);
+                    $i = 0;
                     while ($dir = array_shift($routeArr)) {
-                        if ($path == '/') {
+                        if ($i++ < $routeAppHierarchy) {
                             $path .= $dir . '/';
                         } else {
                             $controllerPath .= $dir . '/';
@@ -347,21 +350,14 @@ class Route implements RouteInterface
      */
     public function getControllerAndAction()
     {
-        $isOld = Cml::getApplicationDir('app_controller_path');
         //控制器所在路径
-        $actionController = (
-            $isOld ?
-                $isOld . self::getAppName()
-                : Cml::getApplicationDir('apps_path') . '/' . self::getAppName() . '/' . Cml::getApplicationDir('app_controller_path_name')
-            )
-            . '/' . self::getControllerName() . 'Controller.php';
+        $appName = self::getAppName();
+        $actionController = Cml::getApplicationDir('apps_path') . '/' . $appName . ($appName ? '/' : '')
+            . Cml::getApplicationDir('app_controller_path_name') . '/' . self::getControllerName() . 'Controller.php';
 
         if (is_file($actionController)) {
             $className = self::getControllerName() . 'Controller';
-            $className = ($isOld ? '\Controller\\' : '')
-                . self::getAppName() .
-                ($isOld ? '/' : '/Controller' . '/') .
-                "{$className}";
+            $className = $appName .'/Controller/'.$className;
             $className = str_replace('/', '\\', $className);
 
             return ['class' => $className, 'action' => self::getActionName()];
@@ -379,22 +375,20 @@ class Route implements RouteInterface
     private function findAction(&$pathInfo, &$path)
     {
         $controllerPath = $controllerName = '';
-        $controllerAppPath = Cml::getApplicationDir('app_controller_path');//兼容旧版本
+
+        $routeAppHierarchy = Config::get('route_app_hierarchy', 1);
+        $i = 0;
 
         while ($dir = array_shift($pathInfo)) {
             $controllerName = ucfirst($dir);
-            if ($controllerAppPath) {
-                $controller = $controllerAppPath . $path;
-            } else {
-                $controller = Cml::getApplicationDir('apps_path') . $path . Cml::getApplicationDir('app_controller_path_name') . '/';
-            }
+            $controller = Cml::getApplicationDir('apps_path') . $path . Cml::getApplicationDir('app_controller_path_name') . '/';
             $controller .= $controllerPath . $controllerName . 'Controller.php';
 
-            if ($path != '/' && is_file($controller)) {
+            if ($i >= $routeAppHierarchy && is_file($controller)) {
                 self::$urlParams['controller'] = $controllerPath . $controllerName;
                 break;
             } else {
-                if ($path == '/') {
+                if ($i++ < $routeAppHierarchy) {
                     $path .= $dir . '/';
                 } else {
                     $controllerPath .= $dir . '/';

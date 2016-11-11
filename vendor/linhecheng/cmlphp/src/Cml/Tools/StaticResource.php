@@ -9,7 +9,6 @@
  * *********************************************************** */
 use Cml\Cml;
 use Cml\Config;
-use Cml\Console\Component\Box;
 use Cml\Console\Format\Colour;
 use Cml\Console\IO\Output;
 use Cml\Http\Request;
@@ -98,14 +97,14 @@ class StaticResource
      */
     public static function parseResourceFile()
     {
-        $pathinfo = Route::getPathInfo();
-        array_shift($pathinfo);
-        $resource = implode('/', $pathinfo);
-
         if (Cml::$debug) {
+            $pathInfo = Route::getPathInfo();
+            array_shift($pathInfo);
+            $resource = implode('/', $pathInfo);
+
             $appName = $file = '';
             $i = 0;
-
+            $routeAppHierarchy = Config::get('route_app_hierarchy', 1);
             while (true) {
                 $resource = ltrim($resource, '/');
                 $pos = strpos($resource, '/');
@@ -114,7 +113,7 @@ class StaticResource
                 $file = Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR
                     . Cml::getApplicationDir('app_static_path_name') . $resource;
 
-                if (is_file($file) || ++$i >= 3) {
+                if (is_file($file) || ++$i >= $routeAppHierarchy) {
                     break;
                 }
             }

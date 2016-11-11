@@ -355,6 +355,9 @@ class Cml
             function () {
                 $cmdLists = Config::get('cmlframework_system_route');
                 $cmd = strtolower(trim(Cml::getContainer()->make('cml_route')->getAppName(), '/'));
+                if ($pos = strpos($cmd, '/')) {
+                    $cmd = substr($cmd, 0, $pos);
+                }
                 if (isset($cmdLists[$cmd])) {
                     call_user_func($cmdLists[$cmd]);
                 }
