@@ -10,6 +10,7 @@
 namespace Cml\Console\Commands\Make;
 
 use Cml\Cml;
+use Cml\Config;
 use Cml\Console\Command;
 use Cml\Console\Format\Colour;
 use Cml\Console\IO\Output;
@@ -49,7 +50,7 @@ EOF;
 
 
     /**
-     * 回滚迁移
+     * 创建控制器
      *
      * @param array $args 参数
      * @param array $options 选项
@@ -74,12 +75,12 @@ EOF;
         $component = explode('/', trim(trim($name[1], '/')));
 
         if (count($component) > 1) {
-            $className = ucfirst(array_pop($component)) . 'Controller';
+            $className = ucfirst(array_pop($component)) . Config::get('controller_suffix');
             $component = implode(DIRECTORY_SEPARATOR, $component);
             $path .= $component . DIRECTORY_SEPARATOR;
             $component = '\\' . $component;
         } else {
-            $className = ucfirst($component[0]) . 'Controller';
+            $className = ucfirst($component[0]) . Config::get('controller_suffix');
             $component = '';
         }
 

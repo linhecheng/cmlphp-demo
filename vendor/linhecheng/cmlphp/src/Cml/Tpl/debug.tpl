@@ -43,7 +43,7 @@
                 {{/if}}
 
                 {{if count($includeLib) > 0 }}
-                <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _INCLUDE_LIB_}}</b><span style="color:red">({{echo count($includeLib);}})</span></li>
+                <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:bold;"><b>{{lang _INCLUDE_LIB_}}</b><span style="color:red">dev({{echo count($includeLib);}}), online({{echo count($includeLib) - 5;}})</span></li>
                 <li style="font-size:14px;padding:0 0 0 50px;">
                     {{loop $includeLib $file}}
                     <span style='padding-left:10px;'>【{{$file}}】</span>

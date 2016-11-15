@@ -13,16 +13,14 @@ namespace Cml;
  *
  * @package Cml
  */
-class Lang extends Config
+class Lang
 {
     /**
      * 存放了所有语言信息
      *
      * @var array
      */
-    protected static $_content = [
-        'normal' => []
-    ];
+    protected static $lang = [];
 
     /**
      * 获取语言 不区分大小写
@@ -40,7 +38,7 @@ class Lang extends Config
             return '';
         }
         $key = strtolower($key);
-        $val = Cml::doteToArr($key, self::$_content['normal']);
+        $val = Cml::doteToArr($key, self::$lang);
 
         if (is_null($val)) {
             return is_array($default) ? '' : $default;
@@ -57,5 +55,46 @@ class Lang extends Config
                 return call_user_func_array('sprintf', array_values($replace));
             }
         }
+    }
+
+    /**
+     * 设置配置【语言】 支持批量设置 /a.b.c方式设置
+     *
+     * @param string|array $key 要设置的key,为数组时是批量设置
+     * @param mixed $value 要设置的值
+     *
+     * @return null
+     */
+    public static function set($key, $value = null)
+    {
+        if (is_array($key)) {
+            static::$lang = array_merge(static::$lang, array_change_key_case($key));
+        } else {
+            $key = strtolower($key);
+
+            if (!strpos($key, '.')) {
+                static::$lang[$key] = $value;
+                return null;
+            }
+
+            // 多维数组设置 A.B.C = 1
+            $key = explode('.', $key);
+            $tmp = null;
+            foreach ($key as $k) {
+                if (is_null($tmp)) {
+                    if (isset(static::$lang[$k]) === false) {
+                        static::$lang[$k] = [];
+                    }
+                    $tmp = &static::$lang[$k];
+                } else {
+                    is_array($tmp) || $tmp = [];
+                    isset($tmp[$k]) || $tmp[$k] = [];
+                    $tmp = &$tmp[$k];
+                }
+            }
+            $tmp = $value;
+            unset($tmp);
+        }
+        return null;
     }
 }

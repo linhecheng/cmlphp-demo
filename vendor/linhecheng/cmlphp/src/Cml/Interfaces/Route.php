@@ -61,7 +61,7 @@ interface Route
 
     /**
      * 返回要执行的控制器及方法。必须返回一个包含 controller和action键的数组
-     * 如:['controller' => '/var/wwwroot/xxxxx/adminbase/Controller/IndexController.php', 'action' => 'index']
+     * 如:['class' => 'adminbase/Controller/IndexController', 'action' => 'index']
      * 在parseUrl之后框架会根据解析得到的参数去自动载入相关的配置文件然后调用Cml::getContainer()->make('cml_route')->getControllerAndAction();执行相应的方法
      *
      * @return mixed

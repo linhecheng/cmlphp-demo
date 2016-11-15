@@ -16,8 +16,6 @@ Cml::setApplicationDir([
     'app_view_path_name' => 'View',//渲染模板用
     'app_controller_path_name' => 'Controller',//路由根据请求url映射控制器用
     'app_static_path_name' => 'Resource', //静态资源目录名
-    'app_public_path_name' => '',//对外静态目录相对当前入口文件，当前入口文件在public目录中这边则留空。如果index.php和public同级则这边配置为public/
-    'app_public_path' => __DIR__,//对外静态目录，相对于当前文件.当前文件在public目录中这边则留空
 ]);
 //根据上面配置的目录，配置其它目录
 Cml::setApplicationDir([
@@ -38,11 +36,14 @@ Cml::runApp(function() {
     框架只要求php5.4+即可。但是下面用了php5.5的语法::class，
     如果php版本不支持::class的语法直接把相应的xxx::class改成字符串即可。
     如\Cml\ErrorOrException::class直接改成'\Cml\ErrorOrException'
-    ***********************/
+     ***********************/
 
     //必须绑定。系统错误及异常捕获机制 如果想使用第三方的服务只要简单封装一个服务。实现\Cml\Interfaces\ErrorOrException接口即可
     Cml::getContainer()->singleton('cml_error_or_exception', \Cml\ErrorOrException::class);
     //Cml::getContainer()->singleton('cml_error_or_exception', \Cml\Service\Whoops::class);//Whoops封装服务使用前请安装Whoops. composer require filp/whoops
+
+    //必须绑定。环境解析。自带的服务实现development/product/cli三种。可以根据需要实现更多的环境
+    Cml::getContainer()->singleton('cml_environment', \Cml\Service\Environment::class);
 
     //必须绑定。系统日志驱动 内置\Cml\Logger\File::class｜\Cml\Logger\Redis::class两种.
     //自定义服务实现\Cml\Interfaces\Logger接口即可或继承\Cml\Logger\Base再按需重载
@@ -82,7 +83,7 @@ Cml::runApp(function() {
     //可选，db 允许多种驱动同时使用。因同种数据库可能同时连多个.这边不使用单例绑定.内置 \Cml\Db\MySql\Pdo::class｜\Cml\Db\MongoDB\MongoDB::class 两种数据库支持.
     //自定义数据库驱动实现\Cml\Interfaces\Db接口即可或继承\Cml\Db\Base再按需重载
     Cml::getContainer()->bind('db_mysql', \Cml\Db\MySql\Pdo::class);
-    Cml::getContainer()->bind('db_mongodb', \Cml\Db\MongoDB\MongoDB::class);
+    //Cml::getContainer()->bind('db_mongodb', \Cml\Db\MongoDB\MongoDB::class);
 
     //可选，cache  允许多种驱动同时使用。如即使用memcache又使用redis.有使用数据库时至少要启用一种缓存,因同种缓存可能同时连多个.这边不使用单例绑定。
     // 内置 \Cml\Cache\Redis::class｜\Cml\Cache\File::class | \Cml\Cache\Memcache::class ｜ \Cml\Cache\Apc::class 四种缓存支持.

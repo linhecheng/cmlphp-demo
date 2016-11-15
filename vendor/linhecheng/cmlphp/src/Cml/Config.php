@@ -9,7 +9,6 @@
 namespace Cml;
 
 use Cml\Exception\ConfigNotFoundException;
-use Cml\Http\Request;
 
 /**
  * 配置读写类、负责配置文件的读取
@@ -36,43 +35,7 @@ class Config
 
     public static function init()
     {
-        if (Request::isCli()) {
-            self::$isLocal = 'cli';
-            return true;
-        }
-
-        switch ($_SERVER['HTTP_HOST']) {
-            case $_SERVER['SERVER_ADDR'] :
-                // no break
-            case '127.0.0.1':
-                //no break
-            case 'localhost':
-                self::$isLocal = 'development';
-                return true;
-
-        }
-
-        if (isset($_SERVER['SERVER_NAME'])) {
-            $host = $_SERVER['SERVER_NAME'];
-        } else {
-            $host = $_SERVER['HTTP_HOST'];
-            if ($_SERVER['SERVER_PORT'] != 80) {
-                $host = explode(':', $host);
-                $host = $host[0];
-            }
-        }
-
-        $domain = substr($host, strrpos($host, '.') + 1);
-
-        if ($domain == 'dev' || $domain == 'loc') {
-            self::$isLocal = 'development';
-            return true;
-        }
-
-        if (substr($_SERVER['HTTP_HOST'], 0, strpos($_SERVER['HTTP_HOST'], '.')) == '192') {
-            self::$isLocal = 'development';
-        }
-        return true;
+        self::$isLocal = Cml::getContainer()->make('cml_environment')->getEnv();
     }
 
     /**

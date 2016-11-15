@@ -110,9 +110,8 @@ class Cml
     /**
      * 初始化运行环境
      *
-     * @param callable $initDi 注入依赖
      */
-    private static function init($initDi)
+    private static function init()
     {
         define('CML_PATH', dirname(__DIR__)); //框架的路径
         define('CML_CORE_PATH', CML_PATH . DIRECTORY_SEPARATOR . 'Cml');// 系统核心类库目录
@@ -122,9 +121,6 @@ class Cml
 
         //后面自动载入的类都会自动收集到Debug类下
         spl_autoload_register('Cml\Cml::autoloadComposerAdditional', true, true);
-
-        //初始化依赖
-        $initDi();
 
         //包含框架中的框架函数库文件
         Cml::requireFile(CML_CORE_PATH . DIRECTORY_SEPARATOR . 'Tools' . DIRECTORY_SEPARATOR . 'functions.php');
@@ -179,11 +175,19 @@ class Cml
             //设置捕获系统异常 使用set_error_handler()后，error_reporting将会失效。所有的错误都会交给set_error_handler。
             set_error_handler('\Cml\Debug::catcher');
 
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Cml'), Debug::TIP_INFO_TYPE_INCLUDE_LIB);
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Config'), Debug::TIP_INFO_TYPE_INCLUDE_LIB);
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Lang'), Debug::TIP_INFO_TYPE_INCLUDE_LIB);
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Http\Request'), Debug::TIP_INFO_TYPE_INCLUDE_LIB);
-            Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', 'Cml\Debug'), Debug::TIP_INFO_TYPE_INCLUDE_LIB);
+            array_map(function ($class) {
+                Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', $class), Debug::TIP_INFO_TYPE_INCLUDE_LIB);
+            }, [
+                'Cml\Cml',
+                'Cml\Config',
+                'Cml\Lang',
+                'Cml\Http\Request',
+                'Cml\Debug',
+                'Cml\Interfaces\Debug',
+                'Cml\Container',
+                'Cml\Interfaces\Environment',
+                get_class(self::getContainer()->make('cml_environment'))
+            ]);
             $runTimeClassList = null;
         } else {
             $GLOBALS['debug'] = false;//关闭debug
@@ -219,29 +223,7 @@ class Cml
         if (Request::isCli()) {
             //兼容旧版直接运行方法
             if ($_SERVER['argc'] != 2 || strpos($_SERVER['argv'][1], '/') < 1) {
-                $console = Cml::getContainer()->make('cml_console', [
-                    'run-action' => 'Cml\Console\Commands\RunAction',
-                    //make
-                    'make:symlink' => 'Cml\Console\Commands\CreateSymbolicLink',
-                    'make:controller' => 'Cml\Console\Commands\Make\Controller',
-                    'make:model' => 'Cml\Console\Commands\Make\Model',
-                    //worker
-                    'worker:start' => 'Cml\Console\Commands\DaemonProcessManage\Start',
-                    'worker:status' => 'Cml\Console\Commands\DaemonProcessManage\Status',
-                    'worker:reload' => 'Cml\Console\Commands\DaemonProcessManage\Reload',
-                    'worker:stop' => 'Cml\Console\Commands\DaemonProcessManage\Stop',
-                    'worker:add-task' => 'Cml\Console\Commands\DaemonProcessManage\AddTask',
-                    'worker:rm-task' => 'Cml\Console\Commands\DaemonProcessManage\RmTask',
-                    //migrate
-                    'migrate:create' => 'Cml\Console\Commands\Migrate\Create',
-                    'migrate:run' => 'Cml\Console\Commands\Migrate\Migrate',
-                    'migrate:rollback' => 'Cml\Console\Commands\Migrate\Rollback',
-                    'migrate:status' => 'Cml\Console\Commands\Migrate\Status',
-                    'migrate:breakpoint' => 'Cml\Console\Commands\Migrate\Breakpoint',
-                    //seed
-                    'seed:create' => 'Cml\Console\Commands\Migrate\SeedCreate',
-                    'seed:run' => 'Cml\Console\Commands\Migrate\SeedRun',
-                ]);
+                $console = Cml::getContainer()->make('cml_console');
                 $userCommand = Cml::getApplicationDir('global_config_path') . DIRECTORY_SEPARATOR . 'command.php';
                 if (is_file($userCommand)) {
                     $commandList = Cml::requireFile($userCommand);
@@ -299,7 +281,11 @@ class Cml
      */
     public static function onlyInitEnvironmentNotRunController(callable $initDi)
     {
-        self::init($initDi);
+        //初始化依赖
+        $initDi();
+
+        //系统初始化
+        self::init();
     }
 
     /**
@@ -322,8 +308,7 @@ class Cml
      */
     public static function runApp(callable $initDi)
     {
-        //系统初始化
-        self::init($initDi);
+        self::onlyInitEnvironmentNotRunController($initDi);
 
         Plugin::hook('cml.before_run_controller');
 

@@ -187,4 +187,5 @@ return [
     'var_page' => 'page', //分页时传递当前页数的变量名
 
     'route_app_hierarchy' => 1, //路由找控制器的时候遍历应用目录的层级，默认为1
+    'controller_suffix' => 'Controller', //控制器后缀名
 ];

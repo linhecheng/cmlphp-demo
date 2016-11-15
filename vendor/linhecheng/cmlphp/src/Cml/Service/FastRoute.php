@@ -221,15 +221,12 @@ class FastRoute implements Route
     {
         //控制器所在路径
         $appName = self::getAppName();
-        $actionController = Cml::getApplicationDir('apps_path') . '/' . $appName . ($appName ? '/' : '')
-            . Cml::getApplicationDir('app_controller_path_name') . '/' . self::getControllerName() . 'Controller.php';
+        $className = $appName . ($appName ? '/' : '') . Cml::getApplicationDir('app_controller_path_name') .
+            '/' . self::getControllerName() . Config::get('controller_suffix');
+        $actionController = Cml::getApplicationDir('apps_path') . '/' . $className . '.php';
 
         if (is_file($actionController)) {
-            $className = self::getControllerName() . 'Controller';
-            $className = $appName . '/Controller/' . $className;
-            $className = str_replace('/', '\\', $className);
-
-            return ['class' => $className, 'action' => self::getActionName()];
+            return ['class' => str_replace('/', '\\', $className), 'action' => self::getActionName()];
         } else {
             return false;
         }
@@ -336,6 +333,7 @@ class FastRoute implements Route
     public function any($pattern, $action)
     {
         $this->addRoute($this->httpMethod, $pattern, $action);
+        return $this;
     }
 
     /**
@@ -350,6 +348,7 @@ class FastRoute implements Route
     {
         is_array($action) ? $action['__rest'] = 1 : $action = ['__rest' => 0, '__action' => $action];
         $this->addRoute($this->httpMethod, $pattern, $action);
+        return $this;
     }
 
     /**

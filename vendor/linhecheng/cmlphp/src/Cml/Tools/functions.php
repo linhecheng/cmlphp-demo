@@ -47,7 +47,8 @@ function dumpUsePHPConsole($var, $tag = 'debug')
     static $connector = false;
     if ($connector === false) {
         $connector = PhpConsoleConnector::getInstance();
-        $connector->setPassword(Config::get('php_console_password'));
+        $password = Config::get('php_console_password');
+        $password && $connector->setPassword($password);
     }
     $connector->getDebugDispatcher()->dispatchDebug($var, $tag);
 }

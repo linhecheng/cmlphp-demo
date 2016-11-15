@@ -352,15 +352,12 @@ class Route implements RouteInterface
     {
         //控制器所在路径
         $appName = self::getAppName();
-        $actionController = Cml::getApplicationDir('apps_path') . '/' . $appName . ($appName ? '/' : '')
-            . Cml::getApplicationDir('app_controller_path_name') . '/' . self::getControllerName() . 'Controller.php';
+        $className = $appName . ($appName ? '/' : '') . Cml::getApplicationDir('app_controller_path_name') .
+            '/' . self::getControllerName() . Config::get('controller_suffix');
+        $actionController = Cml::getApplicationDir('apps_path') . '/' . $className . '.php';
 
         if (is_file($actionController)) {
-            $className = self::getControllerName() . 'Controller';
-            $className = $appName .'/Controller/'.$className;
-            $className = str_replace('/', '\\', $className);
-
-            return ['class' => $className, 'action' => self::getActionName()];
+            return ['class' => str_replace('/', '\\', $className), 'action' => self::getActionName()];
         } else {
             return false;
         }
@@ -379,10 +376,11 @@ class Route implements RouteInterface
         $routeAppHierarchy = Config::get('route_app_hierarchy', 1);
         $i = 0;
 
+        $controllerSuffix = Config::get('controller_suffix');
         while ($dir = array_shift($pathInfo)) {
             $controllerName = ucfirst($dir);
-            $controller = Cml::getApplicationDir('apps_path') . $path . Cml::getApplicationDir('app_controller_path_name') . '/';
-            $controller .= $controllerPath . $controllerName . 'Controller.php';
+            $controller = Cml::getApplicationDir('apps_path') . $path . Cml::getApplicationDir('app_controller_path_name') . '/'
+                . $controllerPath . $controllerName . $controllerSuffix . '.php';
 
             if ($i >= $routeAppHierarchy && is_file($controller)) {
                 self::$urlParams['controller'] = $controllerPath . $controllerName;
