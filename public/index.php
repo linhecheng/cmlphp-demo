@@ -19,23 +19,23 @@ Cml::setApplicationDir([
 ]);
 //根据上面配置的目录，配置其它目录
 Cml::setApplicationDir([
-    'apps_path' =>  Cml::getApplicationDir('secure_src').'/Application',//应用存放目录其下可能有多个应用
-    'global_config_path' => Cml::getApplicationDir('secure_src').'/'.Cml::getApplicationDir('app_config_path_name'),
-    'global_lang_path' => Cml::getApplicationDir('secure_src').'/'.Cml::getApplicationDir('app_lang_path_name'),
-    'global_store_path' => Cml::getApplicationDir('secure_src').'/Store',
-    'runtime_cache_path' => Cml::getApplicationDir('secure_src').'/Store' . DIRECTORY_SEPARATOR . 'Cache',
-    'runtime_logs_path' => Cml::getApplicationDir('secure_src').'/Store' . DIRECTORY_SEPARATOR . 'Logs',
+    'apps_path' => Cml::getApplicationDir('secure_src') . '/Application',//应用存放目录其下可能有多个应用
+    'global_config_path' => Cml::getApplicationDir('secure_src') . '/' . Cml::getApplicationDir('app_config_path_name'),
+    'global_lang_path' => Cml::getApplicationDir('secure_src') . '/' . Cml::getApplicationDir('app_lang_path_name'),
+    'global_store_path' => Cml::getApplicationDir('secure_src') . '/Store',
+    'runtime_cache_path' => Cml::getApplicationDir('secure_src') . '/Store' . DIRECTORY_SEPARATOR . 'Cache',
+    'runtime_logs_path' => Cml::getApplicationDir('secure_src') . '/Store' . DIRECTORY_SEPARATOR . 'Logs',
 ]);
 
 $loader->setPsr4('', Cml::getApplicationDir('apps_path'));
 
 //注入服务并运行应用
 //要注意的是这边只是做绑定并没有真正实例化
-Cml::runApp(function() {
+Cml::runApp(function () {
     /*********注意**********
-    框架只要求php5.4+即可。但是下面用了php5.5的语法::class，
-    如果php版本不支持::class的语法直接把相应的xxx::class改成字符串即可。
-    如\Cml\ErrorOrException::class直接改成'\Cml\ErrorOrException'
+     * 框架只要求php5.4+即可。但是下面用了php5.5的语法::class，
+     * 如果php版本不支持::class的语法直接把相应的xxx::class改成字符串即可。
+     * 如\Cml\ErrorOrException::class直接改成'\Cml\ErrorOrException'
      ***********************/
 
     //必须绑定。系统错误及异常捕获机制 如果想使用第三方的服务只要简单封装一个服务。实现\Cml\Interfaces\ErrorOrException接口即可
