@@ -492,7 +492,7 @@ class Html extends Base
      *
      * @param string $templateFile 模板文件
      * @param string $layout 布局文件
-     * @param bool|false $layoutInOtherApp 面部是否在其它应用
+     * @param bool|false $layoutInOtherApp 布局文件是否在其它应用
      * @param bool|false $tplInOtherApp 模板是否在其它应用
      */
     public function displayWithLayout($templateFile = '', $layout = 'master', $layoutInOtherApp = false, $tplInOtherApp = false)

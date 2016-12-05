@@ -22,7 +22,14 @@ class Cml
     /**
      * 版本
      */
-    const VERSION = 'v2.7.1';
+    const VERSION = 'v2.7.3';
+
+    /**
+     * 执行app/只是初始化环境
+     *
+     * @var bool
+     */
+    private static $run = false;
 
     /**
      * 是否为debug模式
@@ -222,7 +229,7 @@ class Cml
 
         if (Request::isCli()) {
             //兼容旧版直接运行方法
-            if ($_SERVER['argc'] != 2 || strpos($_SERVER['argv'][1], '/') < 1) {
+            if (self::$run && ($_SERVER['argc'] != 2 || strpos($_SERVER['argv'][1], '/') < 1)) {
                 $console = Cml::getContainer()->make('cml_console');
                 $userCommand = Cml::getApplicationDir('global_config_path') . DIRECTORY_SEPARATOR . 'command.php';
                 if (is_file($userCommand)) {
@@ -308,6 +315,8 @@ class Cml
      */
     public static function runApp(callable $initDi)
     {
+        self::$run = true;
+
         self::onlyInitEnvironmentNotRunController($initDi);
 
         Plugin::hook('cml.before_run_controller');

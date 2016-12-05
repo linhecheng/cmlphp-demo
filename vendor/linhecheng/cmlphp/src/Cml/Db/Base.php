@@ -8,13 +8,11 @@
  * *********************************************************** */
 namespace Cml\Db;
 
-use Cml\Cml;
 use Cml\Config;
 use Cml\Http\Input;
 use Cml\Interfaces\Db;
 use Cml\Lang;
 use Cml\Model;
-use Cml\Route;
 
 /**
  * Orm 数据库抽象基类
@@ -216,8 +214,9 @@ abstract class Base implements Db
         return false;
     }
 
+
     /**
-     * 获取多条数据
+     * 获取一条数据
      *
      * @param bool $useMaster 是否使用主库 默认读取从库
      *
@@ -231,6 +230,61 @@ abstract class Base implements Db
         } else {
             return false;
         }
+    }
+
+    /**
+     * 获取一列
+     *
+     * @param string $column 列名
+     * @param bool $useMaster 是否使用主库 默认读取从库
+     *
+     * @return bool|mixed
+     */
+    public function getOneValue($column, $useMaster = false)
+    {
+        $this->sql['columns'] == '' && $this->columns($column);
+        $data = $this->getOne($useMaster);
+        return isset($data[$column]) ? $data[$column] : false;
+    }
+
+    /**
+     * 获取数据列值列表
+     *
+     * @param string $column 列名
+     * @param null $key 返回数组中为列值指定自定义键（该自定义键必须是该表的其它字段列名）
+     * @param int $limit 返回的条数
+     * @param bool $useMaster 是否使用主库 默认读取从库
+     *
+     * @return array
+     */
+    public function plunk($column, $key = null, $limit = null, $useMaster = false)
+    {
+        $this->sql['columns'] == '' && $this->columns(is_null($key) ? $column : [$key, $column]);
+        $result = $this->select(0, $limit, $useMaster);
+        $return = [];
+        foreach ($result as $row) {
+            is_null($key) ? $return[] = $row[$column] : $return[$row[$key]] = $row[$column];
+        }
+        return $return;
+    }
+
+    /**
+     * 组块结果集
+     *
+     * @param int $num 每次获取的条数
+     * @param callable $func 结果集处理函数
+     */
+    public function chunk($num = 100, callable $func)
+    {
+        $start = 0;
+        $this->paramsAutoReset(false);
+        while (!empty($result = $this->select($start, $num))) {
+            if ($func($result) === false) {
+                break;
+            }
+            $start += $num;
+        }
+        $this->paramsAutoReset(true);
     }
 
     /**
@@ -774,8 +828,8 @@ abstract class Base implements Db
     protected function filterUnionSql($sql)
     {
         return str_ireplace([
-                'insert', "update", "delete", "\/\*", "\.\.\/", "\.\/", "union", "into", "load_file", "outfile"
-            ],
+            'insert', "update", "delete", "\/\*", "\.\.\/", "\.\/", "union", "into", "load_file", "outfile"
+        ],
             ["", "", "", "", "", "", "", "", "", ""],
             $sql);
     }
@@ -881,7 +935,7 @@ abstract class Base implements Db
                         $func = strtoupper(key(current($v)));
                         $funcParams = current(current($v));
                         foreach ($funcParams as $key => $val) {
-                            if (!isset($dbFields[$val])) {
+                            if (substr($val, 0, 1) !== '`') {
                                 $funcParams[$key] = '%s';
                                 $params[] = $val;
                             }
@@ -889,12 +943,11 @@ abstract class Base implements Db
                         $p = "`{$k}`= {$func}(" . implode($funcParams, ',') . ')';
                         break;
                     default ://计算类型
-                        $conkey = key($v);
-                        if (!isset($dbFields[$conkey])) $conkey = $k;
+                        $conKey = key($v);
                         if (!in_array(key(current($v)), ['+', '-', '*', '/', '%', '^', '&', '|', '<<', '>>', '~'])) {
                             throw new \InvalidArgumentException(Lang::get('_PARSE_UPDATE_SQL_PARAMS_ERROR_'));
                         }
-                        $p = "`{$k}`= `{$conkey}`" . key(current($v)) . abs(intval(current(current($v))));
+                        $p = "`{$k}`= `{$conKey}`" . key(current($v)) . abs(intval(current(current($v))));
                         break;
                 }
             } else {
