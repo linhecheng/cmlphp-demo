@@ -111,7 +111,7 @@ class Model
     /**
      * 初始化一个Model实例
      *
-     * @return \Cml\Model | \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB | \Cml\Db\Base
+     * @return \Cml\Model | \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB | \Cml\Db\Base | $this
      */
     public static function getInstance()
     {
@@ -341,7 +341,7 @@ class Model
      * @param $dbMethod
      * @param $arguments
      *
-     * @return \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB
+     * @return \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB | self
      */
     public static function __callStatic($dbMethod, $arguments)
     {

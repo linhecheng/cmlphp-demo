@@ -282,9 +282,11 @@ abstract class Base implements Db
             if ($func($result) === false) {
                 break;
             }
-            $start += $num;
+            $start += count($result);
         }
         $this->paramsAutoReset(true);
+        $this->reset();
+        $this->clearBindParams();
     }
 
     /**

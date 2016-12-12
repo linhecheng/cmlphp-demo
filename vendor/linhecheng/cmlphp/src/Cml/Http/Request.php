@@ -231,7 +231,7 @@ class Request
             curl_setopt($ch, CURLOPT_POSTFIELDS, $parameter);
         } else {
             $queryStr = '';
-            if (is_array($queryStr)) {
+            if (is_array($parameter)) {
                 foreach ($parameter as $key => $val) {
                     $queryStr .= $key . '=' . $val . '&';
                 }

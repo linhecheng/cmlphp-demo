@@ -72,7 +72,7 @@ class AnnotationToDoc
                     //$result[$version][$model]['all'] = $annotation;
                     //描述
                     preg_match('/@desc([^\n]+)/', $annotation, $desc);
-                    $result['desc'] = isset($desc[1]) ? $desc[1] : '';
+                    $result['desc'] = isset($desc[1]) ? trim($desc[1]) : '';
                     //参数
                     preg_match_all('/@param([^\n]+)/', $annotation, $params);
                     foreach ($params[1] as $key => $val) {
@@ -84,16 +84,66 @@ class AnnotationToDoc
 
                     //请求示例
                     preg_match('/@req(.+?)(\*\s*?@|\*\/)/s', $annotation, $reqEg);
-                    $result['req'] = isset($reqEg[1]) ? $reqEg[1] : '';
+                    $result['req'] = isset($reqEg[1]) ? self::formatCode($reqEg[1]) : '';
+
                     //请求成功示例
                     preg_match('/@success(.+?)(\*\s*?@|\*\/)/s', $annotation, $success);
-                    $result['success'] = isset($success[1]) ? $success[1] : '';
+                    $result['success'] = isset($success[1]) ? self::formatCode($success[1]) : '';
+
                     //请求失败示例
                     preg_match('/@error(.+?)(\*\s*?@|\*\/)/s', $annotation, $error);
-                    $result['error'] = isset($error[1]) ? $error[1] : '';
+                    $result['error'] = isset($error[1]) ? self::formatCode($error[1]) : '';
                 }
             }
         }
         return $result;
+    }
+
+    /**
+     * 格式化json代码
+     *
+     * @param $code
+     *
+     * @return string
+     */
+    private static function formatCode($code)
+    {
+        $code = array_map(function ($val) {
+            return trim(ltrim(trim($val), '*'));
+        }, explode("\n", trim($code)));
+        $dep = 0;
+
+        foreach ($code as $lineNum => &$line) {
+            $pos = strpos($line, '//');
+            $pos || $pos = strpos($line, '#');
+            $wordLine = $pos === false ? $line : trim(substr($line, 0, $pos));
+            $firstWord = substr($wordLine, 0, 1);
+            $lastWord = substr($wordLine, -1);
+            $lineNum === 0 && $line !== '{' && $line = "{\n    " . substr($line, 1);
+
+            //本行就要减空格
+            if (
+                $firstWord === '}'//行首
+                || $firstWord === ']' //行首
+                || ($lastWord === '}' && false === strpos($line, '{'))
+                || ($lastWord === ']' && false === strpos($line, '['))
+            ) {
+                --$dep;
+            }
+
+            $line = str_pad("", $dep * 4, " ", STR_PAD_LEFT) . $line;
+
+            //下一行加空格
+            if (
+                $lastWord === '{'
+                || $lastWord === '['
+                || ($firstWord === '{' && false === strpos($line, '}'))
+                || ($firstWord === '[' && false === strpos($line, ']'))
+            ) {
+                ++$dep;
+            }
+        }
+
+        return implode("\n", $code);
     }
 }
