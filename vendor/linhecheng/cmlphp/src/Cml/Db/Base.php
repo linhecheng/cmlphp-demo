@@ -115,6 +115,20 @@ abstract class Base implements Db
      */
     protected $paramsAutoReset = true;
 
+    /**
+     * $paramsAutoReset = false 的时候是否清除table.避免快捷方法重复调用table();
+     *
+     * @var bool
+     */
+    protected $alwaysClearTable = false;
+
+    /**
+     * $paramsAutoReset = false 的时候是否清除查询的字段信息.主要用于按批获取数据不用多次调用columns();
+     *
+     * @var bool
+     */
+    protected $alwaysClearColumns = true;
+
 
     /**
      * 定义操作的表
@@ -277,7 +291,7 @@ abstract class Base implements Db
     public function chunk($num = 100, callable $func)
     {
         $start = 0;
-        $this->paramsAutoReset(false);
+        $this->paramsAutoReset(false, false, false);
         while (!empty($result = $this->select($start, $num))) {
             if ($func($result) === false) {
                 break;
@@ -863,15 +877,19 @@ abstract class Base implements Db
     }
 
     /**
-     * orm参数是否自动重置, 默认在执行语句后会重置orm参数
+     * orm参数是否自动重置, 默认在执行语句后会重置orm参数,包含查询的表、字段信息、条件等信息
      *
-     * @param bool $autoReset 是否自动重置
+     * @param bool $autoReset 是否自动重置 查询的表、字段信息、条件等信息
+     * @param bool $alwaysClearTable 用来控制在$paramsAutoReset = false 的时候是否清除查询的table信息.避免快捷方法重复调用table();
+     * @param bool $alwaysClearColumns 用来控制在$paramsAutoReset = false 的时候是否清除查询的字段信息.主要用于按批获取数据不用多次调用columns();
      *
      * @return $this
      */
-    public function paramsAutoReset($autoReset = true)
+    public function paramsAutoReset($autoReset = true, $alwaysClearTable = false, $alwaysClearColumns = true)
     {
         $this->paramsAutoReset = $autoReset;
+        $this->alwaysClearTable = $alwaysClearTable;
+        $this->alwaysClearColumns = $alwaysClearColumns;
         return $this;
     }
 
@@ -882,7 +900,13 @@ abstract class Base implements Db
     protected function reset()
     {
         if (!$this->paramsAutoReset) {
-            $this->sql['columns'] = '';
+            $this->alwaysClearColumns && $this->sql['columns'] = '';
+            if ($this->alwaysClearTable) {
+                $this->table = []; //操作的表
+                $this->join = []; //是否内联
+                $this->leftJoin = []; //是否左联结
+                $this->rightJoin = []; //是否右联
+            }
             return;
         }
 
@@ -1035,5 +1059,14 @@ abstract class Base implements Db
         }
 
         Model::getInstance()->cache()->set($this->conf['mark'] . '_db_cache_version_' . $table, microtime(true), $this->conf['cache_expire']);
+    }
+
+    /**
+     * 析构函数
+     *
+     */
+    public function __destruct()
+    {
+        $this->close();
     }
 }

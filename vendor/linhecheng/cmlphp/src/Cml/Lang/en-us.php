@@ -42,4 +42,5 @@ return [
     '_SYSTEM_INFORMATION_' => 'System Information',
     '_SQL_STATEMENT_' => 'SQL Statement',
     '_CONTAINER_MAKE_PARAMS_ERROR_' => 'To resolve the service %s does not exist, please first bind!',
+    '_PARAM_ERROR_' =>'Parameter [%s] must be %s'
 ];

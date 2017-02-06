@@ -22,7 +22,7 @@ class Cml
     /**
      * 版本
      */
-    const VERSION = 'v2.7.3';
+    const VERSION = 'v2.7.5';
 
     /**
      * 执行app/只是初始化环境
@@ -348,7 +348,8 @@ class Cml
         Plugin::mount('cml.before_show_404_page', [
             function () {
                 $cmdLists = Config::get('cmlframework_system_route');
-                $cmd = strtolower(trim(Cml::getContainer()->make('cml_route')->getAppName(), '/'));
+                $pathInfo = Route::getPathInfo();
+                $cmd = strtolower(trim($pathInfo[0], '/'));
                 if ($pos = strpos($cmd, '/')) {
                     $cmd = substr($cmd, 0, $pos);
                 }

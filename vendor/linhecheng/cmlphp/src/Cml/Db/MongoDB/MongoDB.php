@@ -256,7 +256,13 @@ class MongoDB extends Base
     protected function reset()
     {
         if (!$this->paramsAutoReset) {
-            $this->sql['columns'] = [];
+            $this->alwaysClearColumns && $this->sql['columns'] = [];
+            if ($this->alwaysClearTable) {
+                $this->table = []; //操作的表
+                $this->join = []; //是否内联
+                $this->leftJoin = []; //是否左联结
+                $this->rightJoin = []; //是否右联
+            }
             return;
         }
 
@@ -316,7 +322,7 @@ class MongoDB extends Base
             }
             throw new \RuntimeException(var_export($errors, true), 0, $e);
         } catch (MongoDBDriverException $e) {
-            throw new \UnexpectedValueException("Other error: %s\n", $e->getMessage(), 0, $e);
+            throw new \UnexpectedValueException(sprintf("Other error: %s\n", $e->getMessage()), 0, $e);
         }
 
         return $return;
@@ -1129,7 +1135,7 @@ class MongoDB extends Base
      *
      * @param string $db 要连接的数据库类型
      *
-     * @return  resource MongoDB 连接标识
+     * @return  bool|Manager MongoDB 连接标识
      */
     public function __get($db)
     {
@@ -1247,15 +1253,6 @@ class MongoDB extends Base
         Cml::$debug && $this->debugLogSql('BulkWrite DEC', $tableName, $condition, ['$inc' => [$field => -$val]]);
 
         return $result->getModifiedCount();
-    }
-
-    /**
-     *析构函数
-     *
-     */
-    public function __destruct()
-    {
-        $this->close();
     }
 
     /**

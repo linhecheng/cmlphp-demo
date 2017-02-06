@@ -74,7 +74,7 @@ class Blade extends Base
         $compiler = new BladeCompiler($options['cacheDir'], $options['layoutCacheRootPath']);
 
         $compiler->directive('datetime', function ($timestamp) {
-            return preg_replace('/(\(\d+\))/', '<?php echo date("Y-m-d H:i:s", $1); ?>', $timestamp);
+            return preg_replace('/\(\s*?(\S+?)\s*?\|(.*?)\)/i', '<?php echo date(trim("${2}"), ${1}); ?>', $timestamp);
         });
 
         $compiler->directive('hook', function ($hook) {
@@ -103,7 +103,7 @@ class Blade extends Base
         });
 
         $compiler->directive('public', function () {
-            return '<?php echo \Cml\Config::get("static__path", \Cml\Cml::getContainer()->make("cml_route")->getSubDirName()."public/");?>';
+            return '<?php echo \Cml\Config::get("static__path", \Cml\Cml::getContainer()->make("cml_route")->getSubDirName());?>';
         });
 
         $compiler->directive('token', function () {

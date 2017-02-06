@@ -167,6 +167,8 @@ class Route implements RouteInterface
      */
     public function parseUrl()
     {
+        \Cml\Route::parsePathInfo();
+
         $path = '/';
 
         //定义URL常量
@@ -176,8 +178,6 @@ class Route implements RouteInterface
         }
         //定义项目根目录地址
         self::$urlParams['root'] = $subDir . '/';
-
-        \Cml\Route::parsePathInfo();
 
         $pathInfo = \Cml\Route::getPathInfo();
 

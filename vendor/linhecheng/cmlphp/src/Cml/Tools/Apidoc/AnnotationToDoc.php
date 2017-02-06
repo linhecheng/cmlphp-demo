@@ -9,6 +9,8 @@
  * *********************************************************** */
 use Cml\Cml;
 use Cml\Config;
+use Cml\Lang;
+use Cml\View;
 
 /**
  * 从注释生成文档实现类
@@ -20,9 +22,14 @@ class AnnotationToDoc
     /**
      * 从注释解析生成文档
      *
+     * @param string $theme 主题layui/bootstrap两种
+     *
      */
-    public static function parse()
+    public static function parse($theme = 'layui')
     {
+        if (!in_array($theme, ['bootstrap', 'layui'])) {
+            throw new \InvalidArgumentException(Lang::get('_PARAM_ERROR_', 'theme', '[bootstrap / layui]'));
+        }
         $result = [];
         $config = Config::load('api', Config::get('route_app_hierarchy', 1) < 1 ? true : false);
         foreach ($config['version'] as $version => $apiList) {
@@ -47,8 +54,8 @@ class AnnotationToDoc
 
         $systemCode = Cml::requireFile(__DIR__ . DIRECTORY_SEPARATOR . 'resource' . DIRECTORY_SEPARATOR . 'code.php');
 
-
-        Cml::requireFile(__DIR__ . DIRECTORY_SEPARATOR . 'resource' . DIRECTORY_SEPARATOR . 'doc.html', ['config' => $config, 'result' => $result, 'systemCode' => $systemCode]);
+        View::getEngine('Html')->assign(['config' => $config, 'result' => $result, 'systemCode' => $systemCode]);
+        Cml::showSystemTemplate(__DIR__ . DIRECTORY_SEPARATOR . 'resource' . DIRECTORY_SEPARATOR . $theme . '.html');
     }
 
     /**

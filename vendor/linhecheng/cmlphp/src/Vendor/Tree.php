@@ -81,6 +81,8 @@ class Tree
                 $string .=  self::getTree($list, $v[self::$config['id']], $selectedId, $str, $prefix, $selectedString);
             }
         }
+
+        self::$times--;
         return $string ;
     }
 

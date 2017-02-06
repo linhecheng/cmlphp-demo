@@ -6,15 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title><?php echo $config['doc_name'];?></title>
+    <title>{{$config['doc_name']}}</title>
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
     <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
-
+    <link rel="stylesheet" href="http://cdn.51beautylife.com/framework_bootstrap/bootstrap.min.css">
     <style>
-        <?php echo file_get_contents(dirname(__FILE__).'/bootstrap.min.css');?>
         .bs-docs-sidebar{
             position: fixed;
             top: 65px;
@@ -28,14 +27,14 @@
 <nav class="navbar navbar-default navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
-            <a class="navbar-brand" href="#"><?php echo $config['doc_name'];?></a>
+            <a class="navbar-brand" href="#">{{$config['doc_name']}}</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li style="width:80px;"><a href="javascript:">版本:</a></li>
-                <?php foreach($result as $version => $item) {?>
-                <li><a href="#<?php echo str_replace('.', '_', $version);?>"><?php echo $version;?></a></li>
-                <?php }?>
+                {{loop $result $version $item}}
+                    <li><a href="#{{echo str_replace('.', '_', $version);}}">{{$version}}</a></li>
+                {{/loop}}
             </ul>
         </div>
     </div>
@@ -52,21 +51,21 @@
                         <ul class="nav">
                             <li><a href="#overview-sign">接口地址及秘钥</a></li>
                             <li><a href="#overview-format">接口基本格式</a></li>
-                            <li><a href="#overview-sign">其它约定</a></li>
+                            <li><a href="#overview-other">其它约定</a></li>
                             <li><a href="#overview-code">响应code说明</a></li>
                         </ul>
                     </li>
                     <li><a href="#interface_definition">接口定义</a></li>
-                    <?php foreach($result as $version => $item) {?>
+                    {{loop $result $version $item}}
                     <li>
-                        <a href="#<?php echo str_replace('.', '_', $version);?>"><?php echo $version;?>版本接口</a>
+                        <a href="#{{echo str_replace('.', '_', $version);}}">{{$version}}版本接口</a>
                         <ul class="nav">
-                            <?php foreach($item as $method => $api) {?>
-                            <li class=""><a href="#<?php echo str_replace('.', '_', $version)."_{$method}";?>"><?php echo $method;?><?php echo $api['desc'];?></a></li>
-                            <?php }?>
+                            {{loop $item $method $api}}
+                                <li class=""><a href="#{{echo str_replace('.', '_', $version)."_{$method}";}}">{{$method}}{{$api['desc']}}</a></li>
+                            {{/loop}}
                         </ul>
                     </li>
-                    <?php }?>
+                    {{/loop}}
                 </ul>
                 <a class="back-to-top" href="#top">
                     返回顶部
@@ -83,7 +82,7 @@
                 <div class="panel panel-default">
                     <h4 id="overview-sign"> 接口地址及密钥:</h4>
                     <ol class="bs-callout bs-callout-info">
-                        <li><b>接口地址:</b> <?php echo $config['api_url'];?></li>
+                        <li><b>接口地址:</b> {{$config['api_url']}}</li>
                         <li><b>密钥:</b> 线下发送</li>
                     </ol>
 
@@ -115,7 +114,7 @@
                             <td rowspan="4">system</td>
                             <td>version</td>
                             <td>Y</td>
-                            <td><?php echo $version;?></td>
+                            <td>{{$version}}</td>
                         </tr>
                         <tr>
                             <td>sign</td>
@@ -168,11 +167,11 @@
                     </p>
                     <hr>
 
-                    <h4 id="overview-sign">其它约定:</h4>
+                    <h4 id="overview-other">其它约定:</h4>
                     <ol class="bs-callout bs-callout-info">
-                        <?php foreach($config['convention_desc'] as $ctitle => $cdesc) {?>
-                        <li><b><?php echo $ctitle;?>:</b> <?php echo $cdesc;?></li>
-                        <?php }?>
+                        {{loop $config['convention_desc'] $ctitle $cdesc}}
+                            <li><b>{{$ctitle}}:</b> {{$cdesc}}</li>
+                        {{/loop}}
                     </ol>
                     <hr>
 
@@ -185,18 +184,18 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <?php foreach($systemCode as $code => $means) { ?>
-                        <tr>
-                            <td><?php echo $code;?></td>
-                            <td><?php echo $means;?></td>
-                        </tr>
-                        <?php }?>
-                        <?php foreach($config['code'] as $code => $means) { ?>
-                        <tr>
-                            <td><?php echo $code;?></td>
-                            <td><?php echo $means;?></td>
-                        </tr>
-                        <?php }?>
+                        {{loop $systemCode $code $means }}
+                            <tr>
+                                <td>{{$code}}</td>
+                                <td>{{$means}}</td>
+                            </tr>
+                        {{/loop}}
+                        {{loop $config['code'] $code $means }}
+                            <tr>
+                                <td>{{$code}}</td>
+                                <td>{{$means}}</td>
+                            </tr>
+                        {{/loop}}
                         </tbody>
                     </table>
                 </div>
@@ -204,59 +203,57 @@
 
                 <h1 id="interface_definition">接口定义</h1>
 
-                <?php foreach($result as $version => $item) { ?>
-                <hr />
-                <h2 id="<?php echo str_replace('.', '_', $version);?>">版本: <?php echo $version;?></h2>
-                <hr />
-                <?php foreach($item as $method => $api) {?>
-                <div class="panel panel-default">
-                    <h3 id="<?php echo str_replace('.', '_', $version)."_{$method}";?>"><?php echo $method;?>：<?php echo $api['desc'];?></h2>
-                    <dl class="bs-callout bs-callout-info">
-                        <dt>接口定义：</dt>
-                        <dd>
-                            <table class="table table-bordered">
-                                <tr>
-                                    <th></th>
-                                    <th>字段名</th>
-                                    <th>格式</th>
-                                    <th>是否必填</th>
-                                    <th>说明</th>
-                                </tr>
-                                <?php foreach($api['params'] as $pk => $pv) {?>
-                                <tr>
-                                    <?php if($pk == 0) { echo '<td rowspan="'.count($api['params']).'">params</td>'; }?>
-                                    <td><?php echo $pv[1];?></td>
-                                    <td><?php echo $pv[0];?></td>
-                                    <td><?php echo $pv[3];?></td>
-                                    <td><?php echo $pv[2];?></td>
-                                </tr>
-                                <?php } ?>
-                                </tbody>
-                            </table>
-                        </dd>
+                {{loop $result $version $item }}
+                    <hr />
+                    <h2 id="{{echo str_replace('.', '_', $version);}}">版本: {{$version}}</h2>
+                    <hr />
+                    {{loop $item $method $api }}
+                        <div class="panel panel-default">
+                            <h3 id="{{echo str_replace('.', '_', $version)."_{$method}";}}">{{$method}}：{{$api['desc']}}</h3>
+                            <dl class="bs-callout bs-callout-info">
+                                <dt>接口定义：</dt>
+                                <dd>
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th></th>
+                                            <th>字段名</th>
+                                            <th>格式</th>
+                                            <th>是否必填</th>
+                                            <th>说明</th>
+                                        </tr>
+                                        {{loop $api['params'] $pk $pv }}
+                                            <tr>
+                                                {{if $pk == 0}} <td rowspan="{{echo count($api['params']);}}">params</td> {{/if}}
+                                                <td>{{$pv[1]}}</td>
+                                                <td>{{$pv[0]}}</td>
+                                                <td>{{$pv[3]}}</td>
+                                                <td>{{$pv[2]}}</td>
+                                            </tr>
+                                        {{/loop}}
+                                        </tbody>
+                                    </table>
+                                </dd>
 
-                        <div class="panel-heading">
-                            <h3>代码示例:</h3>
-                        </div>
-                        <div class="panel-body">
-                            <h4>Request:</h4>
-                            <pre><code class="language-javascript"><?php echo $api['req'];?></code></pre>
-                        </div>
+                                <div class="panel-heading">
+                                    <h3>代码示例:</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <h4>Request:</h4>
+                                    <pre><code class="language-javascript">{{$api['req']}}</code></pre>
+                                </div>
 
-                        <div class="panel-body">
-                            <h4>Response:</h4>
-                            <h5>成功</h5>
-                            <pre><code class="language-javascript"><?php echo $api['success'];?></code></pre>
+                                <div class="panel-body">
+                                    <h4>Response:</h4>
+                                    <h5>成功</h5>
+                                    <pre><code class="language-javascript">{{$api['success']}}</code></pre>
 
-                            <h5>失败</h5>
-                            <pre><code class="language-javascript"><?php echo $api['error'];?></code></pre>
+                                    <h5>失败</h5>
+                                    <pre><code class="language-javascript">{{$api['error']}}</code></pre>
+                                </div>
+                            </dl>
                         </div>
-                    </dl>
-                </div>
-                <?php
-                        }
-                    }
-                  ?>
+                    {{/loop}}
+                {{/loop}}
             </div>
         </div>
     </div>
@@ -277,9 +274,10 @@
     !function(){if(("undefined"==typeof self||self.Prism)&&("undefined"==typeof global||global.Prism)){var e={css:!0,less:!0,markup:{lang:"markup",before:"punctuation",inside:"inside",root:Prism.languages.markup&&Prism.languages.markup.tag.inside["attr-value"]},sass:[{lang:"sass",before:"punctuation",inside:"inside",root:Prism.languages.sass&&Prism.languages.sass["variable-line"]},{lang:"sass",inside:"inside",root:Prism.languages.sass&&Prism.languages.sass["property-line"]}],scss:!0,stylus:[{lang:"stylus",before:"hexcode",inside:"rest",root:Prism.languages.stylus&&Prism.languages.stylus["property-declaration"].inside},{lang:"stylus",before:"hexcode",inside:"rest",root:Prism.languages.stylus&&Prism.languages.stylus["variable-declaration"].inside}]};Prism.hooks.add("before-highlight",function(a){if(a.language&&e[a.language]&&!e[a.language].initialized){var i=e[a.language];"Array"!==Prism.util.type(i)&&(i=[i]),i.forEach(function(i){var r,l,n,s;i===!0?(r="important",l=a.language,i=a.language):(r=i.before||"important",l=i.inside||i.lang,n=i.root||Prism.languages,s=i.skip,i=a.language),!s&&Prism.languages[i]&&(Prism.languages.insertBefore(l,r,{color:/\B#(?:[0-9a-f]{3}){1,2}\b|\b(?:rgb|hsl)\(\s*\d{1,3}\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?\s*\)\B|\b(?:rgb|hsl)a\(\s*\d{1,3}\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?\s*,\s*(?:0|0?\.\d+|1)\s*\)\B|\b(?:AliceBlue|AntiqueWhite|Aqua|Aquamarine|Azure|Beige|Bisque|Black|BlanchedAlmond|Blue|BlueViolet|Brown|BurlyWood|CadetBlue|Chartreuse|Chocolate|Coral|CornflowerBlue|Cornsilk|Crimson|Cyan|DarkBlue|DarkCyan|DarkGoldenRod|DarkGray|DarkGreen|DarkKhaki|DarkMagenta|DarkOliveGreen|DarkOrange|DarkOrchid|DarkRed|DarkSalmon|DarkSeaGreen|DarkSlateBlue|DarkSlateGray|DarkTurquoise|DarkViolet|DeepPink|DeepSkyBlue|DimGray|DodgerBlue|FireBrick|FloralWhite|ForestGreen|Fuchsia|Gainsboro|GhostWhite|Gold|GoldenRod|Gray|Green|GreenYellow|HoneyDew|HotPink|IndianRed|Indigo|Ivory|Khaki|Lavender|LavenderBlush|LawnGreen|LemonChiffon|LightBlue|LightCoral|LightCyan|LightGoldenRodYellow|LightGray|LightGreen|LightPink|LightSalmon|LightSeaGreen|LightSkyBlue|LightSlateGray|LightSteelBlue|LightYellow|Lime|LimeGreen|Linen|Magenta|Maroon|MediumAquaMarine|MediumBlue|MediumOrchid|MediumPurple|MediumSeaGreen|MediumSlateBlue|MediumSpringGreen|MediumTurquoise|MediumVioletRed|MidnightBlue|MintCream|MistyRose|Moccasin|NavajoWhite|Navy|OldLace|Olive|OliveDrab|Orange|OrangeRed|Orchid|PaleGoldenRod|PaleGreen|PaleTurquoise|PaleVioletRed|PapayaWhip|PeachPuff|Peru|Pink|Plum|PowderBlue|Purple|Red|RosyBrown|RoyalBlue|SaddleBrown|Salmon|SandyBrown|SeaGreen|SeaShell|Sienna|Silver|SkyBlue|SlateBlue|SlateGray|Snow|SpringGreen|SteelBlue|Tan|Teal|Thistle|Tomato|Turquoise|Violet|Wheat|White|WhiteSmoke|Yellow|YellowGreen)\b/i},n),a.grammar=Prism.languages[i],e[a.language]={initialized:!0})})}}),Prism.plugins.Previewer&&new Prism.plugins.Previewer("color",function(e){return this.style.backgroundColor="",this.style.backgroundColor=e,!!this.style.backgroundColor})}}();
     !function(){if(("undefined"==typeof self||self.Prism)&&("undefined"==typeof global||global.Prism)){var s={css:!0,less:!0,markup:{lang:"markup",before:"punctuation",inside:"inside",root:Prism.languages.markup&&Prism.languages.markup.tag.inside["attr-value"]},sass:[{lang:"sass",inside:"inside",root:Prism.languages.sass&&Prism.languages.sass["property-line"]},{lang:"sass",before:"operator",inside:"inside",root:Prism.languages.sass&&Prism.languages.sass["variable-line"]}],scss:!0,stylus:[{lang:"stylus",before:"hexcode",inside:"rest",root:Prism.languages.stylus&&Prism.languages.stylus["property-declaration"].inside},{lang:"stylus",before:"hexcode",inside:"rest",root:Prism.languages.stylus&&Prism.languages.stylus["variable-declaration"].inside}]};Prism.hooks.add("before-highlight",function(e){if(e.language&&s[e.language]&&!s[e.language].initialized){var a=s[e.language];"Array"!==Prism.util.type(a)&&(a=[a]),a.forEach(function(a){var i,r,n,l;a===!0?(i="important",r=e.language,a=e.language):(i=a.before||"important",r=a.inside||a.lang,n=a.root||Prism.languages,l=a.skip,a=e.language),!l&&Prism.languages[a]&&(Prism.languages.insertBefore(r,i,{time:/(?:\b|\B-|(?=\B\.))\d*\.?\d+m?s\b/i},n),e.grammar=Prism.languages[a],s[e.language]={initialized:!0})})}}),Prism.plugins.Previewer&&new Prism.plugins.Previewer("time",function(s){var e=parseFloat(s),a=s.match(/[a-z]+$/i);return e&&a?(a=a[0],this.querySelector("circle").style.animationDuration=2*e+a,!0):!1},"*",function(){this._elt.innerHTML='<svg viewBox="0 0 64 64"><circle r="16" cy="32" cx="32"></circle></svg>'})}}();
 </script>
+
+<script src="http://cdn.51beautylife.com/framework_jquery.1.11.3.js" type="text/javascript"></script>
+<script src="http://cdn.51beautylife.com/framework_bootstrap/bootstrap.min.js" type="text/javascript"></script>
 <script>
-    <?php echo file_get_contents(dirname(__FILE__).'/jquery.1.11.3.js');?>
-    <?php echo file_get_contents(dirname(__FILE__).'/bootstrap.min.js');?>
     $(function(){var windowDom=$(window),bodyDom=$(document.body);bodyDom.scrollspy({target:".bs-docs-sidebar"}),windowDom.on("load",function(){bodyDom.scrollspy("refresh")}),setTimeout(function(){var bs_docs_sidebar=$(".bs-docs-sidebar");bs_docs_sidebar.affix({offset:{top:function(){return this.top=bs_docs_sidebar.offset().top-$("#navbar").height()-parseInt(bs_docs_sidebar.children(0).css("margin-top"),10)},bottom:function(){return this.bottom=$(".bs-docs-footer").outerHeight(!0)}}})},100);});
 </script>
 </body>

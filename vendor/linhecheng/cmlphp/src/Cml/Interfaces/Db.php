@@ -15,6 +15,11 @@ namespace Cml\Interfaces;
  */
 interface Db
 {
+    /**
+     * Db constructor.
+     *
+     * @param $conf
+     */
     public function __construct($conf);
 
     /**
@@ -589,13 +594,13 @@ interface Db
     public function connect($host, $username, $password, $dbName, $charset = 'utf8', $engine = '', $pConnect = false);
 
     /**
-     *析构函数
+     * 析构函数
      *
      */
     public function __destruct();
 
     /**
-     *获取数据库 版本
+     * 获取数据库 版本
      *
      * @param resource $link
      *
@@ -646,4 +651,11 @@ interface Db
      * @return array|int
      */
     public function callProcedure($procedureName = '', $bindParams = [], $isSelect = true);
+
+    /**
+     * 关闭连接
+     *
+     */
+    public function close();
+
 }

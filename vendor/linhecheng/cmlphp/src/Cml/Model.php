@@ -22,6 +22,13 @@ class Model
     protected $tablePrefix = null;
 
     /**
+     * 数据库配置key
+     *
+     * @var string
+     */
+    protected $db = 'default_db';
+
+    /**
      * 表名
      *
      * @var null|string
@@ -304,7 +311,7 @@ class Model
      */
     public function getDbConf()
     {
-        return property_exists($this, 'db') ? $this->db : 'default_db';
+        return $this->db;
     }
 
     /**

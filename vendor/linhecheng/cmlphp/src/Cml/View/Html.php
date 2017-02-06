@@ -92,8 +92,8 @@ class Html extends Base
             '#' . $this->options['leftDelimiter'] . '(elseif|elseif)\s+(.+?)' . $this->options['rightDelimiter'] . '#s', //替换 elseif
             '#' . $this->options['leftDelimiter'] . 'else' . $this->options['rightDelimiter'] . '#', //替换 else
             '#' . $this->options['leftDelimiter'] . '\/if' . $this->options['rightDelimiter'] . '#',//替换 /if
-            '#' . $this->options['leftDelimiter'] . '(loop|foreach)\s+(\S+)\s+(\S+)' . $this->options['rightDelimiter'] . '#s',//替换loop|foreach
-            '#' . $this->options['leftDelimiter'] . '(loop|foreach)\s+(\S+)\s+(\S+)\s+(\S+)' . $this->options['rightDelimiter'] . '#s',//替换loop|foreach
+            '#' . $this->options['leftDelimiter'] . '(loop|foreach)\s+(\S+)\s+(\S+)\s*?' . $this->options['rightDelimiter'] . '#s',//替换loop|foreach
+            '#' . $this->options['leftDelimiter'] . '(loop|foreach)\s+(\S+)\s+(\S+)\s+(\S+)\s*?' . $this->options['rightDelimiter'] . '#s',//替换loop|foreach
             '#' . $this->options['leftDelimiter'] . '\/(loop|foreach)' . $this->options['rightDelimiter'] . '#',//替换 /foreach|/loop
             '#' . $this->options['leftDelimiter'] . 'hook\s+(\w+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 hook
             '#' . $this->options['leftDelimiter'] . '(get|post|request)\s+(\w+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 get/post/request
@@ -113,6 +113,7 @@ class Html extends Base
             '#' . $this->options['leftDelimiter'] . 'comment\s+(.+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 comment 模板注释
             '#' . $this->options['leftDelimiter'] . 'acl\s+(.+?)\s*' . $this->options['rightDelimiter'] . '#i',//替换 acl权限判断标识
             '#' . $this->options['leftDelimiter'] . '\/acl' . $this->options['rightDelimiter'] . '#i',//替换 /acl
+            '#' . $this->options['leftDelimiter'] . 'datetime\s+(\S+?)\s*?\|(.*?)' . $this->options['rightDelimiter'] . '#i',//替换 /datetime
         ];
 
         //替换后的内容
@@ -143,7 +144,7 @@ class Html extends Base
             '<?php echo \Cml\Lang::get("${1}"${2});?>',
             '<?php echo \Cml\Config::get("${1}");?>',
             '<?php \Cml\Http\Response::url(${1});?>',
-            '<?php echo \Cml\Config::get("static__path", \Cml\Cml::getContainer()->make("cml_route")->getSubDirName()."public/");?>',//替换 {{public}}
+            '<?php echo \Cml\Config::get("static__path", \Cml\Cml::getContainer()->make("cml_route")->getSubDirName());?>',//替换 {{public}}
             '<?php echo strip_tags($_SERVER["REQUEST_URI"]); ?>',//替换 {{self}}
             '<input type="hidden" name="CML_TOKEN" value="<?php echo \Cml\Secure::getToken();?>" />',//替换 {{token}}
             '<?php echo \Cml\Cml::getContainer()->make("cml_route")->getControllerName(); ?>',//替换 {{controller}}
@@ -156,6 +157,7 @@ class Html extends Base
             '',
             '<?php if (\Cml\Vendor\Acl::checkAcl("${1}")) { ?>',//替换 acl权限判断标识
             '<?php } ?>',// /acl
+            '<?php echo date(trim("${2}"), ${1}); ?>',// /datetime
         ];
     }
 
@@ -503,5 +505,15 @@ class Html extends Base
             . (Config::get('html_theme') != '' ? Config::get('html_theme') . DIRECTORY_SEPARATOR : '')
             . 'layout' . DIRECTORY_SEPARATOR . $layout . Config::get('html_template_suffix');
         $this->display($templateFile, $tplInOtherApp);
+    }
+
+    /**
+     * 正常情况布局文件直接通过displayWithLayout方法指定，会自动从主题目录/layout里寻找。但是一些特殊情况要单独设置布局。
+     *
+     * @param string $layout 必须为绝对路径
+     */
+    public function setLayout($layout = '')
+    {
+        $layout && $this->layout = $layout;
     }
 }

@@ -42,4 +42,5 @@ return [
     '_SYSTEM_INFORMATION_' => '系统信息',
     '_SQL_STATEMENT_' => 'SQL语句',
     '_CONTAINER_MAKE_PARAMS_ERROR_' => '要解析的服务 %s 不存在，请先绑定!',
+    '_PARAM_ERROR_' =>'参数[%s]必须为%s'
 ];

@@ -120,7 +120,7 @@ class Secure
      *
      * @param  string $value 需要过滤的值
      *
-     * @return string
+     * @return mixed
      */
     public static function filterScript($value)
     {
@@ -137,7 +137,7 @@ class Secure
      *
      * @param  string $value 需要过滤的值
      *
-     * @return string
+     * @return mixed
      */
     public static function filterStr($value)
     {
@@ -154,7 +154,7 @@ class Secure
      *
      * @param $value
      *
-     * @return string
+     * @return mixed
      */
     public static function filterSql($value)
     {
@@ -167,6 +167,7 @@ class Secure
      * 加强型过滤
      *
      * @param $value
+     *
      * @return mixed
      */
     public static function filterAll(&$var)

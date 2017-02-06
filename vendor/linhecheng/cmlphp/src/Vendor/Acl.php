@@ -126,7 +126,7 @@ class Acl
         ];
 
         //Cookie::set本身有一重加密 这里再加一重
-        $sso && Model::getInstance()->cache()->set("SSOSingleSignOn{$uid}", (string)Cml::$nowMicroTime);
+        $sso && Model::getInstance()->cache()->set("SSOSingleSignOn{$uid}", (string)Cml::$nowMicroTime, 86400);
         Cookie::set(Config::get('userauthid'), Encry::encrypt(json_encode($user, JSON_UNESCAPED_UNICODE), self::$encryptKey), 0);
     }
 

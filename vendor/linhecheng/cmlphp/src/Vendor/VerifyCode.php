@@ -7,6 +7,7 @@
  * cmlphp框架 验证码扩展类
  * *********************************************************** */
 namespace Cml\Vendor;
+
 use Cml\Http\Cookie;
 use Cml\Model;
 
@@ -20,10 +21,10 @@ class VerifyCode
     /**
      * 生成图像数字验证码
      *
-     * @param int $length  位数
+     * @param int $length 位数
      * @param string $type 图像格式
-     * @param int $width  宽度
-     * @param int $height  高度
+     * @param int $width 宽度
+     * @param int $height 高度
      * @param string $verifyName Cookie中保存的名称
      * @param string $font 字体名
      *
@@ -32,7 +33,7 @@ class VerifyCode
     public static function numVerify($length = 4, $type = 'png', $width = 150, $height = 35, $verifyName = 'verifyCode', $font = 'tahoma.ttf')
     {
         $randNum = substr(str_shuffle(str_repeat('0123456789', 5)), 0, $length);
-        $authKey = md5(mt_rand().microtime());
+        $authKey = md5(mt_rand() . microtime());
         Cookie::set($verifyName, $authKey);
         Model::getInstance()->cache()->set($authKey, $randNum, 1800);
         $width = ($length * 33 + 20) > $width ? $length * 33 + 20 : $width;
@@ -60,9 +61,9 @@ class VerifyCode
             imagesetpixel($im, mt_rand(0, $width), mt_rand(0, $height), $stringColor);
         }
         for ($i = 0; $i < $length; $i++) {
-            $x = $i === 0 ? 15 : $i*35;
+            $x = $i === 0 ? 15 : $i * 35;
             $stringColor = imagecolorallocate($im, mt_rand(0, 200), mt_rand(0, 120), mt_rand(0, 120));
-            imagettftext($im, 28, mt_rand(0,60), $x, 35, $stringColor, CML_EXTEND_PATH.DIRECTORY_SEPARATOR.$font, $randNum[$i]);
+            imagettftext($im, 28, mt_rand(0, 60), $x, 35, $stringColor, CML_EXTEND_PATH . DIRECTORY_SEPARATOR . $font, $randNum[$i]);
         }
         self::output($im, $type);
     }
@@ -83,7 +84,7 @@ class VerifyCode
     {
         $code = StringProcess::randString($length, 4);
         $width = ($length * 45) > $width ? $length * 45 : $width;
-        $authKey = md5(mt_rand().microtime());
+        $authKey = md5(mt_rand() . microtime());
         Cookie::set($verifyName, $authKey);
         Model::getInstance()->cache()->set($authKey, md5($code), 1800);
         $im = imagecreatetruecolor($width, $height);
@@ -101,7 +102,7 @@ class VerifyCode
             imagesetpixel($im, mt_rand(0, $width), mt_rand(0, $height), $fontcolor);
         }
         if (!is_file($font)) {
-            $font = CML_EXTEND_PATH.DIRECTORY_SEPARATOR.$font;
+            $font = CML_EXTEND_PATH . DIRECTORY_SEPARATOR . $font;
         }
         for ($i = 0; $i < $length; $i++) {
             $fontcolor = imagecolorallocate($im, mt_rand(0, 120), mt_rand(0, 120), mt_rand(0, 120));
@@ -122,36 +123,43 @@ class VerifyCode
      *
      * @return void
      */
-    public static function calocVerify($type = 'png', $width = 170, $height = 45,  $font = 'tahoma.ttf', $verifyName = 'verifyCode')
+    public static function calocVerify($type = 'png', $width = 170, $height = 45, $font = 'tahoma.ttf', $verifyName = 'verifyCode')
     {
-        $la = rand(0, 9);
-        $ba = rand(0, 9);
-        $randnum = rand(1,3);
-        if ($randnum == 3) {
+        $la = $ba = 0;
+        $calcType = mt_rand(1, 3);
+        $createNumber = function () use (&$la, &$ba, $calcType) {
+            $la = mt_rand(1, 9);
+            $ba = mt_rand(1, 9);
+        };
+        $createNumber();
+        if ($calcType == 3) {
+            while ($la == $ba) {
+                $createNumber();
+            }
             if ($la < $ba) {
                 $tmp = $la;
                 $la = $ba;
                 $ba = $tmp;
             }
         }
-        $randarr = [
+        $calcTypeArr = [
             1 => $la + $ba,
             2 => $la * $ba,
             3 => $la - $ba
             // 4 => $la / $ba,
         ];
-        $randstr = $randarr[$randnum];
+        $randStr = $calcTypeArr[$calcType];
         $randResult = [
-            1 => $la .'+'. $ba.'=?',
-            2 => $la .'*'. $ba.'=?',
-            3 => $la .'-'.$ba.'=?'
+            1 => $la . '+' . $ba . '=?',
+            2 => $la . '*' . $ba . '=?',
+            3 => $la . '-' . $ba . '=?'
             // 4 => $la .'/'. $ba.'='. $randarr[4],
         ];
-        $randval = $randResult[$randnum];
-        $authKey = md5(mt_rand().microtime());
+        $calcResult = $randResult[$calcType];
+        $authKey = md5(mt_rand() . microtime());
         Cookie::set($verifyName, $authKey);
 
-        Model::getInstance()->cache()->set($authKey, $randstr, 1800);
+        Model::getInstance()->cache()->set($authKey, $randStr, 1800);
         //$width = ($length * 10 + 10) > $width ? $length * 10 + 10 : $width;
         if ($type != 'gif' && function_exists('imagecreatetruecolor')) {
             $im = imagecreatetruecolor($width, $height);
@@ -176,19 +184,19 @@ class VerifyCode
             imagesetpixel($im, mt_rand(0, $width), mt_rand(0, $height), $stringColor);
         }
         for ($i = 0; $i < 5; $i++) {
-            //  imagestring($im, 5, $i * 10 + 5, mt_rand(1, 8), $randval{$i}, $stringColor);
-            $x = $i === 0 ? 20 : $i*50;
+            //  imagestring($im, 5, $i * 10 + 5, mt_rand(1, 8), $calcResult{$i}, $stringColor);
+            $x = $i === 0 ? 20 : $i * 50;
             $stringColor = imagecolorallocate($im, mt_rand(0, 200), mt_rand(0, 120), mt_rand(0, 120));
-            if ($i == 1 || $i == 3 || $i ==4) {
-                $fontSize = $randnum == 3 ? 50 : 28;
+            if ($i == 1 || $i == 3 || $i == 4) {
+                $fontSize = $calcType == 3 ? 50 : 28;
                 if ($i == 1) {
-                    imagettftext($im, $fontSize, 0, $x, 35, $stringColor, CML_EXTEND_PATH.DIRECTORY_SEPARATOR.$font, $randval[$i]);
+                    imagettftext($im, $fontSize, 0, $x, 35, $stringColor, CML_EXTEND_PATH . DIRECTORY_SEPARATOR . $font, $calcResult[$i]);
                 } else {
                     $decNum = $i == 3 ? 30 : 55;
-                    imagettftext($im, 25, 0, $x-$decNum, 35, $stringColor, CML_EXTEND_PATH.DIRECTORY_SEPARATOR.$font, $randval[$i]);
+                    imagettftext($im, 25, 0, $x - $decNum, 35, $stringColor, CML_EXTEND_PATH . DIRECTORY_SEPARATOR . $font, $calcResult[$i]);
                 }
             } else {
-                imagettftext($im, 28, mt_rand(0,60), $x, 35, $stringColor, CML_EXTEND_PATH.DIRECTORY_SEPARATOR.$font, $randval[$i]);
+                imagettftext($im, 28, mt_rand(0, 60), $x, 35, $stringColor, CML_EXTEND_PATH . DIRECTORY_SEPARATOR . $font, $calcResult[$i]);
             }
         }
         self::output($im, $type);

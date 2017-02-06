@@ -792,15 +792,6 @@ class Pdo extends Base
     }
 
     /**
-     *析构函数
-     *
-     */
-    public function __destruct()
-    {
-        $this->close();
-    }
-
-    /**
      * 关闭连接
      *
      */
