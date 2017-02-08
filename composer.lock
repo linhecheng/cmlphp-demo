@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/linhecheng/cmlphp.git",
-                "reference": "00d49e0f9549fa7aed455717e27e577df0a75dc2"
+                "reference": "617048f66434575c377047f17448f3cad7fb4782"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/00d49e0f9549fa7aed455717e27e577df0a75dc2.zip",
-                "reference": "00d49e0f9549fa7aed455717e27e577df0a75dc2",
+                "url": "https://packagist.phpcomposer.com/files/linhecheng/cmlphp/617048f66434575c377047f17448f3cad7fb4782.zip",
+                "reference": "617048f66434575c377047f17448f3cad7fb4782",
                 "shasum": ""
             },
             "require": {
@@ -50,7 +50,7 @@
             "keywords": [
                 "cmlphp"
             ],
-            "time": "2017-02-06T09:56:01+00:00"
+            "time": "2017-02-08T07:00:29+00:00"
         }
     ],
     "packages-dev": [],

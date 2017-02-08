@@ -10,7 +10,7 @@ return [
     //  核心
     '_CONTROLLER_NOT_FOUND_' => '对不起!你访问的模块不存在,请检查路由或访问地址是否有误！',
     '_CML_DEBUG_ADD_CLASS_TIP_' => '<b>%s</b>类',
-    '_CML_ACTION_CONTROLLER_' => '当前访问的控制器为：<b>%s</b>文件',
+    '_CML_EXECUTION_ROUTE_IS_' => '当前执行的路由为：<b>%s</b>, url_model：<b>%d</b>',
     '_CML_ERROR_' => '系统发生错误',
     '_ERROR_LINE_' => '错误位置',
     '_NOT_FOUND_' => '%s不存在',

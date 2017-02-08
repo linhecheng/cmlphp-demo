@@ -22,7 +22,7 @@ class Cml
     /**
      * 版本
      */
-    const VERSION = 'v2.7.5';
+    const VERSION = 'v2.7.6';
 
     /**
      * 执行app/只是初始化环境
@@ -324,7 +324,7 @@ class Cml
         $controllerAction = Cml::getContainer()->make('cml_route')->getControllerAndAction();
 
         if ($controllerAction) {
-            Cml::$debug && Debug::addTipInfo(Lang::get('_CML_ACTION_CONTROLLER_', $controllerAction['class']));
+            Cml::$debug && Debug::addTipInfo(Lang::get('_CML_EXECUTION_ROUTE_IS_', "{$controllerAction['route']}{ {$controllerAction['class']}::{$controllerAction['action']} }", Config::get('url_model')));
             $controller = new $controllerAction['class']();
             call_user_func([$controller, "runAppController"], $controllerAction['action']);//运行
         } else {

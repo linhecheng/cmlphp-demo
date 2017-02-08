@@ -145,8 +145,7 @@ class FastRoute implements Route
             case Dispatcher::FOUND:
                 $_GET += $routeInfo[2];
                 if (is_callable($routeInfo[1])) {
-                    call_user_func($routeInfo[1]);
-                    Cml::cmlStop();
+                    \Cml\Route::executeCallableRoute($routeInfo[1], 'fastRoute');
                 }
                 $this->parseUrlParams($routeInfo[1]);
                 break;
@@ -226,7 +225,7 @@ class FastRoute implements Route
         $actionController = Cml::getApplicationDir('apps_path') . '/' . $className . '.php';
 
         if (is_file($actionController)) {
-            return ['class' => str_replace('/', '\\', $className), 'action' => self::getActionName()];
+            return ['class' => str_replace('/', '\\', $className), 'action' => self::getActionName(), 'route' => 'fastRoute'];
         } else {
             return false;
         }

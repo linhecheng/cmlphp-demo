@@ -42,25 +42,22 @@ class Route
                 isset($_SERVER['argv'][1]) && $pathInfo = explode('/', $_SERVER['argv'][1]);
             } else {
                 //修正可能由于nginx配置不当导致的子目录获取有误
-                $_SERVER['SCRIPT_NAME'] = preg_replace('/(.*)\/(.+)\.php(.*)/i', '\\1/\\2.php', $_SERVER['SCRIPT_NAME']);
+                if (false !== ($fixScriptName = stristr($_SERVER['SCRIPT_NAME'], '.php', true))) {
+                    $_SERVER['SCRIPT_NAME'] = $fixScriptName . '.php';
+                }
 
                 if ($urlModel === 1 || $urlModel === 2) { //pathInfo模式(含显示、隐藏index.php两种)SCRIPT_NAME
                     if (isset($_GET[Config::get('var_pathinfo')])) {
                         $param = str_replace(Config::get('url_html_suffix'), '', $_GET[Config::get('var_pathinfo')]);
                     } else {
-                        $param = preg_replace('/(.*)\/(.+)\.php(.*)/i', '\\1\\3', preg_replace(
+                        $param = preg_replace(
                             [
                                 '/\\' . Config::get('url_html_suffix') . '/',
                                 '/\&.*/', '/\?.*/'
                             ],
                             '',
-                            $_SERVER['REQUEST_URI']
-                        ));
-                        $scriptName = preg_replace('/(.*)\/(.+)\.php(.*)/i', '\\1', $_SERVER['SCRIPT_NAME']);
-
-                        if (!empty($scriptName)) {//假如项目在子目录这边去除子目录含模式1和模式2两种情况(伪静态到子目录)
-                            $param = substr($param, strpos($param, $scriptName) + strlen($scriptName));
-                        }
+                            substr($_SERVER['REQUEST_URI'], strlen($_SERVER['SCRIPT_NAME']))
+                        );
                     }
                     $param = trim($param, '/' . Config::get('url_pathinfo_depr'));
 
@@ -257,5 +254,18 @@ class Route
 
         $loaded[$app] = 1;
         Cml::requireFile($appRoute);
+    }
+
+    /**
+     * 执行闭包路由
+     *
+     * @param callable $call 闭包
+     * @param string $route 路由string
+     */
+    public static function executeCallableRoute(callable $call, $route = '')
+    {
+        call_user_func($call);
+        Cml::$debug && Debug::addTipInfo(Lang::get('_CML_EXECUTION_ROUTE_IS_', "callable route:{{$route}}", Config::get('url_model')));
+        Cml::cmlStop();
     }
 }

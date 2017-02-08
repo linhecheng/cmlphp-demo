@@ -10,7 +10,7 @@ return [
     //  core
     '_CONTROLLER_NOT_FOUND_' => 'Sorry! Your access module does not exist, please check the routing or access to the address is wrong!',
     '_CML_DEBUG_ADD_CLASS_TIP_' => '<b>%s</b> class',
-    '_CML_ACTION_CONTROLLER_' => 'Current access controller is: <b> %s </b> file',
+    '_CML_EXECUTION_ROUTE_IS_' => 'The currently executing route is: <b> %s </b>, url_model：<b>%d</b>',
     '_CML_ERROR_' => 'System error occurred',
     '_ERROR_LINE_' => 'Error number of rows',
     '_NOT_FOUND_' => '%s does not exist',
@@ -42,5 +42,5 @@ return [
     '_SYSTEM_INFORMATION_' => 'System Information',
     '_SQL_STATEMENT_' => 'SQL Statement',
     '_CONTAINER_MAKE_PARAMS_ERROR_' => 'To resolve the service %s does not exist, please first bind!',
-    '_PARAM_ERROR_' =>'Parameter [%s] must be %s'
+    '_PARAM_ERROR_' => 'Parameter [%s] must be %s'
 ];
