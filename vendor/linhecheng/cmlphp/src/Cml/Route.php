@@ -56,7 +56,7 @@ class Route
                                 '/\&.*/', '/\?.*/'
                             ],
                             '',
-                            substr($_SERVER['REQUEST_URI'], strlen(strstr($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : dirname($_SERVER['SCRIPT_NAME'])))
+                            str_replace([dirname($_SERVER['SCRIPT_NAME']), basename($_SERVER['SCRIPT_NAME'])], '', $_SERVER['REQUEST_URI'])
                         );
                     }
                     $param = trim($param, '/' . Config::get('url_pathinfo_depr'));
