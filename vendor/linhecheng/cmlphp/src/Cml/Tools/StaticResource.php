@@ -99,7 +99,7 @@ class StaticResource
 
             $isDir || $file .= (Config::get("url_model") == 3 ? "&v=" : "?v=") . Cml::$nowTime;
         } else {
-            $file = Config::get("static__path", Cml::getContainer()->make('cml_route')->getSubDirName() . "public/") . $resource;
+            $file = Config::get("static__path", Cml::getContainer()->make('cml_route')->getSubDirName()) . $resource;
             $isDir || $file .= "?v=" . Config::get('static_file_version');
         }
         if ($echo) {

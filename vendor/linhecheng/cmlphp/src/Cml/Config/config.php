@@ -128,7 +128,7 @@ return [
     'url_html_suffix' => '.html',  // URL伪静态后缀设置
     'url_default_action' => 'web/Default/index', //默认操作
     'var_pathinfo' => 'r',  // PATHINFO 兼容模式获取变量例如 ?r=/module/action/id/1中的s ,后面的分隔符/取决于url_pathinfo_depr
-    //'static__path' => 'http://static.cml.com/', //模板替换的{{public}}静态地址(访问静态资源用)  默认为 /public 目录
+    //'static__path' => 'http://static.cml.com/', //模板替换的{{public}}静态地址(访问静态资源用)  默认为 入口文件所在目录
 
     /*安全过滤*/
     'auth_key'=>'a5et3e41d', //Encry加密key

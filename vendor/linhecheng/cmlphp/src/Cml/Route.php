@@ -50,14 +50,18 @@ class Route
                     if (isset($_GET[Config::get('var_pathinfo')])) {
                         $param = str_replace(Config::get('url_html_suffix'), '', $_GET[Config::get('var_pathinfo')]);
                     } else {
-                        $param = preg_replace(
+                        $param = preg_replace('/(.*)\/(.+)\.php(.*)/i', '\\1\\3', preg_replace(
                             [
                                 '/\\' . Config::get('url_html_suffix') . '/',
                                 '/\&.*/', '/\?.*/'
                             ],
                             '',
-                            str_replace([dirname($_SERVER['SCRIPT_NAME']), basename($_SERVER['SCRIPT_NAME'])], '', $_SERVER['REQUEST_URI'])
-                        );
+                            $_SERVER['REQUEST_URI']
+                        ));//这边替换的结果是带index.php的情况。不带index.php在以下处理
+                        $scriptName = dirname($_SERVER['SCRIPT_NAME']);
+                        if ($scriptName && $scriptName != '/') {//假如项目在子目录这边去除子目录含模式1和模式2两种情况(伪静态到子目录)
+                            $param = substr($param, strpos($param, $scriptName) + strlen($scriptName));//之所以要strpos是因为子目录或请求string里可能会有多个/而SCRIPT_NAME里只会有1个
+                        }
                     }
                     $param = trim($param, '/' . Config::get('url_pathinfo_depr'));
 
