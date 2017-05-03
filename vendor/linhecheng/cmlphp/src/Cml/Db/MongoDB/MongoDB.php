@@ -731,7 +731,7 @@ class MongoDB extends Base
      */
     public function orderBy($column, $order = 'ASC')
     {
-        $this->sql['orderBy'][$column] = strtolower($order) === 'ASC' ? 1 : -1;
+        $this->sql['orderBy'][$column] = strtoupper($order) === 'ASC' ? 1 : -1;
         return $this;
     }
 

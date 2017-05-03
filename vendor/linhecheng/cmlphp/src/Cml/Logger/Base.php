@@ -172,6 +172,7 @@ abstract class Base implements Logger
      */
     public function format($message, array $context = [])
     {
+        is_array($context) || $context = [$context];
         return '[' . date('Y-m-d H:i:s') . '] ' . Config::get('log_prefix', 'cml_log') . ': ' . $message . ' ' . json_encode($context, JSON_UNESCAPED_UNICODE);
     }
 }

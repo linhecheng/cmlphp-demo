@@ -1,5 +1,4 @@
-<?php namespace Cml\Tools\Apidoc;
-
+<?php
 /* * *********************************************************
  * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
@@ -7,6 +6,9 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 从注释生成文档
  * *********************************************************** */
+
+namespace Cml\Tools\Apidoc;
+
 use Cml\Cml;
 use Cml\Config;
 use Cml\Lang;
@@ -23,15 +25,19 @@ class AnnotationToDoc
      * 从注释解析生成文档
      *
      * @param string $theme 主题layui/bootstrap两种
+     * @param bool|string 为字符串时从其所在的app下读取。否则从执行当前方法的app下读取
+     * @param bool $render 是否渲染输出
      *
+     * @return array|bool
      */
-    public static function parse($theme = 'layui')
+    public static function parse($theme = 'layui', $onCurrentApp = true, $render = true)
     {
         if (!in_array($theme, ['bootstrap', 'layui'])) {
             throw new \InvalidArgumentException(Lang::get('_PARAM_ERROR_', 'theme', '[bootstrap / layui]'));
         }
         $result = [];
-        $config = Config::load('api', Config::get('route_app_hierarchy', 1) < 1 ? true : false);
+        $app = is_string($onCurrentApp) ? $onCurrentApp : (Config::get('route_app_hierarchy', 1) < 1 ? true : false);
+        $config = Config::load('api', $app);
         foreach ($config['version'] as $version => $apiList) {
             isset($result[$version]) || $result[$version] = [];
             foreach ($apiList as $model => $api) {
@@ -52,10 +58,15 @@ class AnnotationToDoc
             }
         }
 
-        $systemCode = Cml::requireFile(__DIR__ . DIRECTORY_SEPARATOR . 'resource' . DIRECTORY_SEPARATOR . 'code.php');
+        //$systemCode = Cml::requireFile(__DIR__ . DIRECTORY_SEPARATOR . 'resource' . DIRECTORY_SEPARATOR . 'code.php');
 
-        View::getEngine('Html')->assign(['config' => $config, 'result' => $result, 'systemCode' => $systemCode]);
-        Cml::showSystemTemplate(__DIR__ . DIRECTORY_SEPARATOR . 'resource' . DIRECTORY_SEPARATOR . $theme . '.html');
+        if ($render) {
+            View::getEngine('Html')->assign(['config' => $config, 'result' => $result]);
+            Cml::showSystemTemplate(__DIR__ . DIRECTORY_SEPARATOR . 'resource' . DIRECTORY_SEPARATOR . $theme . '.html');
+            return true;
+        } else {
+            return ['config' => $config, 'result' => $result];
+        }
     }
 
     /**

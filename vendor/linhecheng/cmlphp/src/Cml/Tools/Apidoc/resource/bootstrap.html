@@ -61,7 +61,7 @@
                         <a href="#{{echo str_replace('.', '_', $version);}}">{{$version}}版本接口</a>
                         <ul class="nav">
                             {{loop $item $method $api}}
-                                <li class=""><a href="#{{echo str_replace('.', '_', $version)."_{$method}";}}">{{$method}}{{$api['desc']}}</a></li>
+                                <li class=""><a href="#{{echo str_replace('.', '_', $version)."_{$method}";}}" title="{{$method}} {{$api['desc']}}">{{$method}} {{$api['desc']}}</a></li>
                             {{/loop}}
                         </ul>
                     </li>
@@ -184,12 +184,6 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {{loop $systemCode $code $means }}
-                            <tr>
-                                <td>{{$code}}</td>
-                                <td>{{$means}}</td>
-                            </tr>
-                        {{/loop}}
                         {{loop $config['code'] $code $means }}
                             <tr>
                                 <td>{{$code}}</td>

@@ -1,5 +1,4 @@
-<?php namespace Cml\Tools\Daemon;
-
+<?php
 /* * *********************************************************
  * [cmlphp] (C)2012 - 3000 http://cmlphp.com
  * @Author  linhecheng<linhechengbush@live.com>
@@ -7,6 +6,8 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 守护进程工作进程
  * *********************************************************** */
+namespace Cml\Tools\Daemon;
+
 use Cml\Cml;
 use Cml\Console\Format\Colour;
 use Cml\Console\IO\Output;

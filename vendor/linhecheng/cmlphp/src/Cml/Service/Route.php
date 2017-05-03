@@ -378,6 +378,9 @@ class Route implements RouteInterface
      */
     private function findAction(&$pathInfo, &$path)
     {
+        if ($pathInfo[0] == '/' && !isset($pathInfo[1])) {
+            $pathInfo = explode('/', trim(Config::get('url_default_action'), '/'));
+        }
         $controllerPath = $controllerName = '';
 
         $routeAppHierarchy = Config::get('route_app_hierarchy', 1);

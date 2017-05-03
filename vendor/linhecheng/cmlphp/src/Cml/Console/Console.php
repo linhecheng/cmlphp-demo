@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 命令行工具
  * *********************************************************** */
+
 namespace Cml\Console;
 
 use Cml\Console\Commands\Help;
@@ -45,6 +46,8 @@ class Console implements \Cml\Interfaces\Console
         //seed
         'seed:create' => 'Cml\Console\Commands\Migrate\SeedCreate',
         'seed:run' => 'Cml\Console\Commands\Migrate\SeedRun',
+        //api auto test
+        'api-test' => 'Cml\Console\Commands\ApiAutoTest'
     ];
 
     /**

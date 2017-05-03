@@ -22,7 +22,7 @@ class Cml
     /**
      * 版本
      */
-    const VERSION = 'v2.7.6';
+    const VERSION = 'v2.7.7';
 
     /**
      * 执行app/只是初始化环境
@@ -77,6 +77,7 @@ class Cml
      */
     public static function autoloadComposerAdditional($className)
     {
+        $className == 'Cml\Server' && class_alias('Cml\Service', 'Cml\Server');//兼容旧版本
         self::$debug && Debug::addTipInfo(Lang::get('_CML_DEBUG_ADD_CLASS_TIP_', $className), Debug::TIP_INFO_TYPE_INCLUDE_LIB);//在debug中显示包含的类
     }
 
@@ -269,16 +270,20 @@ class Cml
         Plugin::hook('cml.after_parse_url');
 
         //载入模块配置
-        $modulesConfig = Cml::getApplicationDir('apps_path')
+        $appConfig = Cml::getApplicationDir('apps_path')
             . '/' . Cml::getContainer()->make('cml_route')->getAppName() . '/'
             . Cml::getApplicationDir('app_config_path_name') . '/' . 'normal.php';
-        is_file($modulesConfig) && Config::set(Cml::requireFile($modulesConfig));
+        is_file($appConfig) && Config::set(Cml::requireFile($appConfig));
 
         //载入模块语言包
         $appLang = Cml::getApplicationDir('apps_path')
             . '/' . Cml::getContainer()->make('cml_route')->getAppName() . '/'
             . Cml::getApplicationDir('app_lang_path_name') . '/' . Config::get('lang') . '.php';
         is_file($appLang) && Lang::set(Cml::requireFile($appLang));
+
+        //载入模块插件
+        $appPlugin = dirname($appConfig) . '/' . 'plugin.php';
+        is_file($appPlugin) && Config::set(Cml::requireFile($appPlugin));
     }
 
     /**

@@ -24,49 +24,52 @@ use Cml\Model;
  * 'administratorid'=>'1', //超管理员id
  *
  * 建库语句
- * CREATE TABLE `hadm_access` (
+ * CREATE TABLE `pr_admin_access` (
  * `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '权限ID',
- * `userid` int(11) DEFAULT '0' COMMENT '所属用户权限ID',
- * `groupid` smallint(3) DEFAULT '0' COMMENT '所属群组权限ID',
+ * `userid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '所属用户权限ID',
+ * `groupid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '所属群组权限ID',
  * `menuid` int(11) NOT NULL DEFAULT '0' COMMENT '权限模块ID',
  * PRIMARY KEY (`id`),
- * KEY `idx_userid` (`userid`) USING BTREE,
- * KEY `idx_groupid` (`groupid`) USING BTREE,
- * KEY `idx_menuid` (`menuid`) USING BTREE
- * ) ENGINE=MyISAM AUTO_INCREMENT=1038 DEFAULT CHARSET=utf8 COMMENT='用户或者用户组权限记录';
+ * KEY `idx_userid` (`userid`),
+ * KEY `idx_groupid` (`groupid`)
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户或者用户组权限记录';
  *
- * CREATE TABLE `hadm_group` (
+ * CREATE TABLE `pr_admin_groups` (
  * `id` smallint(3) unsigned NOT NULL AUTO_INCREMENT,
- * `name` varchar(150) DEFAULT NULL,
- * `status` tinyint(1) unsigned DEFAULT '1' COMMENT '1正常，0删除',
+ * `name` varchar(150) NOT NULL DEFAULT '' COMMENT '用户组名',
+ * `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '1正常，0删除',
+ * `remark` text NOT NULL COMMENT '备注',
  * PRIMARY KEY (`id`)
- * ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
  *
- * CREATE TABLE `hadm_menu` (
- * `id` int(11) NOT NULL AUTO_INCREMENT,
- * `pid` int(11) NOT NULL DEFAULT '0' COMMENT '父模块ID编号 0则为顶级模块',
- * `title` char(64) NOT NULL COMMENT '标题',
- * `url` char(64) NOT NULL COMMENT 'url路径',
- * `isshow` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否显示',
- * `order` int(4) NOT NULL DEFAULT '0' COMMENT '排序倒序',
+ * CREATE TABLE `pr_admin_menus` (
+ * `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+ * `pid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '父模块ID编号 0则为顶级模块',
+ * `title` char(64) NOT NULL DEFAULT '' COMMENT '标题',
+ * `url` char(64) NOT NULL DEFAULT '' COMMENT 'url路径',
+ * `isshow` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否显示',
+ * `sort` smallint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序倒序',
  * PRIMARY KEY (`id`),
- * KEY `idex_pid` (`pid`) USING BTREE,
- * KEY `idex_order` (`order`) USING BTREE,
+ * KEY `idex_pid` (`pid`),
+ * KEY `idex_order` (`sort`),
  * KEY `idx_action` (`url`)
- * ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='权限模块信息表';
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='权限模块信息表';
  *
- * CREATE TABLE `hadm_users` (
- * `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
- * `groupid` varchar(255) NOT NULL DEFAULT '',
- * `username` varchar(40) NOT NULL DEFAULT '',
- * `password` varchar(40) NOT NULL DEFAULT '',
- * `lastlogin` int(10) unsigned NOT NULL DEFAULT '0',
- * `ctime` int(10) unsigned NOT NULL DEFAULT '0',
- * `stime` int(10) unsigned NOT NULL DEFAULT '0',
- * `status` tinyint(1) unsigned DEFAULT '1' COMMENT '1正常，0删除',
+ * CREATE TABLE `pr_admin_users` (
+ * `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
+ * `groupid` varchar(255) NOT NULL DEFAULT '0' COMMENT '用户组id',
+ * `username` varchar(40) NOT NULL DEFAULT '' COMMENT '用户名',
+ * `nickname` varchar(50) NOT NULL DEFAULT '' COMMENT '昵称',
+ * `password` char(32) NOT NULL DEFAULT '' COMMENT '密码',
+ * `lastlogin` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '最后登录时间',
+ * `ctime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+ * `stime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
+ * `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '1正常，0删除',
+ * `remark` text NOT NULL,
+ * `from_type` tinyint(3) unsigned DEFAULT '1' COMMENT '用户类型。1为系统用户。2 99u',
  * PRIMARY KEY (`id`),
  * UNIQUE KEY `username` (`username`)
- * ) ENGINE=MyISAM AUTO_INCREMENT=28 DEFAULT CHARSET=utf8;
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
  *
  * @package Cml\Vendor
  */
@@ -78,6 +81,18 @@ class Acl
      * @var string
      */
     private static $encryptKey = 'pnnle-oienngls-llentne-lnegxe';
+
+    /**
+     * 定义表名
+     *
+     * @var array
+     */
+    private static $tables = [
+        'access' => 'access',
+        'groups' => 'groups',
+        'menus' => 'menus',
+        'users' => 'users',
+    ];
 
     /**
      * 有权限的时候保存权限的显示名称用于记录log
@@ -94,6 +109,13 @@ class Acl
     public static $authUser = null;
 
     /**
+     * 单点登录标识
+     *
+     * @var string
+     */
+    private static $ssoSign = '';
+
+    /**
      * 设置加密用的混淆key Cookie::set本身有一重加密 这里再加一重
      *
      * @param string $key
@@ -104,12 +126,34 @@ class Acl
     }
 
     /**
-     * 单点登录标识
+     * 自定义表名
      *
-     * @var string
+     * @param string|array $type
+     * @param string $tableName
      */
-    private static $ssoSign = '';
+    public static function setTableName($type = 'access', $tableName = 'access')
+    {
+        if (is_array($type)) {
+            self::$tables = array_merge(self::$tables, $type);
+        } else {
+            self::$tables[$type] = $tableName;
+        }
+    }
 
+    /**
+     * 获取表名
+     * @param string $type
+     *
+     * @return mixed
+     */
+    public static function getTableName($type = 'access')
+    {
+        if (isset(self::$tables[$type])) {
+            return self::$tables[$type];
+        } else {
+            throw new \InvalidArgumentException($type);
+        }
+    }
 
     /**
      * 保存当前登录用户的信息
@@ -126,7 +170,12 @@ class Acl
         ];
 
         //Cookie::set本身有一重加密 这里再加一重
-        $sso && Model::getInstance()->cache()->set("SSOSingleSignOn{$uid}", (string)Cml::$nowMicroTime, 86400);
+        if ($sso) {
+            Model::getInstance()->cache()->set("SSOSingleSignOn{$uid}", $user['ssosign'], 86400);
+        } else {
+            //如果是刚刚从要单点切换成不要单点。这边要把ssosign置为cache中的
+            empty($user['ssosign']) && $user['ssosign'] = Model::getInstance()->cache()->get("SSOSingleSignOn{$uid}");
+        }
         Cookie::set(Config::get('userauthid'), Encry::encrypt(json_encode($user, JSON_UNESCAPED_UNICODE), self::$encryptKey), 0);
     }
 
@@ -153,7 +202,7 @@ class Acl
             } else {
                 self::$ssoSign = self::$authUser['ssosign'];
 
-                $user = Model::getInstance()->db()->get('users-id-' . self::$authUser['uid'] . '-status-1');
+                $user = Model::getInstance()->db()->get(self::$tables['users'] . '-id-' . self::$authUser['uid'] . '-status-1');
                 if (empty($user)) {
                     self::$authUser = false;
                 } else {
@@ -164,10 +213,9 @@ class Acl
                         'nickname' => $user['nickname'],
                         'groupid' => explode('|', trim($user['groupid'], '|'))
                     ];
-                    $groups = Model::getInstance()->db()->table('groups')
+                    $groups = Model::getInstance()->db()->table(self::$tables['groups'])
                         ->columns('name')
                         ->whereIn('id', $tmp['groupid'])
-                        ->_and()
                         ->where('status', 1)
                         ->select();
 
@@ -265,8 +313,8 @@ class Acl
 
         $acl = Model::getInstance()->db()
             ->columns('m.id')
-            ->table(['access' => 'a'])
-            ->join(['menus' => 'm'], 'a.menuid=m.id')
+            ->table([self::$tables['access'] => 'a'])
+            ->join([self::$tables['menus'] => 'm'], 'a.menuid=m.id')
             ->lBrackets()
             ->whereIn('a.groupid', $authInfo['groupid'])
             ->_or()
@@ -291,13 +339,13 @@ class Acl
             return $res;
         }
 
-        Model::getInstance()->db()->table(['menus' => 'm'])
+        Model::getInstance()->db()->table([self::$tables['menus'] => 'm'])
             ->columns(['distinct m.id', 'm.pid', 'm.title', 'm.url']);
 
         //当前登录用户是否为超级管理员
         if (!self::isSuperUser()) {
             Model::getInstance()->db()
-                ->join(['access' => 'a'], 'a.menuid=m.id')
+                ->join([self::$tables['access'] => 'a'], 'a.menuid=m.id')
                 ->lBrackets()
                 ->whereIn('a.groupid', $authInfo['groupid'])
                 ->_or()

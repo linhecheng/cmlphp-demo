@@ -12,6 +12,7 @@ use Cml\Config;
 use Cml\Exception\CacheConnectFailException;
 use Cml\Exception\PhpExtendNotInstall;
 use Cml\Lang;
+use Cml\Lock;
 use Cml\Log;
 use Cml\Plugin;
 
@@ -260,8 +261,10 @@ class Redis extends namespace\Base
      */
     public function __destruct()
     {
+        Lock::getLocker()->__destruct();//防止在lock gc之前 cache已经发生gc
         foreach ($this->redis as $instance) {
             $instance->close();
         }
+        $this->redis = [];
     }
 }

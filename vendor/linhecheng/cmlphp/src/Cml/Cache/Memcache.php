@@ -90,7 +90,7 @@ class Memcache extends namespace\Base
                 }
             }
 
-            $this->memcache->setFailureCallback($singleNodeDownFunction);
+            method_exists($this->memcache, 'setFailureCallback') && $this->memcache->setFailureCallback($singleNodeDownFunction);
 
             $serverList = $this->memcache->getextendedstats();
             foreach ($serverList as $server => $status) {

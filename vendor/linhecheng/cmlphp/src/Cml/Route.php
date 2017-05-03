@@ -35,7 +35,6 @@ class Route
         $urlModel = Config::get('url_model');
 
         $pathInfo = self::$pathInfo;
-
         if (empty($pathInfo)) {
             $isCli = Request::isCli(); //是否为命令行访问
             if ($isCli) {
@@ -46,6 +45,7 @@ class Route
                     $_SERVER['SCRIPT_NAME'] = $fixScriptName . '.php';
                 }
 
+                $urlPathInfoDeper = Config::get('url_pathinfo_depr');
                 if ($urlModel === 1 || $urlModel === 2) { //pathInfo模式(含显示、隐藏index.php两种)SCRIPT_NAME
                     if (isset($_GET[Config::get('var_pathinfo')])) {
                         $param = str_replace(Config::get('url_html_suffix'), '', $_GET[Config::get('var_pathinfo')]);
@@ -63,30 +63,22 @@ class Route
                             $param = substr($param, strpos($param, $scriptName) + strlen($scriptName));//之所以要strpos是因为子目录或请求string里可能会有多个/而SCRIPT_NAME里只会有1个
                         }
                     }
-                    $param = trim($param, '/' . Config::get('url_pathinfo_depr'));
-
-                    if (!empty($param)) { //无参数时直接跳过取默认操作
-                        //获取参数
-                        $pathInfo = explode(Config::get('url_pathinfo_depr'), $param);
-                    }
+                    $param = trim($param, '/' . $urlPathInfoDeper);
                 } elseif ($urlModel === 3 && isset($_GET[Config::get('var_pathinfo')])) {//兼容模式
                     $urlString = $_GET[Config::get('var_pathinfo')];
                     unset($_GET[Config::get('var_pathinfo')]);
-                    $pathInfo = explode(Config::get('url_pathinfo_depr'), trim(str_replace(
+                    $param = trim(str_replace(
                         Config::get('url_html_suffix'),
                         '',
                         ltrim($urlString, '/')
-                    ), Config::get('url_pathinfo_depr')));
+                    ), $urlPathInfoDeper);
                 }
             }
+            $isCli || $pathInfo = explode($urlPathInfoDeper, $param);
         }
 
-        isset($pathInfo[0]) && empty($pathInfo[0]) && $pathInfo = [];
+        isset($pathInfo[0]) && empty($pathInfo[0]) && $pathInfo = ['/'];
 
-        //参数不完整获取默认配置
-        if (empty($pathInfo)) {
-            $pathInfo = explode('/', trim(Config::get('url_default_action'), '/'));
-        }
         self::$pathInfo = $pathInfo;
     }
 

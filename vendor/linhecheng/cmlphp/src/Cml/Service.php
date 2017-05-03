@@ -8,13 +8,12 @@
  * *********************************************************** */
 namespace Cml;
 
-
 /**
- * 系统默认的Server类
+ * 系统默认的Service类
  *
  * @package Cml
  */
-class Server extends Controller
+class Service extends Controller
 {
 
 }

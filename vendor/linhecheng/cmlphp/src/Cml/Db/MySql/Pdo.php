@@ -247,6 +247,7 @@ class Pdo extends Base
         } else {
             $tableName = $tablePrefix . $tableName;
             $upCacheTables = [$tableName];
+            isset($this->forceIndex[$tableName]) && $tableName .= ' force index(' . $this->forceIndex[$tableName] . ') ';
         }
 
         if (empty($tableName)) {
@@ -290,6 +291,7 @@ class Pdo extends Base
         } else {
             $tableName = $tablePrefix . $tableName;
             $upCacheTables = [$tableName];
+            isset($this->forceIndex[$tableName]) && $tableName .= ' force index(' . $this->forceIndex[$tableName] . ') ';
         }
 
         if (empty($tableName)) {
@@ -418,12 +420,12 @@ class Pdo extends Base
      */
     private function aggregation($field, $isMulti = false, $useMaster = false, $operation = 'COUNT')
     {
-        is_string($isMulti) && $this->groupBy($isMulti);
+        is_string($isMulti) && $this->groupBy($isMulti)->columns($isMulti);
         $count = $this->columns(["{$operation}({$field})" => '__res__'])->select(null, null, $useMaster);
         if ($isMulti) {
             $return = [];
             foreach ($count as $val) {
-                $return[] = $operation === 'COUNT' ? intval($val['__res__']) : floatval($val['__res__']);
+                $return[$val[$isMulti]] = $operation === 'COUNT' ? intval($val['__res__']) : floatval($val['__res__']);
             }
             return $return;
         } else {
@@ -628,7 +630,7 @@ class Pdo extends Base
             );
         }
         $link->exec("SET names $charset");
-        //$link->exec('set sql_mode="";'); 放数据库配 特殊情况才开
+        isset($this->conf['sql_mode']) && $link->exec('set sql_mode="' . $this->conf['sql_mode'] . '";'); //放数据库配 特殊情况才开
         if (!empty($engine) && $engine == 'InnoDB') {
             $link->exec('SET innodb_flush_log_at_trx_commit=2');
         }

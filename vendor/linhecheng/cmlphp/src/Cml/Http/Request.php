@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 请求类
  * *********************************************************** */
+
 namespace Cml\Http;
 
 /**
@@ -198,7 +199,7 @@ class Request
      * @param string $url 要请求的url
      * @param array $parameter 请求参数
      * @param array $header header头信息
-     * @param string $type 请求的数据类型 json/post/file/get
+     * @param string $type 请求的数据类型 json/post/file/get/raw
      * @param int $timeout 请求的超时时间默认10s
      *
      * @return bool|mixed
@@ -212,11 +213,11 @@ class Request
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); //检查证书中是否设置域名
         }
 
-        if ($type == 'json') {
-            $queryStr = json_encode($parameter, JSON_UNESCAPED_UNICODE);
+        if ($type == 'json' || $type == 'raw') {
+            $type == 'json' && $parameter = json_encode($parameter, JSON_UNESCAPED_UNICODE);
             //$queryStr = str_replace(['\/','[]'], ['/','{}'], $queryStr);//兼容
             curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $queryStr);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $parameter);
         } else if ($type == 'post') {
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($parameter));

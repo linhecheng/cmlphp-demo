@@ -199,12 +199,13 @@ abstract class Base implements Db
      *
      * @param int $limit 每页返回的条数
      * @param bool $useMaster 是否使用主库 默认读取从库
+     * @param null|int $page 当前页数-不传则获取配置中var_page配置的request值
      *
      * @return array
      */
-    public function paginate($limit, $useMaster = false)
+    public function paginate($limit, $useMaster = false, $page = null)
     {
-        $page = Input::requestInt(Config::get('var_page'), 1);
+        is_int($page) || $page = Input::requestInt(Config::get('var_page'), 1);
         $page < 1 && $page = 1;
         return call_user_func_array([$this, 'select'], [($page - 1) * $limit, $limit, $useMaster]);
     }
@@ -935,6 +936,18 @@ abstract class Base implements Db
         if ($this->paramsAutoReset) {
             $this->bindParams = [];
         }
+    }
+
+    /**
+     * 重置所有orm参数及绑定
+     *
+     * @return $this
+     */
+    public function resetAndClear()
+    {
+        $this->reset();
+        $this->clearBindParams();
+        return $this;
     }
 
     /**

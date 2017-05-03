@@ -8,6 +8,7 @@
  * *********************************************************** */
 
 namespace Cml\Vendor;
+
 use Cml\Cml;
 use Cml\Config;
 use Cml\Exception\FileCanNotReadableException;
@@ -76,11 +77,11 @@ class Validate
         }
 
         if (!is_file($langDir)) {
-            throw new FileCanNotReadableException(Lang::get('_NOT_FOUND_', 'lang dir ['.$langDir.']'));
+            throw new FileCanNotReadableException(Lang::get('_NOT_FOUND_', 'lang dir [' . $langDir . ']'));
         }
 
         $errorTip = Cml::requireFile($langDir);
-        foreach($errorTip as $key => $val) {
+        foreach ($errorTip as $key => $val) {
             $key = strtolower($key);
             isset(self::$errorTip[$key]) || self::$errorTip[$key] = $val;
         }
@@ -117,7 +118,7 @@ class Validate
     {
         $ruleMethod = 'is' . ucfirst($rule);
         if (!isset(static::$rules[$rule]) && !method_exists($this, $ruleMethod)) {
-            throw new \InvalidArgumentException(Lang::get('_NOT_FOUND_', 'validate rule ['. $rule.']'));
+            throw new \InvalidArgumentException(Lang::get('_NOT_FOUND_', 'validate rule [' . $rule . ']'));
         }
 
         $params = array_slice(func_get_args(), 2);
@@ -186,12 +187,16 @@ class Validate
                     $callback = [$this, 'is' . ucfirst($bind['rule'])];
                 }
 
-                is_array($values) || $values = [$values];
-
                 $result = true;
-                foreach ($values as $value) {
-                    $result = $result && call_user_func($callback, $value, $bind['params'], $field);
+                if ($bind['rule'] == 'arr') {
+                    $result = call_user_func($callback, $values, $bind['params'], $field);
+                } else {
+                    is_array($values) || $values = [$values];
+                    foreach ($values as $value) {
+                        $result = $result && call_user_func($callback, $value, $bind['params'], $field);
+                    }
                 }
+
 
                 if (!$result) {
                     $this->error($field, $bind);
@@ -223,7 +228,7 @@ class Validate
      */
     public function label($label)
     {
-        if(is_array($label)) {
+        if (is_array($label)) {
             $this->label = array_merge($this->label, $label);
         } else {
             $this->label[$this->dateBindRule[count($this->dateBindRule) - 1]['field'][0]] = $label;
@@ -246,7 +251,7 @@ class Validate
                 return json_encode($this->errorMsg, JSON_UNESCAPED_UNICODE);
             case 2:
                 $return = '';
-                foreach($this->errorMsg as $val) {
+                foreach ($this->errorMsg as $val) {
                     $return .= ($return == '' ? '' : $delimiter) . implode($delimiter, $val);
                 }
                 return $return;
@@ -270,6 +275,18 @@ class Validate
         }
 
         return true;
+    }
+
+    /**
+     * 数据基础验证-是否为字符串参数
+     *
+     * @param  string $value 需要验证的值
+     *
+     * @return bool
+     */
+    public static function isString($value)
+    {
+        return is_string($value);
     }
 
     /**
@@ -373,8 +390,8 @@ class Validate
      * 数据基础验证-检测字符串长度
      *
      * @param  string $value 需要验证的值
-     * @param  int    $min   字符串最小长度
-     * @param  int    $max   字符串最大长度
+     * @param  int $min 字符串最小长度
+     * @param  int $max 字符串最大长度
      *
      * @return bool
      */
@@ -616,7 +633,7 @@ class Validate
      */
     public static function isSafeAccount($value)
     {
-        return preg_match ("/^[a-zA-Z]{1}[a-zA-Z0-9_\.]{3,31}$/", $value);
+        return preg_match("/^[a-zA-Z]{1}[a-zA-Z0-9_\.]{3,31}$/", $value);
     }
 
     /**
@@ -628,7 +645,7 @@ class Validate
      */
     public static function isSafeNickname($value)
     {
-        return preg_match ("/^[-\x{4e00}-\x{9fa5}a-zA-Z0-9_\.]{2,10}$/u", $value);
+        return preg_match("/^[-\x{4e00}-\x{9fa5}a-zA-Z0-9_\.]{2,10}$/u", $value);
     }
 
     /**
@@ -640,7 +657,7 @@ class Validate
      */
     public static function isSafePassword($str)
     {
-        if (preg_match('/[\x80-\xff]./', $str) || preg_match('/\'|"|\"/', $str) || strlen($str) < 6 || strlen($str) > 20 ){
+        if (preg_match('/[\x80-\xff]./', $str) || preg_match('/\'|"|\"/', $str) || strlen($str) < 6 || strlen($str) > 20) {
             return false;
         }
         return true;
