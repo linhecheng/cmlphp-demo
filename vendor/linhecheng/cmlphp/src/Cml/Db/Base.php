@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 Db 数据库抽象基类
  * *********************************************************** */
+
 namespace Cml\Db;
 
 use Cml\Config;
@@ -326,6 +327,20 @@ abstract class Base implements Db
     }
 
     /**
+     * here条件组装 两个列相等
+     *
+     * @param string $column eg：username | `user`.`username`
+     * @param string $column2 eg: nickname | `user`.`nickname`
+     *
+     * @return $this
+     */
+    public function whereColumn($column, $column2)
+    {
+        $this->conditionFactory($column, $column2, 'column');
+        return $this;
+    }
+
+    /**
      * where条件组装 不等
      *
      * @param string $column 如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
@@ -598,32 +613,57 @@ abstract class Base implements Db
             $this->sql['where'] .= "{$column} {$operator} {$betweenValue}";
         } else if ($operator == 'IS NULL' || $operator == 'IS NOT NULL') {
             $this->sql['where'] .= "{$column} {$operator}";
+        } else if ($operator == 'column') {
+            substr(trim($column), 0, 1) != '`' && $column = "`{$column}`";
+            substr(trim($value), 0, 1) != '`' && $value = "`{$value}`";
+            $this->sql['where'] .= "{$column} = {$value} ";
         } else {
             $this->bindParams[] = $value;
-            $value = '%s';
-            $this->sql['where'] .= "{$column} {$operator} {$value} ";
+            $this->sql['where'] .= "{$column} {$operator} %s ";
         }
     }
 
     /**
      * 增加 and条件操作符
      *
+     * @param callable $callable 如果传入函数则函数内执行的条件会被()包围
+     *
      * @return $this
      */
-    public function _and()
+    public function _and($callable = null)
     {
+        $history = $this->whereNeedAddAndOrOr;
         $this->whereNeedAddAndOrOr = 1;
+
+        if (is_callable($callable)) {
+            $history === 0 && $this->whereNeedAddAndOrOr = 0;
+            $this->lBrackets();
+            $callable();
+            $this->rBrackets();
+        }
+
         return $this;
     }
 
     /**
      * 增加or条件操作符
      *
+     * @param callable $callable 如果传入函数则函数内执行的条件会被()包围
+     *
      * @return $this
      */
-    public function _or()
+    public function _or($callable = null)
     {
+        $history = $this->whereNeedAddAndOrOr;
         $this->whereNeedAddAndOrOr = 2;
+
+        if (is_callable($callable)) {
+            $history === 0 && $this->whereNeedAddAndOrOr = 0;
+            $this->lBrackets();
+            $callable();
+            $this->rBrackets();
+        }
+
         return $this;
     }
 
@@ -676,11 +716,7 @@ abstract class Base implements Db
                 $result .= ($result == '' ? '' : ', ') . (is_int($key) ? $val : ($key . " AS `{$val}`"));
             }
         } else {
-            $args = func_get_args();
-            while ($arg = current($args)) {
-                $result .= ($result == '' ? '' : ', ') . $arg;
-                next($args);
-            }
+            $result = implode(', ', func_get_args());
         }
         $this->sql['columns'] == '' || ($this->sql['columns'] .= ' ,');
         $this->sql['columns'] .= $result;
@@ -1072,6 +1108,17 @@ abstract class Base implements Db
         }
 
         Model::getInstance()->cache()->set($this->conf['mark'] . '_db_cache_version_' . $table, microtime(true), $this->conf['cache_expire']);
+    }
+
+    /**
+     * 执行
+     * @param callable $query
+     */
+    public function transaction(callable $query)
+    {
+        $this->startTransAction();
+        $query();
+        $this->commit();
     }
 
     /**

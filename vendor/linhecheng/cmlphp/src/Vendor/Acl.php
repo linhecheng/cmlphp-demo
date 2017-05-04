@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 权限控制类
  * *********************************************************** */
+
 namespace Cml\Vendor;
 
 use Cml\Cml;
@@ -160,23 +161,27 @@ class Acl
      *
      * @param int $uid 用户id
      * @param bool $sso 是否为单点登录，即踢除其它登录用户
+     * @param int $cookieExpire 登录的过期时间，为0则默认保持到浏览器关闭，> 0的值为登录有效期的秒数。默认为0
+     * @param int $notOperationAutoLogin 当$cookieExpire设置为0时，这个值为用户多久不操作则自动退出。默认为1个小时
      */
-    public static function setLoginStatus($uid, $sso = true)
+    public static function setLoginStatus($uid, $sso = true, $cookieExpire = 0, $notOperationAutoLogin = 3600)
     {
+        $cookieExpire > 0 && $notOperationAutoLogin = 0;
         $user = [
             'uid' => $uid,
-            'expire' => Cml::$nowTime + 3600,
+            'expire' => $notOperationAutoLogin > 0 ? Cml::$nowTime + $notOperationAutoLogin : 0,
             'ssosign' => $sso ? (string)Cml::$nowMicroTime : self::$ssoSign
         ];
+        $notOperationAutoLogin > 0 && $user['not_op'] = $notOperationAutoLogin;
 
         //Cookie::set本身有一重加密 这里再加一重
         if ($sso) {
-            Model::getInstance()->cache()->set("SSOSingleSignOn{$uid}", $user['ssosign'], 86400);
+            Model::getInstance()->cache()->set("SSOSingleSignOn{$uid}", $user['ssosign'], 86400 + $cookieExpire);
         } else {
             //如果是刚刚从要单点切换成不要单点。这边要把ssosign置为cache中的
             empty($user['ssosign']) && $user['ssosign'] = Model::getInstance()->cache()->get("SSOSingleSignOn{$uid}");
         }
-        Cookie::set(Config::get('userauthid'), Encry::encrypt(json_encode($user, JSON_UNESCAPED_UNICODE), self::$encryptKey), 0);
+        Cookie::set(Config::get('userauthid'), Encry::encrypt(json_encode($user, JSON_UNESCAPED_UNICODE), self::$encryptKey), $cookieExpire);
     }
 
     /**
@@ -193,7 +198,7 @@ class Acl
 
             if (
                 empty(self::$authUser)
-                || self::$authUser['expire'] < Cml::$nowTime
+                || (self::$authUser['expire'] > 0 && self::$authUser['expire'] < Cml::$nowTime)
                 || self::$authUser['ssosign'] != Model::getInstance()->cache()
                     ->get("SSOSingleSignOn" . self::$authUser['uid'])
             ) {
@@ -225,9 +230,12 @@ class Acl
                     }
 
                     $tmp['groupname'] = implode(',', $tmp['groupname']);
-                    //有操作登录超时时间重新设置为1个小时
-                    if (self::$authUser['expire'] - Cml::$nowTime < 1800) {
-                        self::setLoginStatus($user['id'], false);
+                    //有操作登录超时时间重新设置为expire时间
+                    if (self::$authUser['expire'] > 0 && (
+                            (self::$authUser['expire'] - Cml::$nowTime) < (self::$authUser['not_op'] / 2)
+                        )
+                    ) {
+                        self::setLoginStatus($user['id'], false, 0, self::$authUser['not_op']);
                     }
 
                     unset($user, $group);

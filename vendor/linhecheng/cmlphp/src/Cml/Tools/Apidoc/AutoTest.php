@@ -10,6 +10,11 @@ namespace Cml\Tools\Apidoc;
 use Cml\Http\Request;
 use Cml\Plugin;
 
+/**
+ * 从代码注释提取接口信息自动运行测试类
+ *
+ * @package Cml\Tools\Apidoc
+ */
 class AutoTest
 {
     /**

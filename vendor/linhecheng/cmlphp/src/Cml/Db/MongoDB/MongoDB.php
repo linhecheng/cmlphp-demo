@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 MongoDB数据库MongoDB驱动类 http://php.net/manual/zh/set.mongodb.php
  * *********************************************************** */
+
 namespace Cml\Db\MongoDB;
 
 use Cml\Cml;
@@ -659,6 +660,9 @@ class MongoDB extends Base
                 } else {
                     $this->sql['where']['$or'][][$column] = $value;
                 }
+                break;
+            case 'column':
+                $this->sql['where']['$where'] = "this.{$column} = this.{$value}";
                 break;
         }
     }
