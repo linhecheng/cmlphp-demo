@@ -222,7 +222,7 @@ class Validate
     /**
      * 设置字段显示别名
      *
-     * @param string $label
+     * @param string|array $label
      *
      * @return $this
      */
@@ -244,7 +244,7 @@ class Validate
      * @param string $delimiter format为2时分隔符
      * @return array|string
      */
-    public function getErrors($format = 0, $delimiter = '|')
+    public function getErrors($format = 0, $delimiter = ', ')
     {
         switch ($format) {
             case 1:
@@ -330,6 +330,65 @@ class Validate
     }
 
     /**
+     * 数据基础验证-是否大于等于
+     *
+     * @param int $value 要比较的值
+     * @param int $max 要大于的长度
+     *
+     * @return bool
+     */
+    public static function isGte($value, $max)
+    {
+        is_array($max) && $max = $max[0];
+        if (!is_numeric($value)) {
+            return false;
+        } else {
+            return $value >= $max;
+        }
+    }
+
+    /**
+     * 数据基础验证-是否小于等于
+     *
+     * @param int $value 要比较的值
+     * @param int $min 要小于的长度
+     *
+     * @return bool
+     */
+    public static function isLte($value, $min)
+    {
+        is_array($min) && $min = $min[0];
+        if (!is_numeric($value)) {
+            return false;
+        } else {
+            return $value <= $min;
+        }
+    }
+
+    /**
+     * 数据基础验证-数字的值是否在区间内
+     *
+     * @param string $value 字符串
+     * @param int $start 起始数字
+     * @param int $end 结束数字
+     *
+     * @return bool
+     */
+    public static function isBetween($value, $start, $end)
+    {
+        if (is_array($start)) {
+            $end = $start[1];
+            $start = $start[0];
+        }
+
+        if ($value > $end || $value < $start) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * 数据基础验证-字符串长度是否大于
      *
      * @param string $value 字符串
@@ -339,8 +398,15 @@ class Validate
      */
     public static function isLengthGt($value, $max)
     {
+        $value = trim($value);
+        if (!is_string($value)) {
+            return false;
+        }
+        $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
         is_array($max) && $max = $max[0];
-        return self::isLength($value, $max);
+
+        if ($max != 0 && $length <= $max) return false;
+        return true;
     }
 
 
@@ -353,6 +419,42 @@ class Validate
      * @return bool
      */
     public static function isLengthLt($value, $min)
+    {
+        $value = trim($value);
+        if (!is_string($value)) {
+            return false;
+        }
+        $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+        is_array($min) && $min = $min[0];
+
+        if ($min != 0 && $length >= $min) return false;
+        return true;
+    }
+
+    /**
+     * 数据基础验证-字符串长度是否大于等于
+     *
+     * @param string $value 字符串
+     * @param int $max 要大于的长度
+     *
+     * @return bool
+     */
+    public static function isLengthGte($value, $max)
+    {
+        is_array($max) && $max = $max[0];
+        return self::isLength($value, $max);
+    }
+
+
+    /**
+     * 数据基础验证-字符串长度是否小于等于
+     *
+     * @param string $value 字符串
+     * @param int $min 要小于的长度
+     *
+     * @return bool
+     */
+    public static function isLengthLte($value, $min)
     {
         is_array($min) && $min = $min[0];
         return self::isLength($value, 0, $min);
@@ -404,8 +506,8 @@ class Validate
         $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
 
         if (is_array($min)) {
-            $min = $min[0];
             $max = $min[1];
+            $min = $min[0];
         }
         if ($min != 0 && $length < $min) return false;
         if ($max != 0 && $length > $max) return false;

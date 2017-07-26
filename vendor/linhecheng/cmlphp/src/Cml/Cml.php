@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 项目基类
  * *********************************************************** */
+
 namespace Cml;
 
 use Cml\Exception\ControllerNotFoundException;
@@ -22,7 +23,7 @@ class Cml
     /**
      * 版本
      */
-    const VERSION = 'v2.7.7';
+    const VERSION = 'v2.7.8';
 
     /**
      * 执行app/只是初始化环境
@@ -487,5 +488,19 @@ class Cml
         empty($args) || extract($args, EXTR_PREFIX_SAME, "xxx");
         Cml::$debug && Debug::addTipInfo($file, Debug::TIP_INFO_TYPE_INCLUDE_FILE);
         return require $file;
+    }
+
+    /**
+     * 动态获取容器绑定的实例
+     *
+     * @param string $name 要获取的绑定的实例名
+     * @param string $arguments 第一个参数为绑定名称的前缀，默认为cml，目前有cml/view/db/cache几种前缀
+     *
+     * @return object
+     */
+    public static function __callStatic($name, $arguments)
+    {
+        $prefix = isset($arguments[0]) ? $arguments[0] : 'cml';
+        return Cml::getContainer()->make($prefix . humpToLine($name));
     }
 }

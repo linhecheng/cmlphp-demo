@@ -25,6 +25,13 @@ use Cml\Model;
  * 'administratorid'=>'1', //超管理员id
  *
  * 建库语句
+ *
+ * CREATE TABLE `pr_admin_app` (
+ * `id` smallint(6) unsigned NOT NULL AUTO_INCREMENT,
+ * `name` varchar(255) NOT NULL DEFAULT '' COMMENT '应用名',
+ * PRIMARY KEY (`id`)
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+ *
  * CREATE TABLE `pr_admin_access` (
  * `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '权限ID',
  * `userid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '所属用户权限ID',
@@ -33,7 +40,7 @@ use Cml\Model;
  * PRIMARY KEY (`id`),
  * KEY `idx_userid` (`userid`),
  * KEY `idx_groupid` (`groupid`)
- * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户或者用户组权限记录';
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='用户或者用户组权限记录';
  *
  * CREATE TABLE `pr_admin_groups` (
  * `id` smallint(3) unsigned NOT NULL AUTO_INCREMENT,
@@ -41,7 +48,7 @@ use Cml\Model;
  * `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '1正常，0删除',
  * `remark` text NOT NULL COMMENT '备注',
  * PRIMARY KEY (`id`)
- * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
  *
  * CREATE TABLE `pr_admin_menus` (
  * `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -50,11 +57,13 @@ use Cml\Model;
  * `url` char(64) NOT NULL DEFAULT '' COMMENT 'url路径',
  * `isshow` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否显示',
  * `sort` smallint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序倒序',
+ *  `app` smallint(6) unsigned NOT NULL DEFAULT '0' COMMENT '菜单所属app，对应app表中的主键',
  * PRIMARY KEY (`id`),
  * KEY `idex_pid` (`pid`),
  * KEY `idex_order` (`sort`),
- * KEY `idx_action` (`url`)
- * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='权限模块信息表';
+ * KEY `idx_action` (`url`),
+ * KEY `idx_app` (`app`)
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='权限模块信息表';
  *
  * CREATE TABLE `pr_admin_users` (
  * `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -70,7 +79,7 @@ use Cml\Model;
  * `from_type` tinyint(3) unsigned DEFAULT '1' COMMENT '用户类型。1为系统用户。2 99u',
  * PRIMARY KEY (`id`),
  * UNIQUE KEY `username` (`username`)
- * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+ * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
  *
  * @package Cml\Vendor
  */
@@ -337,9 +346,12 @@ class Acl
     /**
      * 获取有权限的菜单列表
      *
+     * @param bool $format 是否格式化返回
+     * @param string $columns 要额外获取的字段
+     *
      * @return array
      */
-    public static function getMenus()
+    public static function getMenus($format = true, $columns = '')
     {
         $res = [];
         $authInfo = self::getLoginInfo();
@@ -348,7 +360,7 @@ class Acl
         }
 
         Model::getInstance()->db()->table([self::$tables['menus'] => 'm'])
-            ->columns(['distinct m.id', 'm.pid', 'm.title', 'm.url']);
+            ->columns(['distinct m.id', 'm.pid', 'm.title', 'm.url' . ($columns ? " ,{$columns}" : '')]);
 
         //当前登录用户是否为超级管理员
         if (!self::isSuperUser()) {
@@ -368,7 +380,7 @@ class Acl
             ->limit(0, 5000)
             ->select();
 
-        $res = Tree::getTreeNoFormat($result, 0);
+        $res = $format ? Tree::getTreeNoFormat($result, 0) : $result;
         return $res;
     }
 

@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 自带路由实现
  * *********************************************************** */
+
 namespace Cml\Service;
 
 use Cml\Cml;
@@ -20,58 +21,6 @@ use Cml\Interfaces\Route as RouteInterface;
  */
 class Route implements RouteInterface
 {
-    /**
-     * 获取子目录路径。若项目在子目录中的时候为子目录的路径如/sub_dir/、否则为/
-     *
-     * @return string
-     */
-    public function getSubDirName()
-    {
-        substr(self::$urlParams['root'], -1) != '/' && self::$urlParams['root'] .= '/';
-        substr(self::$urlParams['root'], 0, 1) != '/' && self::$urlParams['root'] = '/' . self::$urlParams['root'];
-        return self::$urlParams['root'];
-    }
-
-    /**
-     * 获取应用目录可以是多层目录。如web、admin等.404的时候也必须有值用于绑定系统命令
-     *
-     * @return string
-     */
-    public function getAppName()
-    {
-        return trim(self::$urlParams['path'], '\\/');
-    }
-
-    /**
-     * 获取控制器名称不带Controller后缀
-     *
-     * @return string
-     */
-    public function getControllerName()
-    {
-        return trim(self::$urlParams['controller'], '\\/');
-    }
-
-    /**
-     * 获取控制器名称方法名称
-     *
-     * @return string
-     */
-    public function getActionName()
-    {
-        return trim(self::$urlParams['action'], '\\/');
-    }
-
-    /**
-     * 获取不含子目录的完整路径 如: web/Goods/add
-     *
-     * @return string
-     */
-    public function getFullPathNotContainSubDir()
-    {
-        return self::getAppName() . '/' . self::getControllerName() . '/' . self::getActionName();
-    }
-
     /**
      * 是否启用分组
      *
@@ -168,6 +117,23 @@ class Route implements RouteInterface
     private static $matchRoute = 'url_to_action';
 
     /**
+     * 修改解析得到的请求信息 含应用名、控制器、操作
+     *
+     * @param string|array $key path|controller|action|root
+     * @param string $val
+     *
+     * @return void
+     */
+    public function setUrlParams($key = 'path', $val = '')
+    {
+        if (is_array($key)) {
+            self::$urlParams = array_merge(self::$urlParams, $key);
+        } else {
+            self::$urlParams[$key] = $val;
+        }
+    }
+
+    /**
      * 解析url
      *
      * @return void
@@ -236,7 +202,7 @@ class Route implements RouteInterface
     /**
      * 匹配路由
      *
-     * @param string $pathInfo
+     * @param array $pathInfo
      *
      * @return mixed
      */
@@ -349,6 +315,58 @@ class Route implements RouteInterface
             $returnArr['route'] = $route[$isSuccess[0]];
         }
         return $returnArr;
+    }
+
+    /**
+     * 获取子目录路径。若项目在子目录中的时候为子目录的路径如/sub_dir/、否则为/
+     *
+     * @return string
+     */
+    public function getSubDirName()
+    {
+        substr(self::$urlParams['root'], -1) != '/' && self::$urlParams['root'] .= '/';
+        substr(self::$urlParams['root'], 0, 1) != '/' && self::$urlParams['root'] = '/' . self::$urlParams['root'];
+        return self::$urlParams['root'];
+    }
+
+    /**
+     * 获取应用目录可以是多层目录。如web、admin等.404的时候也必须有值用于绑定系统命令
+     *
+     * @return string
+     */
+    public function getAppName()
+    {
+        return trim(self::$urlParams['path'], '\\/');
+    }
+
+    /**
+     * 获取控制器名称不带Controller后缀
+     *
+     * @return string
+     */
+    public function getControllerName()
+    {
+        return trim(self::$urlParams['controller'], '\\/');
+    }
+
+    /**
+     * 获取控制器名称方法名称
+     *
+     * @return string
+     */
+    public function getActionName()
+    {
+        return trim(self::$urlParams['action'], '\\/');
+    }
+
+    /**
+     * 获取不含子目录的完整路径 如: web/Goods/add
+     *
+     * @return string
+     */
+    public function getFullPathNotContainSubDir()
+    {
+        return self::getAppName() . '/' . self::getControllerName() . '/' . self::getActionName();
     }
 
     /**

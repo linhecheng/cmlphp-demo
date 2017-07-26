@@ -220,6 +220,19 @@ class Route
     }
 
     /**
+     * 修改解析得到的请求信息 含应用名、控制器、操作
+     *
+     * @param string|array $key path|controller|action|root
+     * @param string $val
+     *
+     * @return void
+     */
+    public static function setUrlParams($key, $val)
+    {
+        Cml::getContainer()->make('cml_route')->setUrlParams($key, $val);
+    }
+
+    /**
      * 访问Cml::getContainer()->make('cml_route')中其余方法
      *
      * @param string $name

@@ -613,11 +613,13 @@ class Pdo extends Base
             if ($pConnect) {
                 $link = new \PDO($dsn, $username, $password, [
                     \PDO::ATTR_PERSISTENT => true,
-                    \PDO::ATTR_EMULATE_PREPARES => false
+                    \PDO::ATTR_EMULATE_PREPARES => false,
+                    \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES $charset"
                 ]);
             } else {
                 $link = new \PDO($dsn, $username, $password, [
-                    \PDO::ATTR_EMULATE_PREPARES => false
+                    \PDO::ATTR_EMULATE_PREPARES => false,
+                    \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES $charset"
                 ]);
             }
         } catch (\PDOException $e) {
@@ -629,7 +631,7 @@ class Pdo extends Base
                 $e
             );
         }
-        $link->exec("SET names $charset");
+        //$link->exec("SET names $charset");
         isset($this->conf['sql_mode']) && $link->exec('set sql_mode="' . $this->conf['sql_mode'] . '";'); //放数据库配 特殊情况才开
         if (!empty($engine) && $engine == 'InnoDB') {
             $link->exec('SET innodb_flush_log_at_trx_commit=2');

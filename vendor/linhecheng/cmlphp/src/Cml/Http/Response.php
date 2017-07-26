@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 请求响应类
  * *********************************************************** */
+
 namespace Cml\Http;
 
 use Cml\Cml;
@@ -117,6 +118,26 @@ class Response
         ];
         if (isset($_status[$code])) {
             header('HTTP/1.1 ' . $code . ' ' . $_status[$code]);
+        }
+    }
+
+    /**
+     * URL组装(带域名端口) 支持不同URL模式
+     * eg: \Cml\Http\Response::fullUrl('Home/Blog/cate/id/1')
+     *
+     * @param string $url URL表达式 路径/控制器/操作/参数1/参数1值/.....
+     * @param bool $echo 是否输出  true输出 false return
+     *
+     * @return string
+     */
+    public static function fullUrl($url = '', $echo = true)
+    {
+        $url = Request::baseUrl() . self::url($url, false);
+        if ($echo) {
+            echo $url;
+            return '';
+        } else {
+            return $url;
         }
     }
 

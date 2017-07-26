@@ -65,6 +65,23 @@ class FastRoute implements Route
     ];
 
     /**
+     * 修改解析得到的请求信息 含应用名、控制器、操作
+     *
+     * @param string|array $key path|controller|action|root
+     * @param string $val
+     *
+     * @return void
+     */
+    public function setUrlParams($key = 'path', $val = '')
+    {
+        if (is_array($key)) {
+            self::$urlParams = array_merge(self::$urlParams, $key);
+        } else {
+            self::$urlParams[$key] = $val;
+        }
+    }
+
+    /**
      * 获取子目录路径。若项目在子目录中的时候为子目录的路径如/sub_dir/、否则为/
      *
      * @return string

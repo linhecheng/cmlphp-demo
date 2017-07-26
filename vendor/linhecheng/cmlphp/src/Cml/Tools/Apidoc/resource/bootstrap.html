@@ -110,8 +110,8 @@
                             <td>http发送方法</td>
                         </tr>
                         <tr>
-                            <th scope="row" rowspan="6">请求内容</th>
-                            <td rowspan="4">system</td>
+                            <th scope="row" rowspan="{{echo (isset($config['use_nonce']) && $config['use_nonce']) ? 7 : 6;}}">请求内容</th>
+                            <td rowspan="{{echo (isset($config['use_nonce']) && $config['use_nonce']) ? 5 : 4;}}">system</td>
                             <td>version</td>
                             <td>Y</td>
                             <td>{{$version}}</td>
@@ -131,6 +131,13 @@
                             <td>Y</td>
                             <td>来源,跟密钥相对应，线下发送</td>
                         </tr>
+                        {{if isset($config['use_nonce']) && $config['use_nonce']}}
+                        <tr>
+                            <td>nonce</td>
+                            <td>Y</td>
+                            <td>唯一的不重复的随机串</td>
+                        </tr>
+                        {{/if}}
                         <tr>
                             <td>method</td>
                             <td>1-1</td>
@@ -153,6 +160,9 @@
         "version":"V1",
         "from": "ios",
         "sign": "a101f236d049b9ad80e012113e59f9bc",
+{{if isset($config['use_nonce']) && $config['use_nonce']}}
+        "nonce": "1445482366:fdoielnx",
+{{/if}}
         "time": "1445482366"
     },
     "method": "1-1",

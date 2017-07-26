@@ -8,8 +8,33 @@
  * *********************************************************** */
 namespace Cml;
 
+use Cml\Interfaces\Db;
+
 /**
- * 基础Model类，在CmlPHP中负责数据的存取(目前包含db/cache)
+ * 基础Model类，在CmlPHP中负责数据的存取(目前包含db/cache以及为了简化操作db而封装的快捷方法)
+ *
+ * 以下方法只是为了方便配合Model中的快捷方法(http://doc.cmlphp.com/devintro/model/mysql/fastmethod/readme.html)使用
+ * 并没有列出db中的所有方法。其它未列出的方法建议还是通过$this->db()->xxx使用
+ * @method Db|Model where(string|array $column, string|int $value = '')  where条件组装-相等
+ * @method Db|Model whereNot(string $column, string|int $value)  where条件组装-不等
+ * @method Db|Model whereGt(string $column, string|int $value = '')  where条件组装-大于
+ * @method Db|Model whereLt(string $column, string|int $value = '')  where条件组装-小于
+ * @method Db|Model whereGte(string $column, string|int $value = '')  where条件组装-大于等于
+ * @method Db|Model whereLte(string $column, string|int $value = '')  where条件组装-小于等于
+ * @method Db|Model whereIn(string $column, array $value) where条件组装-IN
+ * @method Db|Model whereNotIn(string $column, array $value) where条件组装-NOT IN
+ * @method Db|Model whereLike(string $column, bool $leftBlur = false, string $value, bool $rightBlur = false) where条件组装-LIKE
+ * @method Db|Model whereNotLike(string $column, bool $leftBlur = false, string $value, bool $rightBlur = false) where条件组装-NOT LIKE
+ * @method Db|Model whereRegExp(string $column, string $value) where条件组装-RegExp
+ * @method Db|Model whereBetween(string $column, int $value, int $value2 = null) where条件组装-BETWEEN
+ * @method Db|Model whereNotBetween(string $column, int $value, int $value2 = null) where条件组装-NotBetween
+ * @method Db|Model whereNull(string $column) where条件组装-IS NULL
+ * @method Db|Model whereNotNull(string $column) where条件组装-IS NOT NULL
+ * @method Db|Model columns(string|array $columns = '*') 选择列
+ * @method Db|Model orderBy(string $column, string $order = 'ASC') 排序
+ * @method Db|Model groupBy(string $column) 分组
+ * @method Db|Model having(string $column, $operator = '=', $value) 分组
+ *
  * @package Cml
  */
 class Model
@@ -352,6 +377,11 @@ class Model
      */
     public static function __callStatic($dbMethod, $arguments)
     {
-        return call_user_func_array([static::getInstance()->db(static::getInstance()->getDbConf()), $dbMethod], $arguments);
+        $res = call_user_func_array([static::getInstance()->db(static::getInstance()->getDbConf()), $dbMethod], $arguments);
+        if ($res instanceof Interfaces\Db) {
+            return self::getInstance();//不是返回数据直接返回model实例
+        } else {
+            return $res;
+        }
     }
 }
