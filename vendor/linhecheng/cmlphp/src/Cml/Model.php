@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 系统默认Model
  * *********************************************************** */
+
 namespace Cml;
 
 use Cml\Interfaces\Db;
@@ -15,12 +16,12 @@ use Cml\Interfaces\Db;
  *
  * 以下方法只是为了方便配合Model中的快捷方法(http://doc.cmlphp.com/devintro/model/mysql/fastmethod/readme.html)使用
  * 并没有列出db中的所有方法。其它未列出的方法建议还是通过$this->db()->xxx使用
- * @method Db|Model where(string|array $column, string|int $value = '')  where条件组装-相等
- * @method Db|Model whereNot(string $column, string|int $value)  where条件组装-不等
- * @method Db|Model whereGt(string $column, string|int $value = '')  where条件组装-大于
- * @method Db|Model whereLt(string $column, string|int $value = '')  where条件组装-小于
- * @method Db|Model whereGte(string $column, string|int $value = '')  where条件组装-大于等于
- * @method Db|Model whereLte(string $column, string|int $value = '')  where条件组装-小于等于
+ * @method Db|Model where(string | array $column, string | int $value = '')  where条件组装-相等
+ * @method Db|Model whereNot(string $column, string | int $value)  where条件组装-不等
+ * @method Db|Model whereGt(string $column, string | int $value = '')  where条件组装-大于
+ * @method Db|Model whereLt(string $column, string | int $value = '')  where条件组装-小于
+ * @method Db|Model whereGte(string $column, string | int $value = '')  where条件组装-大于等于
+ * @method Db|Model whereLte(string $column, string | int $value = '')  where条件组装-小于等于
  * @method Db|Model whereIn(string $column, array $value) where条件组装-IN
  * @method Db|Model whereNotIn(string $column, array $value) where条件组装-NOT IN
  * @method Db|Model whereLike(string $column, bool $leftBlur = false, string $value, bool $rightBlur = false) where条件组装-LIKE
@@ -30,10 +31,12 @@ use Cml\Interfaces\Db;
  * @method Db|Model whereNotBetween(string $column, int $value, int $value2 = null) where条件组装-NotBetween
  * @method Db|Model whereNull(string $column) where条件组装-IS NULL
  * @method Db|Model whereNotNull(string $column) where条件组装-IS NOT NULL
- * @method Db|Model columns(string|array $columns = '*') 选择列
+ * @method Db|Model columns(string | array $columns = '*') 选择列
  * @method Db|Model orderBy(string $column, string $order = 'ASC') 排序
  * @method Db|Model groupBy(string $column) 分组
  * @method Db|Model having(string $column, $operator = '=', $value) 分组
+ * @method Db|Model paramsAutoReset(bool $autoReset = true, bool $alwaysClearTable = false, bool $alwaysClearColumns = true) orm参数是否自动重置, 默认在执行语句后会重置orm参数, 包含查询的表、字段信息、条件等信息
+ * @method Db|Model noCache() 标记本次查询不使用缓存
  *
  * @package Cml
  */
@@ -223,6 +226,23 @@ class Model
         is_null($tableName) && $tableName = $this->getTableName();
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         return $this->db($this->getDbConf())->set($tableName, $data, $tablePrefix);
+    }
+
+    /**
+     * 增加多条数据-快捷方法
+     *
+     * @param array $field 要插入的字段 eg: ['title', 'msg', 'status', 'ctime’]
+     * @param array $data 多条数据的值 eg:  [['标题1', '内容1', 1, '2017'], ['标题2', '内容2', 1, '2017']]
+     * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
+     * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
+     *
+     * @return bool | array
+     */
+    public function setMulti($field, $data, $tableName = null, $tablePrefix = null)
+    {
+        is_null($tableName) && $tableName = $this->getTableName();
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        return $this->db($this->getDbConf())->setMulti($tableName, $field, $data, $tablePrefix);
     }
 
     /**

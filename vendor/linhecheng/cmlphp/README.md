@@ -53,7 +53,7 @@
 > 提供了基础目录结构及示例，[点击这里查看](https://github.com/linhecheng/cmlphp-demo)。
 
 ## Api项目示例
-> web开发中很大一部分是接口开发，本示例包含了api开发的两个接口示例以及根据代码注释自动生成文档的示例。 [点击这里查看](http://git.oschina.net/linhecheng/cmlphp2.5-demo-api)
+> web开发中很大一部分是接口开发，本示例包含了api开发的两个接口示例以及根据代码注释自动生成文档的示例。 [点击这里查看](https://github.com/linhecheng/cmlphp-api-demo)
 
 
 ## 视频教程

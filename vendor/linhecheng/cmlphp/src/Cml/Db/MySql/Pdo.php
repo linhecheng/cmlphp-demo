@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 MySql数据库 Pdo驱动类
  * *********************************************************** */
+
 namespace Cml\Db\MySql;
 
 use Cml\Cml;
@@ -98,7 +99,7 @@ class Pdo extends Base
      * 获取表字段
      *
      * @param string $table 表名
-     * @param mixed $tablePrefix 表前缀 为null时代表table已经带了前缀
+     * @param mixed $tablePrefix 表前缀，不传则获取配置中配置的前缀
      * @param int $filter 0 获取表字段详细信息数组 1获取字段以,号相隔组成的字符串
      *
      * @return mixed
@@ -107,8 +108,9 @@ class Pdo extends Base
     {
         static $dbFieldCache = [];
 
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         if ($filter == 1 && Cml::$debug) return '*'; //debug模式时直接返回*
-        $table = is_null($tablePrefix) ? strtolower($table) : strtolower($tablePrefix . $table);
+        $table = strtolower($tablePrefix . $table);
 
         $info = false;
 
@@ -169,7 +171,7 @@ class Pdo extends Base
         $tableName = $tablePrefix . $tableName;
         $sql = "SELECT * FROM {$tableName} WHERE {$condition} LIMIT 0, 1000";
 
-        if ($this->openCache) {
+        if ($this->openCache && $this->currentQueryUseCache) {
             $cacheKey = md5($sql . json_encode($this->bindParams)) . $this->getCacheVer($tableName);
             $return = Model::getInstance()->cache()->get($cacheKey);
         } else {
@@ -180,7 +182,8 @@ class Pdo extends Base
             $stmt = $this->prepare($sql, $useMaster ? $this->wlink : $this->rlink);
             $this->execute($stmt);
             $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $this->openCache && Model::getInstance()->cache()->set($cacheKey, $return, $this->conf['cache_expire']);
+            $this->openCache && $this->currentQueryUseCache && Model::getInstance()->cache()->set($cacheKey, $return, $this->conf['cache_expire']);
+            $this->currentQueryUseCache = true;
         } else {
             if (Cml::$debug) {
                 $this->currentSql = $sql;
@@ -195,7 +198,7 @@ class Pdo extends Base
     }
 
     /**
-     * 根据key 新增 一条数据
+     * 新增 一条数据
      *
      * @param string $table
      * @param array $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
@@ -220,9 +223,52 @@ class Pdo extends Base
     }
 
     /**
+     * 新增多条数据
+     *
+     * @param string $table
+     * @param array $field 字段 eg: ['title', 'msg', 'status', 'ctime‘]
+     * @param array $data eg: 多条数据的值 [['标题1', '内容1', 1, '2017'], ['标题2', '内容2', 1, '2017']]
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     *
+     * @return bool|array
+     */
+    public function setMulti($table, $field, $data, $tablePrefix = null)
+    {
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        $tableName = $tablePrefix . $table;
+        if (is_array($data) && is_array($field)) {
+            $field = array_flip(array_values($field));
+            foreach ($field as $key => $val) {
+                $field[$key] = $data[0][$val];
+            }
+            $s = $this->arrToCondition($field);
+
+            try {
+                $this->startTransAction();
+                $stmt = $this->prepare("INSERT INTO {$tableName} SET {$s}", $this->wlink);
+                $idArray = [];
+                foreach ($data as $row) {
+                    $this->bindParams = array_values($row);
+                    $this->execute($stmt);
+                    $idArray[] = $this->insertId();
+                }
+                $this->commit();
+            } catch (\InvalidArgumentException $e) {
+                $this->rollBack();
+                return false;
+            }
+
+            $this->setCacheVer($tableName);
+            return $idArray;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * 根据key更新一条数据
      *
-     * @param string $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
+     * @param string|array $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
      * @param array | null $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
      * @param bool $and 多个条件之间是否为and  true为and false为or
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
@@ -540,7 +586,7 @@ class Pdo extends Base
     {
         list($sql, $cacheKey) = $this->buildSql($offset, $limit, true);
 
-        if ($this->openCache) {
+        if ($this->openCache && $this->currentQueryUseCache) {
             $cacheKey = md5($sql . json_encode($this->bindParams)) . implode('', $cacheKey);
             $return = Model::getInstance()->cache()->get($cacheKey);
         } else {
@@ -551,7 +597,8 @@ class Pdo extends Base
             $stmt = $this->prepare($sql, $useMaster ? $this->wlink : $this->rlink);
             $this->execute($stmt);
             $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $this->openCache && Model::getInstance()->cache()->set($cacheKey, $return, $this->conf['cache_expire']);
+            $this->openCache && $this->currentQueryUseCache && Model::getInstance()->cache()->set($cacheKey, $return, $this->conf['cache_expire']);
+            $this->currentQueryUseCache = true;
         } else {
             if (Cml::$debug) {
                 $this->currentSql = $sql;
@@ -724,13 +771,8 @@ class Pdo extends Base
             throw new \InvalidArgumentException(
                 'Pdo Prepare Sql error! ,【Sql : ' . $this->buildDebugSql() . '】,【Code:' . $link->errorCode() . '】, 【ErrorInfo!:' . $error[2] . '】 '
             );
-        } else {
-            foreach ($this->bindParams as $key => $val) {
-                is_int($val) ? $stmt->bindValue(':param' . $key, $val, \PDO::PARAM_INT) : $stmt->bindValue(':param' . $key, $val, \PDO::PARAM_STR);
-            }
-            return $stmt;
         }
-        return false;
+        return $stmt;
     }
 
     /**
@@ -743,6 +785,10 @@ class Pdo extends Base
      */
     public function execute($stmt, $clearBindParams = true)
     {
+        foreach ($this->bindParams as $key => $val) {
+            is_int($val) ? $stmt->bindValue(':param' . $key, $val, \PDO::PARAM_INT) : $stmt->bindValue(':param' . $key, $val, \PDO::PARAM_STR);
+        }
+
         //empty($param) && $param = $this->bindParams;
         $this->conf['log_slow_sql'] && $startQueryTimeStamp = microtime(true);
         if (!$stmt->execute()) {

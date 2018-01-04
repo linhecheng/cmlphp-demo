@@ -1,4 +1,5 @@
 <?php
+
 namespace Cml;
 /* * *********************************************************
  * [cmlphp] (C)2012 - 3000 http://cmlphp.com
@@ -76,6 +77,7 @@ class Container
      *
      * @param  string $abstract 服务的名称
      * @param  string $alias 别名
+     *
      * @return $this
      */
     public function alias($abstract, $alias)
@@ -136,6 +138,7 @@ class Container
      *
      * @param mixed $abstract 服务的名称
      * @param mixed $parameters 参数
+     *
      * @return mixed
      */
     public function make($abstract, $parameters = [])

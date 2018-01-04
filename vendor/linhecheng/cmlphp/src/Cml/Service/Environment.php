@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 自带环境解析实现
  * *********************************************************** */
+
 namespace Cml\Service;
 
 use Cml\Http\Request;
@@ -50,7 +51,7 @@ class Environment implements EnvironmentInterface
 
         $domain = substr($host, strrpos($host, '.') + 1);
 
-        if ($domain == 'dev' || $domain == 'loc') {
+        if ($domain == 'dev' || $domain == 'loc' || $domain == 'test') {
             return 'development';
         }
 

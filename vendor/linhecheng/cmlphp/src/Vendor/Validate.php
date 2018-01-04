@@ -191,12 +191,14 @@ class Validate
                 if ($bind['rule'] == 'arr') {
                     $result = call_user_func($callback, $values, $bind['params'], $field);
                 } else {
-                    is_array($values) || $values = [$values];
+                    is_array($values) || $values = [$values];// GET|POST的值为数组的时候每个值都进行校验
                     foreach ($values as $value) {
                         $result = $result && call_user_func($callback, $value, $bind['params'], $field);
+                        if (!$result) {
+                            break;
+                        }
                     }
                 }
-
 
                 if (!$result) {
                     $this->error($field, $bind);
@@ -211,7 +213,7 @@ class Validate
      * 添加一条错误信息
      *
      * @param string $field
-     * @param string $bind
+     * @param array $bind
      */
     private function error($field, &$bind)
     {
@@ -402,7 +404,7 @@ class Validate
         if (!is_string($value)) {
             return false;
         }
-        $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+        $length = function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
         is_array($max) && $max = $max[0];
 
         if ($max != 0 && $length <= $max) return false;
@@ -424,11 +426,34 @@ class Validate
         if (!is_string($value)) {
             return false;
         }
-        $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+        $length = function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
         is_array($min) && $min = $min[0];
 
         if ($min != 0 && $length >= $min) return false;
         return true;
+    }
+
+    /**
+     * 长度是否在某区间内(包含边界)
+     *
+     * @param string $value 字符串
+     * @param int $min 要小于等于的长度
+     * @param int $max 要大于等于的长度
+     *
+     * @return bool
+     */
+    public static function isLengthBetween($value, $min, $max)
+    {
+        if (is_array($min)) {
+            $max = $min[1];
+            $min = $min[0];
+        }
+
+        if (self::isLengthGte($value, $min) && self::isLengthLte($value, $max)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -503,7 +528,7 @@ class Validate
         if (!is_string($value)) {
             return false;
         }
-        $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+        $length = function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
 
         if (is_array($min)) {
             $max = $min[1];
@@ -776,5 +801,4 @@ class Validate
     {
         return preg_match('/^[a-zA-Z_][a-zA-Z0-9_]+$/', trim($value));
     }
-
 }

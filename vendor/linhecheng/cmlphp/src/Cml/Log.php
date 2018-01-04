@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 Log处理类
  * *********************************************************** */
+
 namespace Cml;
 
 use Cml\Logger\Base;
@@ -130,7 +131,8 @@ class Log
      */
     public static function catcherPhpError($errorType, $errorTip, $errorFile, $errorLine)
     {
-        if (in_array($errorType, [E_NOTICE, E_STRICT, E_DEPRECATED, E_USER_DEPRECATED, E_USER_NOTICE])) {
+        $logLevel = Cml::getWarningLogLevel();
+        if (in_array($errorType, $logLevel)) {
             return;//只记录warning以上级别日志
         }
 

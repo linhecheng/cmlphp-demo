@@ -12,19 +12,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/linhecheng/cmlphp.git",
-                "reference": "757f4babf111584baa4bc1087edabc3f10500940"
+                "reference": "f47485bb408c09757a1973e19cd60d11e0b3901c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://files.phpcomposer.com/files/linhecheng/cmlphp/757f4babf111584baa4bc1087edabc3f10500940.zip",
-                "reference": "757f4babf111584baa4bc1087edabc3f10500940",
+                "url": "https://files.phpcomposer.com/files/linhecheng/cmlphp/f47485bb408c09757a1973e19cd60d11e0b3901c.zip",
+                "reference": "f47485bb408c09757a1973e19cd60d11e0b3901c",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.4.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "5.7.*"
+                "phpunit/phpunit": "6.*"
             },
             "type": "library",
             "autoload": {
@@ -41,7 +41,7 @@
                 {
                     "name": "linhecheng",
                     "email": "linhechengbugh@live.com",
-                    "homepage": "http://51beautylife.com",
+                    "homepage": "http://cmlphp.com",
                     "role": "Developer"
                 }
             ],
@@ -50,7 +50,7 @@
             "keywords": [
                 "cmlphp"
             ],
-            "time": "2017-07-19T09:14:17+00:00"
+            "time": "2018-01-04T06:34:05+00:00"
         }
     ],
     "packages-dev": [],

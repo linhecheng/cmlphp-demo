@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 Cookie管理类
  * *********************************************************** */
+
 namespace Cml\Http;
 
 use Cml\Cml;
@@ -77,7 +78,7 @@ class Cookie
      */
     public static function delete($name)
     {
-        self::set($name, '', Cml::$nowTime - 3600);
+        self::set($name, '', -3600);
         unset($_COOKIE[Config::get('cookie_prefix') . $name]);
     }
 

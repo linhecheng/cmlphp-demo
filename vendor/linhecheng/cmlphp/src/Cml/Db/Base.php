@@ -30,6 +30,13 @@ abstract class Base implements Db
     protected $openCache = false;
 
     /**
+     * 单独标记当前的query使不使用缓存
+     *
+     * @var bool
+     */
+    protected $currentQueryUseCache = true;
+
+    /**
      * where操作需要加上and/or
      * 0 : 初始化两个都不加
      * 1 : 要加and
@@ -215,13 +222,13 @@ abstract class Base implements Db
      * 获取表主键
      *
      * @param string $table 要获取主键的表名
-     * @param string $tablePrefix 表前缀
+     * @param string $tablePrefix 表前缀，不传则获取配置中配置的前缀
      *
      * @return string || false
      */
     public function getPk($table, $tablePrefix = null)
     {
-        $rows = $this->getDbFields($table, is_null($tablePrefix) ? $this->tablePrefix : $tablePrefix);
+        $rows = $this->getDbFields($table, $tablePrefix);
         foreach ($rows as $val) {
             if ($val['primary']) {
                 return $val['name'];
@@ -285,22 +292,36 @@ abstract class Base implements Db
     }
 
     /**
-     * 组块结果集
+     * 组块结果集-此方法前调用paramsAutoReset无效
      *
      * @param int $num 每次获取的条数
-     * @param callable $func 结果集处理函数
+     * @param callable $func 结果集处理函数。本回调函数内调用paramsAutoReset无效
      */
     public function chunk($num = 100, callable $func)
     {
+        $this->paramsAutoReset();
         $start = 0;
-        $this->paramsAutoReset(false, false, false);
-        while (!empty($result = $this->select($start, $num))) {
+        $backComdition = $this->sql;//sql组装
+        $backTable = $this->table;//操作的表
+        $backJoin = $this->join;//是否内联
+        $backleftJoin = $this->leftJoin;//是否左联结
+        $backrightJoin = $this->rightJoin;//是否右联
+        $backBindParams = $this->bindParams;
+
+        while ($result = $this->select($start, $num)) {
             if ($func($result) === false) {
                 break;
             }
             $start += count($result);
+
+            $this->sql = $backComdition;//sql组装
+            $this->table = $backTable;//操作的表
+            $this->join = $backJoin;//是否内联
+            $this->leftJoin = $backleftJoin;//是否左联结
+            $this->rightJoin = $backrightJoin;//是否右联
+            $this->bindParams = $backBindParams;
         }
-        $this->paramsAutoReset(true);
+        $this->paramsAutoReset();
         $this->reset();
         $this->clearBindParams();
     }
@@ -582,7 +603,6 @@ abstract class Base implements Db
      * @param string $column 如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
      * @param array|int|string $value 值
      * @param string $operator 操作符
-     * @throws \Exception
      */
     public function conditionFactory($column, $value, $operator = '=')
     {
@@ -736,7 +756,7 @@ abstract class Base implements Db
         $offset = intval($offset);
         $limit = intval($limit);
         $offset < 0 && $offset = 0;
-        ($limit < 1 || $limit > 5000) && $limit = 100;
+        $limit < 1 && $limit = 100;
         $this->sql['limit'] = "LIMIT {$offset}, {$limit}";
         return $this;
     }
@@ -1085,6 +1105,17 @@ abstract class Base implements Db
             Model::getInstance()->cache()->set($this->conf['mark'] . '_db_cache_version_' . $table, $version, $this->conf['cache_expire']);
         }
         return $version;
+    }
+
+    /**
+     * 标记本次查询不使用缓存
+     *
+     * @return $this
+     */
+    public function noCache()
+    {
+        $this->currentQueryUseCache = false;
+        return $this;
     }
 
     /**

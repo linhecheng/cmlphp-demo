@@ -152,7 +152,7 @@ class MongoDB extends Base
      * 获取表字段-因为mongodb中collection对字段是没有做强制一制的。这边默认获取第一条数据的所有字段返回
      *
      * @param string $table 表名
-     * @param mixed $tablePrefix 表前缀 为null时代表table已经带了前缀
+     * @param mixed $tablePrefix 表前缀，不传则获取配置中配置的前缀
      * @param int $filter 在MongoDB中此选项无效
      *
      * @return mixed
@@ -410,9 +410,28 @@ class MongoDB extends Base
     }
 
     /**
+     * 新增多条数据
+     *
+     * @param string $table
+     * @param array $field mongodb中本字段无效
+     * @param array $data eg: 多条数据的值 [['标题1', '内容1', 1, '2017'], ['标题2', '内容2', 1, '2017']]
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     *
+     * @return bool|array
+     */
+    public function setMulti($table, $field, $data, $tablePrefix = null)
+    {
+        $idArray = [];
+        foreach ($data as $row) {
+            $idArray[] = $this->set($table, $row, $tablePrefix);
+        }
+        return $idArray;
+    }
+
+    /**
      * 根据key更新一条数据
      *
-     * @param string $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
+     * @param string|array $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
      * @param array | null $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
      * @param bool $and 多个条件之间是否为and  true为and false为or
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
@@ -880,7 +899,7 @@ class MongoDB extends Base
      */
     public function limit($offset = 0, $limit = 10)
     {
-        ($limit < 1 || $limit > 5000) && $limit = 100;
+        $limit < 1 && $limit = 100;
         $this->sql['limit'] = [$offset, $limit];
         return $this;
     }

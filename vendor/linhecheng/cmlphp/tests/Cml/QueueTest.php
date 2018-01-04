@@ -25,7 +25,8 @@ class QueueTest extends TestCase
                 'server' => [
                     [
                         'host' => $GLOBALS['cache_redis_host'],
-                        'port' => $GLOBALS['cache_redis_port']
+                        'port' => $GLOBALS['cache_redis_port'],
+                        'password' => $GLOBALS['cache_redis_password']
                     ]
                 ]
             ]

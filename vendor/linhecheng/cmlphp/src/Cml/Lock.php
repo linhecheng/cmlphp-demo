@@ -21,7 +21,6 @@ class Lock
      * @param string|null $useCache 使用的锁的配置
      *
      * @return \Cml\Lock\Redis | \Cml\Lock\Memcache | \Cml\Lock\File | false
-     * @throws \Exception
      */
     public static function getLocker($useCache = null)
     {
@@ -37,7 +36,7 @@ class Lock
      */
     public static function setExpire($expire = 100)
     {
-        self::getLocker()->setExpire($expire);
+        return self::getLocker()->setExpire($expire);
     }
 
     /**

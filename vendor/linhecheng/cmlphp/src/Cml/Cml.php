@@ -23,7 +23,7 @@ class Cml
     /**
      * 版本
      */
-    const VERSION = 'v2.7.8';
+    const VERSION = 'v2.8.0';
 
     /**
      * 执行app/只是初始化环境
@@ -66,6 +66,34 @@ class Cml
      * @var int
      */
     public static $nowMicroTime = 0;
+
+    /**
+     * 致命错误记录日志的等级列表
+     *
+     * @var array
+     */
+    private static $fatalErrorLogLevel = [
+        E_ERROR,
+        E_PARSE,
+        E_CORE_ERROR,
+        E_CORE_WARNING,
+        E_COMPILE_ERROR,
+        E_COMPILE_WARNING,
+        E_RECOVERABLE_ERROR
+    ];
+
+    /**
+     * 警告日志的等级列表
+     *
+     * @var array
+     */
+    private static $warningLogLevel = [
+        E_NOTICE,
+        E_STRICT,
+        E_DEPRECATED,
+        E_USER_DEPRECATED,
+        E_USER_NOTICE
+    ];
 
     /**
      * 自动加载类库
@@ -138,7 +166,7 @@ class Cml
         //普通错误由Cml\Debug::catcher捕获 php默认在display_errors为On时致命错误直接输出 为off时 直接显示服务器错误或空白页,体验不好
         register_shutdown_function(function () {
             if ($error = error_get_last()) {//获取最后一个发生的错误的信息。 包括提醒、警告、致命错误
-                if (in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING])) { //当捕获到的错误为致命错误时 报告
+                if (in_array($error['type'], self::$fatalErrorLogLevel)) { //当捕获到的错误为致命错误时 报告
                     if (Plugin::hook('cml.before_fatal_error', $error) == 'jump') {
                         return;
                     }
@@ -460,7 +488,7 @@ class Cml
                 $val = str_replace('/', DIRECTORY_SEPARATOR, $val);
             });
         }
-        self::$appDir += $dir;
+        self::$appDir = array_merge(self::$appDir, $dir);
     }
 
     /**
@@ -502,5 +530,53 @@ class Cml
     {
         $prefix = isset($arguments[0]) ? $arguments[0] : 'cml';
         return Cml::getContainer()->make($prefix . humpToLine($name));
+    }
+
+    /**
+     * 获取警告日志的等级列表
+     *
+     * @return array
+     */
+    public static function getWarningLogLevel()
+    {
+        return self::$warningLogLevel;
+    }
+
+    /**
+     * 设置警告日志的等级列表
+     *
+     * @return array
+     */
+    public static function getFatalErrorLogLevel()
+    {
+        return self::$fatalErrorLogLevel;
+    }
+
+    /**
+     * 设置警告日志的等级列表
+     *
+     * @param array|int $level
+     */
+    public static function setWarningLogLevel($level)
+    {
+        if (is_array($level)) {
+            self::$warningLogLevel = $level;
+        } else {
+            self::$warningLogLevel[] = $level;
+        }
+    }
+
+    /**
+     * 设置警告日志的等级列表
+     *
+     * @param array|int $level
+     */
+    public static function setFatalErrorLogLevel($level)
+    {
+        if (is_array($level)) {
+            self::$fatalErrorLogLevel = $level;
+        } else {
+            self::$fatalErrorLogLevel[] = $level;
+        }
     }
 }

@@ -28,7 +28,6 @@ class ControllerTest extends TestCase
 
     public function testModel()
     {
-
         $this->assertInstanceOf(Model::class, self::$c->model());
     }
 

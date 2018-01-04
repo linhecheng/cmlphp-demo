@@ -41,9 +41,10 @@ class StaticResource
         is_dir($rootDir) || mkdir($rootDir, true, 0700);
         //modules_static_path_name
         // 递归遍历目录
-        $dirIterator = new \DirectoryIterator(Cml::getApplicationDir('apps_path'));
 
-        $createFunc = function ($distDir, $resourceDir, $fileName) use ($isCli) {
+        $createDirFunc = function ($distDir, $resourceDir, $fileName) use ($isCli) {
+            $cmd = Request::operatingSystem() ? "rd /Q {$distDir}" : "rm -rf {$distDir}";
+            exec($cmd);
             $cmd = Request::operatingSystem() ? "mklink /d {$distDir} {$resourceDir}" : "ln -s {$resourceDir} {$distDir}";
             is_dir($distDir) || exec($cmd, $result);
             $tip = "  create link Application [{$fileName}] result : ["
@@ -56,21 +57,37 @@ class StaticResource
         };
 
         //创建系统静态文件目录映射
-        $createFunc(
-            $rootDir . DIRECTORY_SEPARATOR . 'cmlphpstatic',
-            __DIR__ . DIRECTORY_SEPARATOR . 'Static',
-            'cmlphpstatic'
-        );
+        /* $createDirFunc(
+             $rootDir . DIRECTORY_SEPARATOR . 'cmlphpstatic',
+             __DIR__ . DIRECTORY_SEPARATOR . 'Static',
+             'cmlphpstatic'
+         );*/
 
-        foreach ($dirIterator as $file) {
-            if (!$file->isDot() && $file->isDir()) {
-                $resourceDir = $file->getPathname() . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_static_path_name');
-                if (is_dir($resourceDir)) {
-                    $distDir = $rootDir . DIRECTORY_SEPARATOR . $file->getFilename();
-                    $createFunc($distDir, $resourceDir, $file->getFilename());
+        $dirIteratorFunc = function ($dir, $parentDirName = '') use ($rootDir, $createDirFunc, &$dirIteratorFunc) {
+            $dirIterator = new \DirectoryIterator($dir);
+
+            foreach ($dirIterator as $file) {
+                if (!$file->isDot() && $file->isDir()) {
+                    $resourceDir = $file->getPathname() . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_static_path_name');
+
+                    $currentDirName = ltrim($parentDirName, DIRECTORY_SEPARATOR);
+                    $currentDirName .= ($currentDirName ? DIRECTORY_SEPARATOR : '') . $file->getFilename();
+
+                    if (is_dir($resourceDir)) {
+                        if ($file->getFilename() != $currentDirName) {
+                            $parentDir = trim(substr($currentDirName, 0, strpos($currentDirName, $file->getFilename())), DIRECTORY_SEPARATOR);
+                            is_dir($rootDir . DIRECTORY_SEPARATOR . $parentDir) || mkdir($rootDir . DIRECTORY_SEPARATOR . $parentDir, 0700, true);
+                        }
+                        $distDir = $rootDir . DIRECTORY_SEPARATOR . $currentDirName;
+                        $createDirFunc($distDir, $resourceDir, $currentDirName);
+                    } else if (!is_dir($file->getPathname() . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_controller_path_name'))) {
+                        $dirIteratorFunc($file->getPathname(), $currentDirName);
+                    }
                 }
             }
-        }
+        };
+
+        $dirIteratorFunc(Cml::getApplicationDir('apps_path'));
 
         if ($isCli) {
             Output::writeln(Colour::colour('create link end!', [Colour::GREEN, Colour::HIGHLIGHT]));
@@ -90,6 +107,7 @@ class StaticResource
     public static function parseResourceUrl($resource = '', $echo = true)
     {
         //简单判断没有.的时候当作是目录不加版本号
+        $resource = ltrim($resource, '/');
         $isDir = strpos($resource, '.') === false ? true : false;
         if (Cml::$debug) {
             $file = Response::url("cmlframeworkstaticparse/{$resource}", false);
@@ -97,9 +115,9 @@ class StaticResource
                 $file = str_replace(Config::get('url_html_suffix'), '', $file);
             }
 
-            $isDir || $file .= (Config::get("url_model") == 3 ? "&v=" : "?v=") . Cml::$nowTime;
+            $isDir || $file .= (Config::get("url_model") == 3 ? "&v=" : "?v=") . 0;//Cml::$nowTime;
         } else {
-            $file = Config::get("static__path", Cml::getContainer()->make('cml_route')->getSubDirName()) . $resource;
+            $file = rtrim(Config::get("static__path", Cml::getContainer()->make('cml_route')->getSubDirName()), '/') . '/' . $resource;
             $isDir || $file .= "?v=" . Config::get('static_file_version');
         }
         if ($echo) {
@@ -125,11 +143,12 @@ class StaticResource
                 array_shift($pathInfo);
                 $file = __DIR__ . DIRECTORY_SEPARATOR . 'Static' . DIRECTORY_SEPARATOR;
                 $file .= trim(implode('/', $pathInfo), '/');
+                strpos($file, '.') || $file .= Config::get('url_html_suffix');
             } else {
                 $resource = implode('/', $pathInfo);
                 $appName = '';
-                $i = 0;
-                $routeAppHierarchy = Config::get('route_app_hierarchy', 1);
+                //$i = 0;
+                //$routeAppHierarchy = Config::get('route_app_hierarchy', 1);
                 while (true) {
                     $resource = ltrim($resource, '/');
                     $pos = strpos($resource, '/');
@@ -137,8 +156,8 @@ class StaticResource
                     $resource = substr($resource, $pos);
                     $file = Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR
                         . Cml::getApplicationDir('app_static_path_name') . $resource;
-
-                    if (is_file($file) || ++$i >= $routeAppHierarchy) {
+                    strpos($file, '.') || $file .= Config::get('url_html_suffix');
+                    if (is_file($file) /*|| ++$i >= $routeAppHierarchy*/) {
                         break;
                     }
                 }

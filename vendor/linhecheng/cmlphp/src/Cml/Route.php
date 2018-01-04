@@ -73,13 +73,16 @@ class Route
                         ltrim($urlString, '/')
                     ), $urlPathInfoDeper);
                 }
+
+                $pathInfo = explode($urlPathInfoDeper, $param);
             }
-            $isCli || $pathInfo = explode($urlPathInfoDeper, $param);
         }
 
         isset($pathInfo[0]) && empty($pathInfo[0]) && $pathInfo = ['/'];
 
         self::$pathInfo = $pathInfo;
+
+        Plugin::hook('cml.after_parse_path_info');
     }
 
     /**

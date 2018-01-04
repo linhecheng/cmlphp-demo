@@ -57,19 +57,21 @@ class Request
     public static function host($joinPort = true)
     {
         $host = strip_tags(isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : $_SERVER['HTTP_HOST']);
-        $joinPort && $host =  $host . ($_SERVER['SERVER_PORT'] == '80' ? '' : ':' . $_SERVER['SERVER_PORT']);
+        $joinPort && $host = $host . (in_array($_SERVER['SERVER_PORT'], [80, 443]) ? '' : ':' . $_SERVER['SERVER_PORT']);
         return $host;
     }
 
     /**
      * 获取基本URL地址
      *
+     * @param bool $joinPort 是否带上端口
+     *
      * @return string
      */
-    public static function baseUrl()
+    public static function baseUrl($joinPort = true)
     {
         $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://';
-        return $protocol . self::host();
+        return $protocol . self::host($joinPort);
     }
 
     /**
@@ -87,7 +89,7 @@ class Request
      *
      * @return bool
      */
-    public function isMobile()
+    public static function isMobile()
     {
         if ($_GET['mobile'] === 'yes') {
             setcookie('ismobile', 'yes', 3600);
@@ -146,9 +148,11 @@ class Request
     /**
      * 判断是否为AJAX请求
      *
+     * @param bool $checkAccess 是否检测HTTP_ACCESS头
+     *
      * @return bool
      */
-    public static function isAjax()
+    public static function isAjax($checkAccess = false)
     {
         if (
             self::getService('HTTP_X_REQUESTED_WITH')
@@ -156,6 +160,14 @@ class Request
         ) {
             return true;
         }
+
+        if ($checkAccess) {
+            $accept = self::getService('HTTP_ACCEPT');
+            if (false !== strpos($accept, 'json') || false !== strpos($accept, 'javascript')) {
+                return true;
+            }
+        }
+
         return false;
     }
 

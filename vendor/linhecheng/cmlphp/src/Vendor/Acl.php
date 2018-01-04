@@ -53,8 +53,9 @@ use Cml\Model;
  * CREATE TABLE `pr_admin_menus` (
  * `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
  * `pid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '父模块ID编号 0则为顶级模块',
- * `title` char(64) NOT NULL DEFAULT '' COMMENT '标题',
- * `url` char(64) NOT NULL DEFAULT '' COMMENT 'url路径',
+ * `title` varchar(64) NOT NULL DEFAULT '' COMMENT '标题',
+ * `url` varchar(64) NOT NULL DEFAULT '' COMMENT 'url路径',
+ * `params` varchar(64) NOT NULL DEFAULT '' COMMENT 'url参数',
  * `isshow` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否显示',
  * `sort` smallint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序倒序',
  *  `app` smallint(6) unsigned NOT NULL DEFAULT '0' COMMENT '菜单所属app，对应app表中的主键',
@@ -225,7 +226,8 @@ class Acl
                         'id' => $user['id'],
                         'username' => $user['username'],
                         'nickname' => $user['nickname'],
-                        'groupid' => explode('|', trim($user['groupid'], '|'))
+                        'groupid' => explode('|', trim($user['groupid'], '|')),
+                        'from_type' => $user['from_type']
                     ];
                     $groups = Model::getInstance()->db()->table(self::$tables['groups'])
                         ->columns('name')
@@ -329,7 +331,6 @@ class Acl
         }
 
         $acl = Model::getInstance()->db()
-            ->columns('m.id')
             ->table([self::$tables['access'] => 'a'])
             ->join([self::$tables['menus'] => 'm'], 'a.menuid=m.id')
             ->lBrackets()
@@ -339,8 +340,8 @@ class Acl
             ->rBrackets();
 
         $acl = is_array($checkUrl) ? $acl->whereIn('m.url', $checkUrl) : $acl->where('m.url', $checkUrl);
-        $acl = $acl->select();
-        return (count($acl) > 0);
+        $acl = $acl->count('1');
+        return $acl > 0;
     }
 
     /**
@@ -360,7 +361,7 @@ class Acl
         }
 
         Model::getInstance()->db()->table([self::$tables['menus'] => 'm'])
-            ->columns(['distinct m.id', 'm.pid', 'm.title', 'm.url' . ($columns ? " ,{$columns}" : '')]);
+            ->columns(['distinct m.id', 'm.pid', 'm.title', 'm.url', 'm.params' . ($columns ? " ,{$columns}" : '')]);
 
         //当前登录用户是否为超级管理员
         if (!self::isSuperUser()) {

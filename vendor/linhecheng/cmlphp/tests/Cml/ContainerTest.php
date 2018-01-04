@@ -35,6 +35,7 @@ class ContainerTest extends TestCase
         self::$container->singleton('singleton', Container::class);
 
         $this->assertTrue(self::$container->isBind('container'));
+        $this->assertTrue(self::$container->isBind('singleton'));
     }
 
     /**
