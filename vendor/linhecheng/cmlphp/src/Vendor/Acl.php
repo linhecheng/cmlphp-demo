@@ -77,7 +77,7 @@ use Cml\Model;
  * `stime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
  * `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '1正常，0删除',
  * `remark` text NOT NULL,
- * `from_type` tinyint(3) unsigned DEFAULT '1' COMMENT '用户类型。1为系统用户。2 99u',
+ * `from_type` tinyint(3) unsigned DEFAULT '1' COMMENT '用户类型。1为系统用户。',
  * PRIMARY KEY (`id`),
  * UNIQUE KEY `username` (`username`)
  * ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;

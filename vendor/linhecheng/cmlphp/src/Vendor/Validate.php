@@ -103,7 +103,7 @@ class Validate
             throw new \InvalidArgumentException('param $callback must can callable');
         }
         self::$errorTip[strtolower($name)] = $message;
-        static::$rules[strtolower($name)] = $callback;
+        static::$rules[$name] = $callback;
     }
 
     /**
@@ -181,8 +181,8 @@ class Validate
                     $values = isset($this->data[$field]) ? $this->data[$field] : null;
                 }
 
-                if (isset(static::$rules[$field])) {
-                    $callback = static::$rules[$field];
+                if (isset(static::$rules[$bind['rule']])) {
+                    $callback = static::$rules[$bind['rule']];
                 } else {
                     $callback = [$this, 'is' . ucfirst($bind['rule'])];
                 }

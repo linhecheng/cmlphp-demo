@@ -161,13 +161,21 @@ class Model
     /**
      * 获取表名
      *
+     * @param bool $addTablePrefix 是否返回带表前缀的完整表名
+     *
      * @return string
      */
-    public function getTableName()
+    public function getTableName($addTablePrefix = false)
     {
         if (is_null($this->table)) {
             $tmp = get_class($this);
             $this->table = strtolower(substr($tmp, strrpos($tmp, '\\') + 1, -5));
+        }
+
+        if ($addTablePrefix) {
+            $tablePrefix = $this->tablePrefix;
+            $tablePrefix || $tablePrefix = Config::get($this->getDbConf() . '.master.tableprefix');
+            return $tablePrefix . $this->table;
         }
         return $this->table;
     }
