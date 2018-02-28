@@ -261,7 +261,7 @@ class Request
                     $queryStr .= $key . '=' . $val . '&';
                 }
                 $queryStr = substr($queryStr, 0, -1);
-                $url .= '?' . $queryStr;
+                $queryStr && $url .= '?' . $queryStr;
             }
         }
         curl_setopt($ch, CURLOPT_URL, $url);

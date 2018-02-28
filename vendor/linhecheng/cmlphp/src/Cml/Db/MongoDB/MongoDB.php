@@ -413,13 +413,15 @@ class MongoDB extends Base
      * 新增多条数据
      *
      * @param string $table
-     * @param array $field mongodb中本字段无效
+     * @param array $field mongodb中本参数无效
      * @param array $data eg: 多条数据的值 [['标题1', '内容1', 1, '2017'], ['标题2', '内容2', 1, '2017']]
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     * @param bool $openTransAction 是否开启事务 mongodb中本参数无效
+     * @throws \InvalidArgumentException
      *
      * @return bool|array
      */
-    public function setMulti($table, $field, $data, $tablePrefix = null)
+    public function setMulti($table, $field, $data, $tablePrefix = null, $openTransAction = true)
     {
         $idArray = [];
         foreach ($data as $row) {

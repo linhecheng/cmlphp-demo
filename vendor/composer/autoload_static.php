@@ -129,6 +129,7 @@ class ComposerStaticInita596463329239e93dc03c3f108e71623
         'Cml\\Vendor\\Html' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Vendor/Html.php',
         'Cml\\Vendor\\Http' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Vendor/Http.php',
         'Cml\\Vendor\\Image' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Vendor/Image.php',
+        'Cml\\Vendor\\Ip2Region' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Vendor/Ip2Region.php',
         'Cml\\Vendor\\IpLocation' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Vendor/IpLocation.php',
         'Cml\\Vendor\\Page' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Vendor/Page.php',
         'Cml\\Vendor\\PhpThread' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Vendor/PhpThread.php',

@@ -229,10 +229,12 @@ class Pdo extends Base
      * @param array $field 字段 eg: ['title', 'msg', 'status', 'ctime‘]
      * @param array $data eg: 多条数据的值 [['标题1', '内容1', 1, '2017'], ['标题2', '内容2', 1, '2017']]
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     * @param bool $openTransAction 是否开启事务 默认开启
+     * @throws \InvalidArgumentException
      *
      * @return bool|array
      */
-    public function setMulti($table, $field, $data, $tablePrefix = null)
+    public function setMulti($table, $field, $data, $tablePrefix = null, $openTransAction = true)
     {
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         $tableName = $tablePrefix . $table;
@@ -244,7 +246,7 @@ class Pdo extends Base
             $s = $this->arrToCondition($field);
 
             try {
-                $this->startTransAction();
+                $openTransAction && $this->startTransAction();
                 $stmt = $this->prepare("INSERT INTO {$tableName} SET {$s}", $this->wlink);
                 $idArray = [];
                 foreach ($data as $row) {
@@ -252,10 +254,11 @@ class Pdo extends Base
                     $this->execute($stmt);
                     $idArray[] = $this->insertId();
                 }
-                $this->commit();
+                $openTransAction && $this->commit();
             } catch (\InvalidArgumentException $e) {
-                $this->rollBack();
-                return false;
+                $openTransAction && $this->rollBack();
+
+                throw new \InvalidArgumentException($e->getMessage(), $e->getCode(), $e);
             }
 
             $this->setCacheVer($tableName);

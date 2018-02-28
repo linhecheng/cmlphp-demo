@@ -243,14 +243,15 @@ class Model
      * @param array $data 多条数据的值 eg:  [['标题1', '内容1', 1, '2017'], ['标题2', '内容2', 1, '2017']]
      * @param string $tableName 表名 不传会自动从当前Model中$table属性获取
      * @param mixed $tablePrefix 表前缀 不传会自动从当前Model中$tablePrefix属性获取再没有则获取配置中配置的前缀
+     * @param bool $openTransAction 是否开启事务 默认开启
      *
      * @return bool | array
      */
-    public function setMulti($field, $data, $tableName = null, $tablePrefix = null)
+    public function setMulti($field, $data, $tableName = null, $tablePrefix = null, $openTransAction = true)
     {
         is_null($tableName) && $tableName = $this->getTableName();
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
-        return $this->db($this->getDbConf())->setMulti($tableName, $field, $data, $tablePrefix);
+        return $this->db($this->getDbConf())->setMulti($tableName, $field, $data, $tablePrefix, $openTransAction);
     }
 
     /**

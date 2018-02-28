@@ -109,6 +109,7 @@ return array(
     'Cml\\Vendor\\Html' => $vendorDir . '/linhecheng/cmlphp/src/Vendor/Html.php',
     'Cml\\Vendor\\Http' => $vendorDir . '/linhecheng/cmlphp/src/Vendor/Http.php',
     'Cml\\Vendor\\Image' => $vendorDir . '/linhecheng/cmlphp/src/Vendor/Image.php',
+    'Cml\\Vendor\\Ip2Region' => $vendorDir . '/linhecheng/cmlphp/src/Vendor/Ip2Region.php',
     'Cml\\Vendor\\IpLocation' => $vendorDir . '/linhecheng/cmlphp/src/Vendor/IpLocation.php',
     'Cml\\Vendor\\Page' => $vendorDir . '/linhecheng/cmlphp/src/Vendor/Page.php',
     'Cml\\Vendor\\PhpThread' => $vendorDir . '/linhecheng/cmlphp/src/Vendor/PhpThread.php',

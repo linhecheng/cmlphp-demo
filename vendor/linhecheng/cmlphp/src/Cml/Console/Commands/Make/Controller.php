@@ -36,10 +36,10 @@ class Controller extends Command
     protected $help = <<<EOF
 The breakpoint command allows you to create a new controller class
 eg:
-`php index.php make:controller adminbase-Blog/Category`  this command will create a controller
+`php index.php make:controller adminbase/test-Blog/Category`  this command will create a controller
 
 <?php
-namespace adminbase\Controller\Blog;
+namespace adminbase\test\Controller\Blog;
 
 use Cml\Controller;
 
@@ -62,13 +62,13 @@ EOF;
 
         $name = $args[0];
         $name = explode('-', $name);
-        if (count($name) < 2) {
+        if (count($name) < 1) {
             throw new \InvalidArgumentException(sprintf(
                 'The arg name "%s" is invalid. eg: adminbase-Blog/Category',
                 $name
             ));
         }
-        $namespace = trim(trim($name[0], '\\/'));
+        $namespace = str_replace('/', '\\', trim(trim($name[0], '\\/')));
 
         $path = Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $namespace . DIRECTORY_SEPARATOR
             . Cml::getApplicationDir('app_controller_path_name') . DIRECTORY_SEPARATOR;
@@ -93,7 +93,15 @@ EOF;
 
         $contents = strtr(file_get_contents($template), ['$namespace' => $namespace, '$component' => $component, '$className' => $className]);
 
-        if (false === file_put_contents($path . $className . '.php', $contents)) {
+        $file = $path . $className . '.php';
+        if (is_file($file)) {
+            throw new \RuntimeException(sprintf(
+                'The file "%s" is exist',
+                $file
+            ));
+        }
+
+        if (false === file_put_contents($file, $contents)) {
             throw new \RuntimeException(sprintf(
                 'The file "%s" could not be written to',
                 $path

@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 Redis缓存驱动
  * *********************************************************** */
+
 namespace Cml\Cache;
 
 use Cml\Config;
@@ -100,10 +101,18 @@ class Redis extends namespace\Base
                     $password = $this->conf['server'][$success]['password'];
                 }
 
+                if ($password && !$instance->auth($password)) {
+                    throw new \RuntimeException('redis password error!');
+                }
+
                 isset($this->conf['server'][$success]['db']) && $instance->select($this->conf['server'][$success]['db']);
             } else {
                 if (isset($failOver['password']) && !empty($failOver['password'])) {
                     $password = $failOver['password'];
+                }
+
+                if ($password && !$instance->auth($password)) {
+                    throw new \RuntimeException('redis password error!');
                 }
 
                 isset($failOver['db']) && $instance->select($failOver['db']);
@@ -112,9 +121,6 @@ class Redis extends namespace\Base
                 Plugin::hook('cml.redis_server_down_fail_over', ['downServer' => $this->conf['server'][$success], 'failOverTo' => $failOver]);
             }
 
-            if ($password && !$instance->auth($password)) {
-                throw new \RuntimeException('redis password error!');
-            }
             $instance->setOption(\Redis::OPT_PREFIX, $this->conf['prefix']);
             $this->redis[$success] = $instance;
         }
