@@ -60,6 +60,25 @@ class Input
     }
 
     /**
+     * 获取解析后的Refer的参数
+     * @param string $name 参数的key
+     *
+     * @return mixed
+     */
+    private static function getReferParams($name)
+    {
+        static $params = null;
+
+        if (is_null($params)) {
+            if (isset($_SERVER['HTTP_REFERER'])) {
+                $args = parse_url($_SERVER['HTTP_REFERER']);
+                parse_str($args['query'], $params);
+            }
+        }
+        return isset($params[$name]) ? $params[$name] : null;
+    }
+
+    /**
      * 获取get string数据
      *
      * @param string $name 要获取的变量
@@ -100,6 +119,22 @@ class Input
         if (isset($_REQUEST[$name]) && $_REQUEST[$name] !== '') return self::parseInputToString($_REQUEST[$name]);
         return $default;
     }
+
+    /**
+     * 获取Refer string数据
+     *
+     * @param string $name 要获取的变量
+     * @param null $default 未获取到Refer值时返回的默认值
+     *
+     * @return null|string|array
+     */
+    public static function referString($name, $default = null)
+    {
+        $res = self::getReferParams($name);
+        if (!is_null($res)) return self::parseInputToString($res);
+        return $default;
+    }
+
 
     /**
      * 获取get int数据
@@ -144,6 +179,21 @@ class Input
     }
 
     /**
+     * 获取Refer int数据
+     *
+     * @param string $name 要获取的变量
+     * @param null $default 未获取到Refer值时返回的默认值
+     *
+     * @return null|string|array
+     */
+    public static function referInt($name, $default = null)
+    {
+        $res = self::getReferParams($name);
+        if (!is_null($res)) return self::parseInputToInt($res);
+        return (is_null($default) ? null : intval($default));
+    }
+
+    /**
      * 获取get bool数据
      *
      * @param string $name 要获取的变量
@@ -182,6 +232,21 @@ class Input
     public static function requestBool($name, $default = null)
     {
         if (isset($_REQUEST[$name]) && $_REQUEST[$name] !== '') return self::parseInputToBool($_REQUEST[$name]);
+        return (is_null($default) ? null : ((bool)$default));
+    }
+
+    /**
+     * 获取Refer bool数据
+     *
+     * @param string $name 要获取的变量
+     * @param null $default 未获取到Refer值时返回的默认值
+     *
+     * @return null|string|array
+     */
+    public static function referBool($name, $default = null)
+    {
+        $res = self::getReferParams($name);
+        if (!is_null($res)) return self::parseInputToBool($res);
         return (is_null($default) ? null : ((bool)$default));
     }
 }

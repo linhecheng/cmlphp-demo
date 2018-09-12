@@ -6,8 +6,10 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 系统默认控制器类
  * *********************************************************** */
+
 namespace Cml;
 
+use Cml\Http\Request;
 use Cml\Http\Response;
 
 /**
@@ -17,6 +19,15 @@ use Cml\Http\Response;
  */
 class Controller
 {
+
+    /**
+     * 当执行的控制器方法返回数组且http请求头HTTP_ACCEPT为html时。默认渲染的tpl为"控制器名/方法名"
+     * 这边配置[请求的控制器方法=>对应渲染的模板]则渲染配置的模板。当[请求的控制器方法=>对应渲染的模板为string]自动调用display方法
+     * 当[请求的控制器方法=>对应渲染的模板为 array]自动调用html engine的displayWithLayout方法
+     *
+     * @var array
+     */
+    protected $htmlEngineRenderTplArray = [];
 
     /**
      * 运行对应的控制器
@@ -54,7 +65,20 @@ class Controller
 
         //根据动作去找对应的方法
         if (method_exists($this, $method)) {
-            $this->$method();
+            $response = $this->$method();
+            if (is_array($response)) {
+                if (Request::acceptJson()) {
+                    View::getEngine('Json')
+                        ->assign($response)
+                        ->display();
+                } else {
+                    $tpl = isset($this->htmlEngineRenderTplArray[$method])
+                        ? $this->htmlEngineRenderTplArray[$method]
+                        : Cml::getContainer()->make('cml_route')->getControllerName() . '/' . $method;
+
+                    call_user_func_array([View::getEngine('Html')->assign($response), is_array($tpl) ? 'displayWithLayout' : 'display'], is_array($tpl) ? $tpl : [$tpl]);
+                }
+            }
         } elseif (Cml::$debug) {
             Cml::montFor404Page();
             throw new \BadMethodCallException(Lang::get('_ACTION_NOT_FOUND_', $method));

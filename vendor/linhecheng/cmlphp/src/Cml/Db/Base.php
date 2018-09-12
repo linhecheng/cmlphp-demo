@@ -348,7 +348,7 @@ abstract class Base implements Db
     }
 
     /**
-     * here条件组装 两个列相等
+     * where条件组装 两个列相等
      *
      * @param string $column eg：username | `user`.`username`
      * @param string $column2 eg: nickname | `user`.`nickname`
@@ -358,6 +358,39 @@ abstract class Base implements Db
     public function whereColumn($column, $column2)
     {
         $this->conditionFactory($column, $column2, 'column');
+        return $this;
+    }
+
+    /**
+     * where条件原生条件
+     *
+     * @param string $where eg：utime > ctime + ?
+     * @param array $params eg: [10]
+     *
+     * @return $this
+     */
+    public function whereRaw($where, $params)
+    {
+        $this->conditionFactory($where, $params, 'raw');
+        return $this;
+    }
+
+    /**
+     * 根据条件是否成立执行对应的闭包
+     *
+     * @param bool $condition 条件
+     * @param callable $trueCallback 条件成立执行的闭包
+     * @param callable|null $falseCallback 条件不成立执行的闭包
+     *
+     * @return $this
+     */
+    public function when($condition, callable $trueCallback, callable $falseCallback = null)
+    {
+        if ($condition) {
+            call_user_func($trueCallback, $this);
+        } else {
+            is_callable($falseCallback) && call_user_func($falseCallback, $this);
+        }
         return $this;
     }
 
@@ -603,6 +636,8 @@ abstract class Base implements Db
      * @param string $column 如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
      * @param array|int|string $value 值
      * @param string $operator 操作符
+     *
+     * @return $this
      */
     public function conditionFactory($column, $value, $operator = '=')
     {
@@ -630,17 +665,25 @@ abstract class Base implements Db
             $betweenValue = '%s AND %s ';
             $this->bindParams[] = $value[0];
             $this->bindParams[] = $value[1];
-            $this->sql['where'] .= "{$column} {$operator} {$betweenValue}";
+            $this->sql['where'] .= "{$column} {$operator} {$betweenValue} ";
         } else if ($operator == 'IS NULL' || $operator == 'IS NOT NULL') {
-            $this->sql['where'] .= "{$column} {$operator}";
+            $this->sql['where'] .= "{$column} {$operator} ";
         } else if ($operator == 'column') {
-            substr(trim($column), 0, 1) != '`' && $column = "`{$column}`";
-            substr(trim($value), 0, 1) != '`' && $value = "`{$value}`";
+            substr(trim($column), 0, 1) != '`' && $column = "`{$column}` ";
+            substr(trim($value), 0, 1) != '`' && $value = "`{$value}` ";
             $this->sql['where'] .= "{$column} = {$value} ";
+        } else if ($operator == 'raw') {
+            $this->sql['where'] .= str_replace('?', '%s', $column) . ' ';
+            $value && $this->bindParams = array_merge($this->bindParams, $value);
         } else {
-            $this->bindParams[] = $value;
-            $this->sql['where'] .= "{$column} {$operator} %s ";
+            $this->sql['where'] .= "{$column} {$operator} ";
+            if ($operator) {//兼容类式find_in_set()这类的函数查询
+                $this->sql['where'] .= "%s ";
+                $this->bindParams[] = $value;
+            }
+
         }
+        return $this;
     }
 
     /**
@@ -650,7 +693,7 @@ abstract class Base implements Db
      *
      * @return $this
      */
-    public function _and($callable = null)
+    public function _and(callable $callable = null)
     {
         $history = $this->whereNeedAddAndOrOr;
         $this->whereNeedAddAndOrOr = 1;
@@ -658,7 +701,7 @@ abstract class Base implements Db
         if (is_callable($callable)) {
             $history === 0 && $this->whereNeedAddAndOrOr = 0;
             $this->lBrackets();
-            $callable();
+            call_user_func($callable, $this);
             $this->rBrackets();
         }
 
@@ -672,7 +715,7 @@ abstract class Base implements Db
      *
      * @return $this
      */
-    public function _or($callable = null)
+    public function _or(callable $callable = null)
     {
         $history = $this->whereNeedAddAndOrOr;
         $this->whereNeedAddAndOrOr = 2;
@@ -680,7 +723,7 @@ abstract class Base implements Db
         if (is_callable($callable)) {
             $history === 0 && $this->whereNeedAddAndOrOr = 0;
             $this->lBrackets();
-            $callable();
+            call_user_func($callable, $this);
             $this->rBrackets();
         }
 
@@ -807,8 +850,8 @@ abstract class Base implements Db
      */
     public function having($column, $operator = '=', $value)
     {
-        $having = $this->sql['having'] == '' ? 'HAVING' : ',';
-        $this->sql['having'] = "{$having} {$column}{$operator}%s ";
+        $having = $this->sql['having'] == '' ? 'HAVING' : ' AND ';
+        $this->sql['having'] .= "{$having} {$column} {$operator} %s ";
         $this->bindParams[] = $value;
         return $this;
     }
@@ -1037,6 +1080,9 @@ abstract class Base implements Db
                         }
                         $p = "`{$k}`= {$func}(" . implode($funcParams, ',') . ')';
                         break;
+                    case 'column':
+                        $p = "`{$k}`= `" . current($v) . "`";
+                        break;
                     default ://计算类型
                         $conKey = key($v);
                         if (!in_array(key(current($v)), ['+', '-', '*', '/', '%', '^', '&', '|', '<<', '>>', '~'])) {
@@ -1144,12 +1190,14 @@ abstract class Base implements Db
     /**
      * 执行
      * @param callable $query
+     *
+     * @return bool
      */
     public function transaction(callable $query)
     {
         $this->startTransAction();
         $query();
-        $this->commit();
+        return $this->commit();
     }
 
     /**

@@ -200,7 +200,7 @@ class Pdo extends Base
     /**
      * 新增 一条数据
      *
-     * @param string $table
+     * @param string $table 表名
      * @param array $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
@@ -225,7 +225,7 @@ class Pdo extends Base
     /**
      * 新增多条数据
      *
-     * @param string $table
+     * @param string $table 表名
      * @param array $field 字段 eg: ['title', 'msg', 'status', 'ctime‘]
      * @param array $data eg: 多条数据的值 [['标题1', '内容1', 1, '2017'], ['标题2', '内容2', 1, '2017']]
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
@@ -269,10 +269,38 @@ class Pdo extends Base
     }
 
     /**
+     * 插入或更新一条记录，当UNIQUE index or PRIMARY KEY存在的时候更新，不存在的时候插入
+     * 若AUTO_INCREMENT存在则返回 AUTO_INCREMENT 的值.
+     *
+     * @param string $table 表名
+     * @param array $data 插入的值 eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
+     * @param array $up 更新的值-会自动merge $data中的数据
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     *
+     * @return int
+     */
+    public function upSet($table, array $data, array $up = [], $tablePrefix = null)
+    {
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        $tableName = $tablePrefix . $table;
+        if (is_array($data)) {
+            $up = $this->arrToCondition(array_merge($data, $up));
+            $s = $this->arrToCondition($data);
+            $stmt = $this->prepare("INSERT INTO {$tableName} SET {$s} ON DUPLICATE KEY UPDATE {$up}", $this->wlink);
+            $this->execute($stmt);
+
+            $this->setCacheVer($tableName);
+            return $this->insertId();
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * 根据key更新一条数据
      *
-     * @param string|array $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
-     * @param array | null $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
+     * @param string|array $key eg: 'user'(表名)、'user-uid-$uid'(表名+条件) 、['xx'=>'xx' ...](即:$data数组如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组)
+     * @param array | null $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com'] 可以直接通过$key参数传递
      * @param bool $and 多个条件之间是否为and  true为and false为or
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
@@ -320,7 +348,7 @@ class Pdo extends Base
     /**
      * 根据key值删除数据
      *
-     * @param string $key eg: 'user-uid-$uid'
+     * @param string $key eg: 'user'(表名，即条件通过where()传递)、'user-uid-$uid'(表名+条件)、啥也不传(即通过table传表名)
      * @param bool $and 多个条件之间是否为and  true为and false为or
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
@@ -363,7 +391,8 @@ class Pdo extends Base
     /**
      * 获取处理后的表名
      *
-     * @param $table
+     * @param string $table 表名
+     *
      * @return string
      */
     private function getRealTableName($table)

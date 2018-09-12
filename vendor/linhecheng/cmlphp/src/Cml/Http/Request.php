@@ -10,6 +10,8 @@
 namespace Cml\Http;
 
 use Cml\Cml;
+use Cml\Config;
+use Cml\Route;
 
 /**
  * 请求处理类，获取用户请求信息以发起curl请求
@@ -62,7 +64,7 @@ class Request
     }
 
     /**
-     * 获取基本URL地址
+     * 获取基本地址
      *
      * @param bool $joinPort 是否带上端口
      *
@@ -72,6 +74,26 @@ class Request
     {
         $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://';
         return $protocol . self::host($joinPort);
+    }
+
+    /**
+     * 获取带全参数的url地址
+     *
+     * @param bool $addSufFix 是否添加伪静态后缀
+     * @param bool $joinParams 是否带上GET请求参数
+     *
+     * @return string
+     */
+    public static function fullUrl($addSufFix = true, $joinParams = true)
+    {
+        $params = '';
+        if ($joinParams) {
+            $get = $_GET;
+            unset($get[Config::get('var_pathinfo')]);
+            $params = http_build_query($get);
+            $params && $params = '?' . $params;
+        }
+        return Request::baseUrl() . '/' . implode('/', Route::getPathInfo()) . ($addSufFix ? Config::get('url_html_suffix') : '') . $params;
     }
 
     /**
@@ -162,12 +184,23 @@ class Request
         }
 
         if ($checkAccess) {
-            $accept = self::getService('HTTP_ACCEPT');
-            if (false !== strpos($accept, 'json') || false !== strpos($accept, 'javascript')) {
-                return true;
-            }
+            return self::acceptJson();
         }
 
+        return false;
+    }
+
+    /**
+     * 判断请求类型是否为json
+     *
+     * @return bool
+     */
+    public static function acceptJson()
+    {
+        $accept = self::getService('HTTP_ACCEPT');
+        if (false !== strpos($accept, 'json') || false !== strpos($accept, 'javascript')) {
+            return true;
+        }
         return false;
     }
 
@@ -224,11 +257,12 @@ class Request
      * @param array $parameter 请求参数
      * @param array $header header头信息
      * @param string $type 请求的数据类型 json/post/file/get/raw
-     * @param int $timeout 请求的超时时间默认10s
+     * @param int $connectTimeout 请求的连接超时时间默认10s
+     * @param int $execTimeout 等待执行输出的超时时间默认30s
      *
      * @return bool|mixed
      */
-    public static function curl($url, $parameter = [], $header = [], $type = 'json', $timeout = 10)
+    public static function curl($url, $parameter = [], $header = [], $type = 'json', $connectTimeout = 10, $execTimeout = 30)
     {
         $ssl = substr($url, 0, 8) == "https://" ? true : false;
         $ch = curl_init();
@@ -238,7 +272,7 @@ class Request
         }
 
         if ($type == 'json' || $type == 'raw') {
-            $type == 'json' && $parameter = json_encode($parameter, JSON_UNESCAPED_UNICODE);
+            $type == 'json' && ($parameter = json_encode($parameter, JSON_UNESCAPED_UNICODE)) && ($header[] = 'Content-Type: application/json');
             //$queryStr = str_replace(['\/','[]'], ['/','{}'], $queryStr);//兼容
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $parameter);
@@ -267,7 +301,8 @@ class Request
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connectTimeout);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $execTimeout);
 
         if (!empty($header)) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
@@ -275,9 +310,8 @@ class Request
 
         $ret = curl_exec($ch);
         $error = curl_error($ch);
-
         curl_close($ch);
-        if ('' === $ret || !empty($error)) {
+        if (!$ret || !empty($error)) {
             return false;
         } else {
             return $ret;

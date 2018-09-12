@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 系统安全类
  * *********************************************************** */
+
 namespace Cml;
 
 use Cml\Http\Input;
@@ -119,15 +120,16 @@ class Secure
      * 过滤javascript,css,iframes,object等标签
      *
      * @param  string $value 需要过滤的值
+     * @param  bool $clear 转义还是删除
      *
      * @return mixed
      */
-    public static function filterScript($value)
+    public static function filterScript($value, $clear = false)
     {
-        $value = preg_replace("/javascript:/i", "&111", $value);
-        $value = preg_replace("/(javascript:)?on(click|load|key|mouse|error|abort|move|unload|change|dblclick|move|reset|resize|submit)/i", "&111n\\2", $value);
-        $value = preg_replace("/<script(.*?)>(.*?)<\/script>/si", "&ltscript\\1&gt\\2&lt/script&gt", $value);
-        $value = preg_replace("/<iframe(.*?)>(.*?)<\/iframe>/si", "&ltiframe\\1&gt\\2&lt/iframe&gt", $value);
+        $value = preg_replace("/javascript:/i", $clear ? '' : "&111", $value);
+        $value = preg_replace("/(javascript:)?on(click|load|key|mouse|error|abort|move|unload|change|dblclick|move|reset|resize|submit)/i", $clear ? '' : "&111n\\2", $value);
+        $value = preg_replace("/<script(.*?)>(.*?)<\/script>/si", $clear ? '' : "&ltscript\\1&gt\\2&lt/script&gt", $value);
+        $value = preg_replace("/<iframe(.*?)>(.*?)<\/iframe>/si", $clear ? '' : "&ltiframe\\1&gt\\2&lt/iframe&gt", $value);
         $value = preg_replace("/<object.+<\/object>/isU", '', $value);
         return $value;
     }

@@ -132,7 +132,7 @@ class Help extends Command
             '--no-ansi' => "disable ansi output"
         ];
 
-        count($options) > 1 && $dumpOptions = array_merge($dumpOptions, $options);
+        count($options) > 0 && $dumpOptions = array_merge($dumpOptions, $options);
 
         $optionsDump = [];
         foreach ($dumpOptions as $name => $desc) {

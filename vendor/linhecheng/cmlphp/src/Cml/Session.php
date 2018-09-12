@@ -42,7 +42,7 @@ class Session
     {
         $cmlSession = new Session();
         $cmlSession->lifeTime = ini_get('session.gc_maxlifetime');
-        if (Config::get('session_user_LOC') == 'db') {
+        if (Config::get('session_user_loc') == 'db') {
             $cmlSession->handler = Model::getInstance()->db();
         } else {
             $cmlSession->handler = Model::getInstance()->cache();
@@ -80,7 +80,7 @@ class Session
      */
     public function close()
     {
-        if (Config::get('session_user_LOC') == 'db') {
+        if (Config::get('session_user_loc') == 'db') {
             $this->handler->wlink = null;
         }
         //$GLOBALS['debug'] && \Cml\Debug::stopAndShowDebugInfo(); 开启ob_start()的时候 php此时已经不能使用压缩，所以这边输出的数据是没压缩的，而之前已经告诉浏览器数据是压缩的，所以会导致火狐、ie不能正常解压
@@ -98,7 +98,7 @@ class Session
     public function read($sessionId)
     {
 
-        if (Config::get('session_user_LOC') == 'db') {
+        if (Config::get('session_user_loc') == 'db') {
             $result = $this->handler->get(Config::get('session_user_loc_table') . '-id-' . $sessionId, true, true, Config::get('session_user_loc_tableprefix'));
             return $result ? $result[0]['value'] : null;
         } else {
@@ -117,7 +117,7 @@ class Session
      */
     public function write($sessionId, $value)
     {
-        if (Config::get('session_user_LOC') == 'db') {
+        if (Config::get('session_user_loc') == 'db') {
             $this->handler->set(Config::get('session_user_loc_table'), [
                 'id' => $sessionId,
                 'value' => $value,
@@ -138,7 +138,7 @@ class Session
      */
     public function destroy($sessionId)
     {
-        if (Config::get('session_user_LOC') == 'db') {
+        if (Config::get('session_user_loc') == 'db') {
             $this->handler->delete(Config::get('session_user_loc_table') . '-id-' . $sessionId, true, Config::get('session_user_loc_tableprefix'));
         } else {
             $this->handler->delete(Config::get('session_user_loc_tableprefix') . Config::get('session_user_loc_table') . '-id-' . $sessionId);
@@ -155,7 +155,7 @@ class Session
      */
     public function gc($lifeTime = 0)
     {
-        if (Config::get('session_user_LOC') == 'db') {
+        if (Config::get('session_user_loc') == 'db') {
             $lifeTime || $lifeTime = $this->lifeTime;
             $this->handler->whereLt('ctime', Cml::$nowTime - $lifeTime)
                 ->delete(Config::get('session_user_loc_table'), true, Config::get('session_user_loc_tableprefix'));

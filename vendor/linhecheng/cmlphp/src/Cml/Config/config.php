@@ -16,7 +16,7 @@ return [
 
     //数据库配置
     'default_db' => [
-        'driver' => 'Pdo', //数据库驱动
+        'driver' => 'MySql.Pdo', //数据库驱动
         'master' => [
             'host' => 'localhost', //数据库主机
             'username' => 'root', //数据库用户名
@@ -43,7 +43,7 @@ return [
     /**
     使用MongoDB
     'db_mongo' => [
-        'driver' => 'MongoDB', //数据库驱动
+        'driver' => 'MongoDB.MongoDB', //数据库驱动
         'master' => [
             'host' => 'localhost:27017',
             'username' => '',

@@ -231,6 +231,7 @@ class MongoDB extends Base
      * @param array $condition 查询条件
      * @param array $queryOptions 查询的参数
      * @param bool|string $useMaster 是否使用主库
+     *
      * @return array
      */
     public function runMongoQuery($tableName, $condition = [], $queryOptions = [], $useMaster = false)
@@ -383,7 +384,7 @@ class MongoDB extends Base
     /**
      * 根据key 新增 一条数据
      *
-     * @param string $table
+     * @param string $table 表名
      * @param array $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
@@ -412,7 +413,7 @@ class MongoDB extends Base
     /**
      * 新增多条数据
      *
-     * @param string $table
+     * @param string $table 表名
      * @param array $field mongodb中本参数无效
      * @param array $data eg: 多条数据的值 [['标题1', '内容1', 1, '2017'], ['标题2', '内容2', 1, '2017']]
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
@@ -428,6 +429,38 @@ class MongoDB extends Base
             $idArray[] = $this->set($table, $row, $tablePrefix);
         }
         return $idArray;
+    }
+
+    /**
+     * 插入或更新一条记录，当UNIQUE index or PRIMARY KEY存在的时候更新，不存在的时候插入
+     * 若AUTO_INCREMENT存在则返回 AUTO_INCREMENT 的值.
+     *
+     * @param string $table 表名
+     * @param array $data 插入的值 eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
+     * @param array $up mongodb中此项无效
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     *
+     * @return int
+     */
+    public function upSet($table, array $data = [], array $up = [], $tablePrefix = null)
+    {
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        $tableName = $tablePrefix . $table;
+        if (empty($tableName)) {
+            throw new \InvalidArgumentException(Lang::get('_PARSE_SQL_ERROR_NO_TABLE_', 'upSet'));
+        }
+        $condition = $this->sql['where'];
+        if (empty($condition)) {
+            throw new \InvalidArgumentException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'upSet'));
+        }
+
+        $bulk = new BulkWrite();
+        $bulk->update($condition, ['$set' => array_merge($data, $up)], ['multi' => true, 'upsert' => true]);
+        $result = $this->runMongoBulkWrite($tableName, $bulk);
+
+        Cml::$debug && $this->debugLogSql('BulkWrite upSet', $tableName, $condition, $data);
+
+        return $result->getModifiedCount();
     }
 
     /**
@@ -506,7 +539,8 @@ class MongoDB extends Base
     /**
      * 获取处理后的表名
      *
-     * @param $table
+     * @param string $table 表名
+     *
      * @return string
      */
     private function getRealTableName($table)
@@ -547,6 +581,8 @@ class MongoDB extends Base
      * @param array|int|string $value 值
      * @param string $operator 操作符
      * @throws \Exception
+     *
+     * @return $this
      */
     public function conditionFactory($column, $value, $operator = '=')
     {
@@ -685,7 +721,11 @@ class MongoDB extends Base
             case 'column':
                 $this->sql['where']['$where'] = "this.{$column} = this.{$value}";
                 break;
+            case 'raw':
+                $this->sql['where']['$where'] = $column;
+                break;
         }
+        return $this;
     }
 
     /**
@@ -850,22 +890,44 @@ class MongoDB extends Base
     /**
      * 设置后面的where以and连接
      *
+     * @param callable $callable 如果传入函数则函数内执行的条件会被()包围
+     *
      * @return $this
      */
-    public function _and()
+    public function _and(callable $callable = null)
     {
+        $history = $this->opIsAnd;
         $this->opIsAnd = true;
+
+        if (is_callable($callable)) {
+            $this->lBrackets();
+            $callable();
+            $this->rBrackets();
+            $this->opIsAnd = $history;
+        }
+
         return $this;
     }
 
     /**
      * 设置后面的where以or连接
      *
+     * @param callable $callable mongodb中元首
+     *
      * @return $this
      */
-    public function _or()
+    public function _or(callable $callable = null)
     {
+        $history = $this->opIsAnd;
         $this->opIsAnd = false;
+
+        if (is_callable($callable)) {
+            $this->lBrackets();
+            $callable();
+            $this->rBrackets();
+            $this->opIsAnd = $history;
+        }
+
         return $this;
     }
 

@@ -97,10 +97,22 @@ interface Db
     public function setMulti($table, $field, $data, $tablePrefix = null, $openTransAction = true);
 
     /**
+     * 插入或更新一条记录
+     *
+     * @param string $table 表名
+     * @param array $data 插入的值 eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
+     * @param array $up 更新的值-会自动merge $data中的数据
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     *
+     * @return int
+     */
+    public function upSet($table, array $data, array $up = [], $tablePrefix = null);
+
+    /**
      * 根据key更新一条数据
      *
-     * @param string|array $key eg 'user-uid-$uid' 如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组
-     * @param array | null $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
+     * @param string|array $key eg: 'user'(表名)、'user-uid-$uid'(表名+条件) 、['xx'=>'xx' ...](即:$data数组如果条件是通用whereXX()、表名是通过table()设定。这边可以直接传$data的数组)
+     * @param array | null $data eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com'] 可以直接通过$key参数传递
      * @param bool $and 多个条件之间是否为and  true为and false为or
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
@@ -111,7 +123,7 @@ interface Db
     /**
      * 根据key值删除数据
      *
-     * @param string $key eg: 'user-uid-$uid'
+     * @param string $key eg: 'user'(表名，即条件通过where()传递)、'user-uid-$uid'(表名+条件)、啥也不传(即通过table传表名)
      * @param bool $and 多个条件之间是否为and  true为and false为or
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
@@ -202,7 +214,7 @@ interface Db
     public function plunk($column, $key = null, $limit = null, $useMaster = false);
 
     /**
-     * 组块结果集
+     * 组块结果集-此方法前调用paramsAutoReset无效
      *
      * @param int $num 每次获取的条数
      * @param callable $func 结果集处理函数
@@ -218,6 +230,37 @@ interface Db
      * @return $this
      */
     public function where($column, $value = '');
+
+    /**
+     * where条件组装 两个列相等
+     *
+     * @param string $column eg：username | `user`.`username`
+     * @param string $column2 eg: nickname | `user`.`nickname`
+     *
+     * @return $this
+     */
+    public function whereColumn($column, $column2);
+
+    /**
+     * where条件原生条件
+     *
+     * @param string $where eg：utime > ctime + ?
+     * @param array $params eg: [10]
+     *
+     * @return $this
+     */
+    public function whereRaw($where, $params);
+
+    /**
+     * 根据条件是否成立执行对应的闭包
+     *
+     * @param bool $condition 条件
+     * @param callable $trueCallback 条件成立执行的闭包
+     * @param callable|null $falseCallback 条件不成立执行的闭包
+     *
+     * @return $this
+     */
+    public function when($condition, callable $trueCallback, callable $falseCallback = null);
 
     /**
      * where条件组装 不等
@@ -370,23 +413,28 @@ interface Db
      * @param string $column 如 id  user.id (这边的user为表别名如表pre_user as user 这边用user而非带前缀的原表名)
      * @param array|int|string $value 值
      * @param string $operator 操作符
-     * @throws \Exception
+     *
+     * @return $this
      */
     public function conditionFactory($column, $value, $operator = '=');
 
     /**
      * 增加 and条件操作符
      *
+     * @param callable $callable 如果传入函数则函数内执行的条件会被()包围
+     *
      * @return $this
      */
-    public function _and();
+    public function _and(callable $callable = null);
 
     /**
      * 增加or条件操作符
      *
+     * @param callable $callable 如果传入函数则函数内执行的条件会被()包围
+     *
      * @return $this
      */
-    public function _or();
+    public function _or(callable $callable = null);
 
     /**
      * where条件增加左括号

@@ -127,6 +127,50 @@ class Acl
     private static $ssoSign = '';
 
     /**
+     * 单个用户归属多个用户组时多个id在mysql中的分隔符
+     *
+     * @var string
+     */
+    private static $multiGroupDeper = '|';
+
+    /**
+     * 设置权限除了检查url之外的参数。如当前请求的url为web/Index/index  这边传参?id=1则检查权限的时候是检查有无url为web/Index/index?id=1的菜单
+     *
+     * @var string
+     */
+    private static $otherAclParams = '';
+
+    /**
+     * 设置单个用户归属多个用户组时多个id在mysql中的分隔符
+     *
+     * @param string $deper 分隔符
+     */
+    public static function setMultiGroupDeper($deper = '|')
+    {
+        self::$multiGroupDeper = $deper;
+    }
+
+    /**
+     * 获取单个用户归属多个用户组时多个id在mysql中的分隔符
+     *
+     * @return string
+     */
+    public static function getMultiGroupDeper()
+    {
+        return self::$multiGroupDeper;
+    }
+
+    /**
+     * 设置权限除了检查url之外的params参数。如当前请求的url为web/Index/index  这边传参?id=1则检查权限的时候是检查url为web/Index/index并且params字段为?id=1的菜单
+     *
+     * @param string $otherAclParams
+     */
+    public static function setOtherAclParams($otherAclParams = '')
+    {
+        self::$otherAclParams = $otherAclParams;
+    }
+
+    /**
      * 设置加密用的混淆key Cookie::set本身有一重加密 这里再加一重
      *
      * @param string $key
@@ -173,8 +217,10 @@ class Acl
      * @param bool $sso 是否为单点登录，即踢除其它登录用户
      * @param int $cookieExpire 登录的过期时间，为0则默认保持到浏览器关闭，> 0的值为登录有效期的秒数。默认为0
      * @param int $notOperationAutoLogin 当$cookieExpire设置为0时，这个值为用户多久不操作则自动退出。默认为1个小时
+     * @param string $cookiePath path
+     * @param string $cookieDomain domain
      */
-    public static function setLoginStatus($uid, $sso = true, $cookieExpire = 0, $notOperationAutoLogin = 3600)
+    public static function setLoginStatus($uid, $sso = true, $cookieExpire = 0, $notOperationAutoLogin = 3600, $cookiePath = '', $cookieDomain = '')
     {
         $cookieExpire > 0 && $notOperationAutoLogin = 0;
         $user = [
@@ -191,7 +237,7 @@ class Acl
             //如果是刚刚从要单点切换成不要单点。这边要把ssosign置为cache中的
             empty($user['ssosign']) && $user['ssosign'] = Model::getInstance()->cache()->get("SSOSingleSignOn{$uid}");
         }
-        Cookie::set(Config::get('userauthid'), Encry::encrypt(json_encode($user, JSON_UNESCAPED_UNICODE), self::$encryptKey), $cookieExpire);
+        Cookie::set(Config::get('userauthid'), Encry::encrypt(json_encode($user, JSON_UNESCAPED_UNICODE), self::$encryptKey), $cookieExpire, $cookiePath, $cookieDomain);
     }
 
     /**
@@ -226,7 +272,7 @@ class Acl
                         'id' => $user['id'],
                         'username' => $user['username'],
                         'nickname' => $user['nickname'],
-                        'groupid' => explode('|', trim($user['groupid'], '|')),
+                        'groupid' => explode(self::$multiGroupDeper, trim($user['groupid'], self::$multiGroupDeper)),
                         'from_type' => $user['from_type']
                     ];
                     $groups = Model::getInstance()->db()->table(self::$tables['groups'])
@@ -265,7 +311,9 @@ class Acl
      * 如当前访问的方法为web/User/list则传入new \web\Controller\User()获得的实例。最常用的是在基础控制器的init方法或构造方法里传入$this。
      * 传入字符串如web/User/list时会自动 new \web\Controller\User()获取实例用于判断
      *
-     * @return int 返回1是通过检查，0是不能通过检查
+     * @throws \Exception
+     *
+     * @return bool
      */
     public static function checkAcl($controller)
     {
@@ -303,6 +351,7 @@ class Acl
         }
 
         $checkUrl = ltrim(str_replace('\\', '/', $checkUrl), '/');
+        $origUrl = $checkUrl;
 
         if (is_object($controller)) {
             //判断是否有标识 @noacl 不检查权限
@@ -321,7 +370,19 @@ class Acl
                         if (isset($aclJump[1]) && $aclJump[1]) {
                             $aclJump[1] = explode('|', $aclJump[1]);
                             foreach ($aclJump[1] as $val) {
-                                trim($val) && $checkUrlArray[] = ltrim(str_replace('\\', '/', trim($val)), '/');
+                                $val = trim($val);
+                                substr($val, 0, 3) == '../' && $val = '../' . $val;
+                                if ($times = preg_match_all('#\./#i', $val)) {
+                                    $origUrlArray = explode('/', $origUrl);
+                                    $val = explode('./', $val);
+
+                                    for ($i = 0; $i < $times; $i++) {
+                                        array_pop($origUrlArray);
+                                        array_shift($val);
+                                    }
+                                    $val = implode('/', array_merge($origUrlArray, $val));
+                                }
+                                $val && $checkUrlArray[] = ltrim(str_replace('\\', '/', trim($val)), '/') . self::$otherAclParams;
                             }
                         }
                         empty($checkUrlArray) || $checkUrl = $checkUrlArray;
@@ -338,6 +399,8 @@ class Acl
             ->_or()
             ->where('a.userid', $authInfo['id'])
             ->rBrackets();
+
+        self::$otherAclParams && $acl->where('m.params', self::$otherAclParams);
 
         $acl = is_array($checkUrl) ? $acl->whereIn('m.url', $checkUrl) : $acl->where('m.url', $checkUrl);
         $acl = $acl->count('1');

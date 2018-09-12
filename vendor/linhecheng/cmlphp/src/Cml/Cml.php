@@ -23,7 +23,7 @@ class Cml
     /**
      * 版本
      */
-    const VERSION = 'v2.8.0';
+    const VERSION = 'v2.8.3';
 
     /**
      * 执行app/只是初始化环境
@@ -410,6 +410,7 @@ class Cml
             if (!empty($deBugLogData)) {
                 Config::get('dump_use_php_console') ? dumpUsePHPConsole($deBugLogData) : Cml::requireFile(CML_CORE_PATH . DIRECTORY_SEPARATOR . 'ConsoleLog.php', ['deBugLogData' => $deBugLogData]);
             };
+            Plugin::hook('cml.before_ob_end_flush');
             CML_OB_START && ob_end_flush();
         }
         exit();

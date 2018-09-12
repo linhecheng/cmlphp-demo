@@ -213,3 +213,54 @@ function studlyCase($value)
 {
     return str_replace(' ', '', ucwords(str_replace(array('-', '_'), ' ', $value)));
 }
+
+/**
+ * 过滤数组的值.
+ *
+ * @param array $array 要处理的数组
+ * @param array $field 要包含/要排除的字段
+ * @param int $type 1 只包含 0排除
+ *
+ * @return array
+ */
+function filterArrayValue(array &$array, array $field = [], $type = 1)
+{
+    foreach ($array as $key => $item) {
+        if ($type == 1) {
+            if (!in_array($key, $field)) {
+                unset($array[$key]);
+            }
+        } else {
+            if (in_array($key, $field)) {
+                unset($array[$key]);
+            }
+        }
+    }
+    return $array;
+}
+
+/**
+ * 将n级的关联数组格式化为索引数组-经常用于is tree插件
+ *
+ * @param array $array 待处理的数组
+ * @param string $childrenKey 子极的key
+ * @param array|callable $push 要额外添加的项
+ *
+ * @return array
+ */
+function arrayAssocKeyToNumber(array &$array, $childrenKey = 'children', $push = [])
+{
+    $array = array_values($array);
+    foreach ($array as &$item) {
+        if (is_callable($push)) {
+            $pushData = call_user_func($push, $item);
+        } else {
+            $pushData = $push;
+        }
+        $pushData && $item = array_merge($item, $pushData);
+        if (isset($item[$childrenKey]) && $item[$childrenKey]) {
+            $item[$childrenKey] = arrayAssocKeyToNumber($item[$childrenKey], $childrenKey, $push);
+        }
+    }
+    return $array;
+}

@@ -676,7 +676,7 @@ class Validate
      */
     public static function isMobile($value)
     {
-        return preg_match('/^[+86]?1[354678][0-9]{9}$/', trim($value));
+        return preg_match('/^[+86]?1[3546789][0-9]{9}$/', trim($value));
     }
 
     /**

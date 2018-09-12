@@ -17,6 +17,8 @@ use Cml\Interfaces\Db;
  * 以下方法只是为了方便配合Model中的快捷方法(http://doc.cmlphp.com/devintro/model/mysql/fastmethod/readme.html)使用
  * 并没有列出db中的所有方法。其它未列出的方法建议还是通过$this->db()->xxx使用
  * @method Db|Model where(string | array $column, string | int $value = '')  where条件组装-相等
+ * @method Db|Model whereColumn(string $column, string $column2 = '')  where条件组装-两个列相等
+ * @method Db|Model whereRaw(string $where, array $params = [])  where条件组装-原生条件
  * @method Db|Model whereNot(string $column, string | int $value)  where条件组装-不等
  * @method Db|Model whereGt(string $column, string | int $value = '')  where条件组装-大于
  * @method Db|Model whereLt(string $column, string | int $value = '')  where条件组装-小于
@@ -37,11 +39,26 @@ use Cml\Interfaces\Db;
  * @method Db|Model having(string $column, $operator = '=', $value) 分组
  * @method Db|Model paramsAutoReset(bool $autoReset = true, bool $alwaysClearTable = false, bool $alwaysClearColumns = true) orm参数是否自动重置, 默认在执行语句后会重置orm参数, 包含查询的表、字段信息、条件等信息
  * @method Db|Model noCache() 标记本次查询不使用缓存
+ * @method Db|Model table(string $table = '', string | null $tablePrefix = null) 定义操作的表
+ * @method Db|Model lBrackets() where条件增加左括号
+ * @method Db|Model rBrackets() where条件增加右括号
+ * @method Db|Model join(string | array $table, string $on, string | null $tablePrefix = null) join内联结
+ * @method Db|Model leftJoin(string | array $table, string $on, string | null $tablePrefix = null) leftJoin左联结
+ * @method Db|Model rightJoin(string | array $table, string $on, string | null $tablePrefix = null) rightJoin右联结
+ * @method Db|Model _and(callable $callable = null) and条件操作
+ * @method Db|Model _or(callable $callable = null) or条件操作
  *
  * @package Cml
  */
 class Model
 {
+    /**
+     * 快捷方法-读是否强制使用主库
+     *
+     * @var bool
+     */
+    protected $useMaster = false;
+
     /**
      * 表前缀
      *
@@ -146,16 +163,22 @@ class Model
     /**
      * 初始化一个Model实例
      *
+     * @param null|string $table 表名
+     * @param null|string $tablePrefix 表前缀
+     *
      * @return \Cml\Model | \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB | \Cml\Db\Base | $this
      */
-    public static function getInstance()
+    public static function getInstance($table = null, $tablePrefix = null)
     {
         static $mInstance = [];
         $class = get_called_class();
-        if (!isset($mInstance[$class])) {
-            $mInstance[$class] = new $class();
+        $classKey = $class . '-' . $tablePrefix . $table;
+        if (!isset($mInstance[$classKey])) {
+            $mInstance[$classKey] = new $class();
+            is_null($table) || $mInstance[$classKey]->table = $table;
+            is_null($tablePrefix) || $mInstance[$classKey]->$tablePrefix = $tablePrefix;
         }
-        return $mInstance[$class];
+        return $mInstance[$classKey];
     }
 
     /**
@@ -197,7 +220,7 @@ class Model
         is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $tablePrefix);
         return $this->db($this->getDbConf())->table($tableName, $tablePrefix)
             ->where($column, $val)
-            ->getOne();
+            ->getOne($this->useMaster);
     }
 
     /**
@@ -217,7 +240,7 @@ class Model
         is_null($column) && $column = $this->db($this->getDbConf())->getPk($tableName, $tablePrefix);
         return $this->db($this->getDbConf())->table($tableName, $tablePrefix)
             ->where($column, $val)
-            ->select();
+            ->select(null, null, $this->useMaster);
     }
 
     /**
@@ -307,7 +330,7 @@ class Model
         is_null($tableName) && $tableName = $this->getTableName();
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         is_null($pkField) && $pkField = $this->db($this->getDbConf())->getPk($tableName, $tablePrefix);
-        return $this->db($this->getDbConf())->table($tableName, $tablePrefix)->count($pkField);
+        return $this->db($this->getDbConf())->table($tableName, $tablePrefix)->count($pkField, false, $this->useMaster);
     }
 
     /**
@@ -332,7 +355,7 @@ class Model
             $dbInstance->orderBy($key, $val);
         }
         return $dbInstance->limit($offset, $limit)
-            ->select();
+            ->select(null, null, $this->useMaster);
     }
 
     /**
@@ -355,7 +378,7 @@ class Model
         foreach ($order as $key => $val) {
             $dbInstance->orderBy($key, $val);
         }
-        return $dbInstance->paginate($limit);
+        return $dbInstance->paginate($limit, $this->useMaster);
     }
 
     /**
@@ -376,6 +399,31 @@ class Model
     public function mapDbAndTable()
     {
         return $this->db($this->getDbConf())->table($this->getTableName(), $this->tablePrefix);
+    }
+
+    /**
+     * 获取model实例并同时执行mapDbAndTable
+     *
+     * @param null|string $table 表名
+     * @param null|string $tablePrefix 表前缀
+     *
+     * @return \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB | \Cml\Db\Base
+     */
+    public static function getInstanceAndRunMapDbAndTable($table = null, $tablePrefix = null)
+    {
+        return self::getInstance($table, $tablePrefix)->mapDbAndTable();
+    }
+
+    /**
+     * 静态方式获取cache实例
+     *
+     * @param string $conf 使用的缓存配置;
+     *
+     * @return \Cml\Cache\Redis | \Cml\Cache\Apc | \Cml\Cache\File | \Cml\Cache\Memcache
+     */
+    public static function staticCache($conf = 'default_cache')
+    {
+        return self::getInstance()->cache($conf);
     }
 
     /**
@@ -412,5 +460,24 @@ class Model
         } else {
             return $res;
         }
+    }
+
+    /**
+     * 根据条件是否成立执行对应的闭包
+     *
+     * @param bool $condition 条件
+     * @param callable $trueCallback 条件成立执行的闭包
+     * @param callable|null $falseCallback 条件不成立执行的闭包
+     *
+     * @return Db | \Cml\Db\MySql\Pdo | \Cml\Db\MongoDB\MongoDB | $this
+     */
+    public function when($condition, callable $trueCallback, callable $falseCallback = null)
+    {
+        if ($condition) {
+            call_user_func($trueCallback, $this);
+        } else {
+            is_callable($falseCallback) && call_user_func($falseCallback, $this);
+        }
+        return $this;
     }
 }

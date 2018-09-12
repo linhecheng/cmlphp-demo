@@ -50,24 +50,34 @@ class Tree
      * 获取树--返回格式化后的数据
      *
      * @param  array $list 数据列表数组
-     * @param  int   $pid  初始化树时候，代表获取pid下的所有子集
-     * @param  int   $selectedId  选中的ID值
-     * @param  string  $str  组装后的字串
-     * @param  string  $prefix  前缀
-     * @param  string  $selectedString  选中时的字串 如selected checked
+     * @param  int $pid 初始化树时候，代表获取pid下的所有子集
+     * @param  int $selectedId 选中的ID值
+     * @param  string $str 组装后的字串
+     * @param  string|array $prefix 前缀 如：|--表示每一层都会以|--分隔、['    ', '|--']表示只有最后一层是用|--其余层级用空格缩进
+     * @param  string $selectedString 选中时的字串 如selected checked
+     * @param  int $returnType 1为返回字符串 2为返回数组
      *
      * @return string|array
      */
-    public static function getTree($list, $pid = 0, $selectedId = 0, $str = "<option value='\$id' \$selected>\$tempPrefix\$name</option>", $prefix = '|--', $selectedString = 'selected')
+    public static function getTree(
+        $list,
+        $pid = 0,
+        $selectedId = 0,
+        $str = "<option value='\$id' \$selected>\$tempPrefix\$name</option>",
+        $prefix = '|--',
+        $selectedString = 'selected',
+        $returnType = 1
+    )
     {
+        $string = $returnType === 1 ? '' : [];
         if (!is_array($list)) { //遍历结束
             self::$times = 0;
-            return '';
+            return $string;
         }
-        $string = $tempPrefix = '';
+        $tempPrefix = '';
         self::$times += 1;
-        for ($i=0; $i < self::$times; $i++) {
-            $tempPrefix .= $prefix;
+        for ($i = 0; $i < self::$times; $i++) {
+            $tempPrefix .= is_array($prefix) ? ($i + 1 == self::$times ? $prefix[1] : $prefix[0]) : $prefix;
         }
 
         foreach ($list as $v) {
@@ -77,24 +87,31 @@ class Tree
                 $selected = ($id == $selectedId) ? $selectedString : ''; //被选中的id
                 $tempCode = '';
                 eval("\$tempCode = \"{$str}\";");//转化
-                $string .=  $tempCode;
-                $string .=  self::getTree($list, $v[self::$config['id']], $selectedId, $str, $prefix, $selectedString);
+                if ($returnType === 1) {
+                    $string .= $tempCode;
+                    $string .= self::getTree($list, $id, $selectedId, $str, $prefix, $selectedString, $returnType);
+                } else {
+                    $string[$id] = $tempCode;
+                    $sub = self::getTree($list, $id, $selectedId, $str, $prefix, $selectedString, $returnType);
+                    $sub && $string = $string + $sub;
+                }
             }
         }
-
         self::$times--;
-        return $string ;
+
+        return $string;
     }
 
     /**
      * 获取树--返回数组
      *
      * @param  array $list 数据列表数组
-     * @param  int   $pid  初始化树时候，代表获取pid下的所有子集
+     * @param  int $pid 初始化树时候，代表获取pid下的所有子集
+     * @param  string $sonNodeName 子级的key
      *
      * @return string|array
      */
-    public static function getTreeNoFormat(&$list, $pid = 0)
+    public static function getTreeNoFormat(&$list, $pid = 0, $sonNodeName = 'sonNode')
     {
         $res = [];
         if (!is_array($list)) { //遍历结束
@@ -103,18 +120,18 @@ class Tree
 
         foreach ($list as $v) {
             if (isset($v[self::$config['pid']]) && $v[self::$config['pid']] == $pid) { //获取pid下的子集
-                $v['sonNode'] =  self::getTreeNoFormat($list, $v[self::$config['id']]);
+                $v[$sonNodeName] = self::getTreeNoFormat($list, $v[self::$config['id']], $sonNodeName);
                 $res[$v[self::$config['id']]] = $v;
             }
         }
-        return $res ;
+        return $res;
     }
 
     /**
      * 获取子集
      *
      * @param  array $list 树的数组
-     * @param  int   $id   父类ID
+     * @param  int $id 父类ID
      *
      * @return string|array
      */
@@ -134,7 +151,7 @@ class Tree
      * 获取父集
      *
      * @param  array $list 树的数组
-     * @param  int   $id   子集ID
+     * @param  int $id 子集ID
      *
      * @return string|array
      */

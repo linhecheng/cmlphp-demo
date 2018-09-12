@@ -162,6 +162,9 @@ class Route implements RouteInterface
                     self::$urlParams['action'] = $isRoute['route'][2];
                     self::$urlParams['controller'] = $isRoute['route'][1];
                     $path = self::$urlParams['path'] = $isRoute['route'][0];
+                    if (is_callable($isRoute['route'][3])) {
+                        $isRoute['route'][3]();
+                    }
                 } else {
                     $routeArr = explode('/', $isRoute['route']);
                     $isRoute = null;

@@ -31,14 +31,17 @@ class StaticResource
     {
         $isCli = Request::isCli();
 
-        if ($isCli) {
-            Output::writeln(Colour::colour('create link start!', [Colour::GREEN, Colour::HIGHLIGHT]));
-        } else {
-            echo "<br />**************************create link start!*********************<br />";
-        }
-
         is_null($rootDir) && $rootDir = CML_PROJECT_PATH . DIRECTORY_SEPARATOR . 'public';
         is_dir($rootDir) || mkdir($rootDir, true, 0700);
+
+        if ($isCli) {
+            Output::writeln(Colour::colour('create link start!', [Colour::GREEN, Colour::HIGHLIGHT]));
+
+            Output::writeln(Colour::colour("  ROOT DIR >>>> {$rootDir}", [Colour::WHITE]));
+        } else {
+            echo "<br />**************************create link start!*********************<br />";
+            echo "  ROOT DIR >>>> {$rootDir} <br />";
+        }
         //modules_static_path_name
         // 递归遍历目录
 

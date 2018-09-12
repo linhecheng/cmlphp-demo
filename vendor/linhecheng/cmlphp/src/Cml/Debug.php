@@ -150,6 +150,7 @@ class Debug implements DebugInterfaces
 
         Cml::getContainer()->make('cml_debug')->stopAndShowDebugInfo();
 
+        Plugin::hook('cml.before_ob_end_flush');
         CML_OB_START && ob_end_flush();
     }
 
