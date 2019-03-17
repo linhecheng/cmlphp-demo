@@ -252,16 +252,18 @@ class Route
      * 载入应用单独的路由
      *
      * @param string $app 应用名称
+     * @param string $inConfigDir 配置文件是否在Config目录中
      */
-    public static function loadAppRoute($app = 'web')
+    public static function loadAppRoute($app = 'web', $inConfigDir = true)
     {
         static $loaded = [];
         if (isset($loaded[$app])) {
             return;
         }
-        $appRoute = Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $app . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_config_path_name') . DIRECTORY_SEPARATOR . 'route.php';
+        $path = $app . DIRECTORY_SEPARATOR . ($inConfigDir ? Cml::getApplicationDir('app_config_path_name') . DIRECTORY_SEPARATOR : '') . 'route.php';
+        $appRoute = Cml::getApplicationDir('apps_path') . DIRECTORY_SEPARATOR . $path;
         if (!is_file($appRoute)) {
-            throw new \InvalidArgumentException(Lang::get('_NOT_FOUND_', $app . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_config_path_name') . DIRECTORY_SEPARATOR . 'route.php'));
+            throw new \InvalidArgumentException(Lang::get('_NOT_FOUND_', $path));
         }
 
         $loaded[$app] = 1;

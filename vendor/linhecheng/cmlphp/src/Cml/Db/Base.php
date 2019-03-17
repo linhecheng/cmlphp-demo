@@ -23,6 +23,16 @@ use Cml\Model;
 abstract class Base implements Db
 {
     /**
+     * 多个Model中共享db连接实例
+     *
+     * @var array
+     */
+    protected static $dbInst = [
+        'rlink' => null,
+        'wlink' => null,
+    ];
+
+    /**
      * 启用数据缓存
      *
      * @var bool
@@ -165,17 +175,33 @@ abstract class Base implements Db
      */
     public function __get($db)
     {
+        if (isset(self::$dbInst[$this->conf['mark'] . $db])) {
+            return self::$dbInst[$this->conf['mark'] . $db];
+        }
+        return $this->connectDb($db);
+    }
+
+    /**
+     * 连接数据库
+     *
+     * @param string $db rlink/wlink
+     * @param bool $reConnect 是否重连--用于某些db如mysql.长连接被服务端断开的情况
+     *
+     * @return bool|false|mixed|resource
+     */
+    protected function connectDb($db, $reConnect = false)
+    {
         if ($db == 'rlink') {
             //如果没有指定从数据库，则使用 master
             if (empty($this->conf['slaves'])) {
-                $this->rlink = $this->wlink;
+                self::$dbInst[$db] = $this->rlink = $reConnect ? $this->connectDb('wlink', true) : $this->wlink;
                 return $this->rlink;
             }
 
             $n = mt_rand(0, count($this->conf['slaves']) - 1);
             $conf = $this->conf['slaves'][$n];
             empty($conf['engine']) && $conf['engine'] = '';
-            $this->rlink = $this->connect(
+            self::$dbInst[$db] = $this->rlink = $this->connect(
                 $conf['host'],
                 $conf['username'],
                 $conf['password'],
@@ -188,7 +214,7 @@ abstract class Base implements Db
         } elseif ($db == 'wlink') {
             $conf = $this->conf['master'];
             empty($conf['engine']) && $conf['engine'] = '';
-            $this->wlink = $this->connect(
+            self::$dbInst[$db] = $this->wlink = $this->connect(
                 $conf['host'],
                 $conf['username'],
                 $conf['password'],
@@ -844,15 +870,23 @@ abstract class Base implements Db
      *
      * @param string $column 字段名
      * @param string $operator 操作符
-     * @param string $value 值
+     * @param string|array $value 值
+     * @param string $logic 逻辑AND OR
      *
      * @return $this
      */
-    public function having($column, $operator = '=', $value)
+    public function having($column, $operator = '=', $value, $logic = 'AND')
     {
-        $having = $this->sql['having'] == '' ? 'HAVING' : ' AND ';
-        $this->sql['having'] .= "{$having} {$column} {$operator} %s ";
-        $this->bindParams[] = $value;
+        $having = $this->sql['having'] == '' ? 'HAVING' : " {$logic} ";
+        $this->sql['having'] .= "{$having} {$column} {$operator} ";
+        if ($value) {
+            if (is_array($value)) {//手动传%s
+                $this->bindParams = array_merge($this->bindParams, $value);
+            } else {
+                $this->sql['having'] .= ' %s ';
+                $this->bindParams[] = $value;
+            }
+        }
         return $this;
     }
 
@@ -996,9 +1030,12 @@ abstract class Base implements Db
     /**
      * orm参数重置
      *
+     * @param bool $must 是否强制重置
+     *
      */
-    protected function reset()
+    public function reset($must = false)
     {
+        $must && $this->paramsAutoReset();
         if (!$this->paramsAutoReset) {
             $this->alwaysClearColumns && $this->sql['columns'] = '';
             if ($this->alwaysClearTable) {
@@ -1063,9 +1100,11 @@ abstract class Base implements Db
         foreach ($arr as $k => $v) {
             if (is_array($v)) { //自增或自减
                 switch (key($v)) {
+                    case '+':
                     case 'inc':
                         $p = "`{$k}`= `{$k}`+" . abs(intval(current($v)));
                         break;
+                    case '-':
                     case 'dec':
                         $p = "`{$k}`= `{$k}`-" . abs(intval(current($v)));
                         break;
@@ -1082,6 +1121,9 @@ abstract class Base implements Db
                         break;
                     case 'column':
                         $p = "`{$k}`= `" . current($v) . "`";
+                        break;
+                    case 'raw':
+                        $p = "`{$k}`= " . addslashes(current($v));//flags = (flags | 2) ^ 3
                         break;
                     default ://计算类型
                         $conKey = key($v);

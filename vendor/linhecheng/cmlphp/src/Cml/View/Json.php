@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 视图 Json渲染引擎
  * *********************************************************** */
+
 namespace Cml\View;
 
 use Cml\Cml;
@@ -45,6 +46,6 @@ class Json extends Base
             }
         }
 
-        exit(json_encode($this->args, JSON_UNESCAPED_UNICODE));
+        exit(json_encode($this->args, JSON_UNESCAPED_UNICODE) ?: json_last_error_msg());
     }
 }

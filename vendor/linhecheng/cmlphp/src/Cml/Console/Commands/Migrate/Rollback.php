@@ -20,7 +20,7 @@ use Cml\Console\IO\Output;
  */
 class Rollback extends AbstractCommand
 {
-    protected $description = "Rollback the last or to a specific migration";
+    protected $description = "rollback the last or to a specific migration";
 
     protected $arguments = [
     ];

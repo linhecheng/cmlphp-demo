@@ -28,7 +28,7 @@ class Create extends AbstractCommand
      */
     const CREATION_INTERFACE = 'Phinx\Migration\CreationInterface';
 
-    protected $description = "Create a new migration";
+    protected $description = "create a new migration";
 
     protected $arguments = [
         'name' => 'What is the name of the migration?',

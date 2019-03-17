@@ -97,6 +97,18 @@ interface Db
     public function setMulti($table, $field, $data, $tablePrefix = null, $openTransAction = true);
 
     /**
+     * 插入或替换一条记录
+     * 若AUTO_INCREMENT存在则返回 AUTO_INCREMENT 的值.
+     *
+     * @param string $table 表名
+     * @param array $data 插入/更新的值 eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     *
+     * @return int
+     */
+    public function replaceInto($table, array $data, $tablePrefix = null);
+
+    /**
      * 插入或更新一条记录
      *
      * @param string $table 表名

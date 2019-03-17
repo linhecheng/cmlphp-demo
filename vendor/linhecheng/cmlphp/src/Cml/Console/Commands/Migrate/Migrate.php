@@ -21,7 +21,7 @@ use Cml\Console\IO\Output;
 class Migrate extends AbstractCommand
 {
 
-    protected $description = "Migrate the database";
+    protected $description = "migrate the database";
 
     protected $arguments = [
     ];

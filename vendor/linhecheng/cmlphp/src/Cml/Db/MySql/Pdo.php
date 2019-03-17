@@ -34,6 +34,13 @@ class Pdo extends Base
     protected $openCache = true;
 
     /**
+     * 当前查询使用的是否是主库
+     *
+     * @var \PDO
+     */
+    private $currentQueryIsMaster = true;
+
+    /**
      * 当前执行的sql 异常情况用来显示在错误页/日志
      *
      * @var string
@@ -68,6 +75,7 @@ class Pdo extends Base
      */
     public function getTables()
     {
+        $this->currentQueryIsMaster = false;
         $stmt = $this->prepare('SHOW TABLES;', $this->rlink);
         $this->execute($stmt);
 
@@ -85,6 +93,7 @@ class Pdo extends Base
      */
     public function getAllTableStatus()
     {
+        $this->currentQueryIsMaster = false;
         $stmt = $this->prepare('SHOW TABLE STATUS FROM ' . $this->conf['master']['dbname'], $this->rlink);
         $this->execute($stmt);
         $res = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -119,6 +128,7 @@ class Pdo extends Base
         } else {
             Config::get('db_fields_cache') && $info = \Cml\simpleFileCache($this->conf['master']['dbname'] . '.' . $table);
             if (!$info || Cml::$debug) {
+                $this->currentQueryIsMaster = false;
                 $stmt = $this->prepare("SHOW COLUMNS FROM $table", $this->rlink, false);
                 $this->execute($stmt, false);
                 $info = [];
@@ -179,6 +189,7 @@ class Pdo extends Base
         }
 
         if ($return === false) { //cache中不存在这条记录
+            $this->currentQueryIsMaster = $useMaster;
             $stmt = $this->prepare($sql, $useMaster ? $this->wlink : $this->rlink);
             $this->execute($stmt);
             $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -212,6 +223,7 @@ class Pdo extends Base
         $tableName = $tablePrefix . $table;
         if (is_array($data)) {
             $s = $this->arrToCondition($data);
+            $this->currentQueryIsMaster = true;
             $stmt = $this->prepare("INSERT INTO {$tableName} SET {$s}", $this->wlink);
             $this->execute($stmt);
 
@@ -247,6 +259,7 @@ class Pdo extends Base
 
             try {
                 $openTransAction && $this->startTransAction();
+                $this->currentQueryIsMaster = true;
                 $stmt = $this->prepare("INSERT INTO {$tableName} SET {$s}", $this->wlink);
                 $idArray = [];
                 foreach ($data as $row) {
@@ -263,6 +276,33 @@ class Pdo extends Base
 
             $this->setCacheVer($tableName);
             return $idArray;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 插入或替换一条记录
+     * 若AUTO_INCREMENT存在则返回 AUTO_INCREMENT 的值.
+     *
+     * @param string $table 表名
+     * @param array $data 插入/更新的值 eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     *
+     * @return int
+     */
+    public function replaceInto($table, array $data, $tablePrefix = null)
+    {
+        is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
+        $tableName = $tablePrefix . $table;
+        if (is_array($data)) {
+            $s = $this->arrToCondition($data);
+            $this->currentQueryIsMaster = true;
+            $stmt = $this->prepare("REPLACE INTO {$tableName} SET {$s}", $this->wlink);
+            $this->execute($stmt);
+
+            $this->setCacheVer($tableName);
+            return $this->insertId();
         } else {
             return false;
         }
@@ -286,6 +326,7 @@ class Pdo extends Base
         if (is_array($data)) {
             $up = $this->arrToCondition(array_merge($data, $up));
             $s = $this->arrToCondition($data);
+            $this->currentQueryIsMaster = true;
             $stmt = $this->prepare("INSERT INTO {$tableName} SET {$s} ON DUPLICATE KEY UPDATE {$up}", $this->wlink);
             $this->execute($stmt);
 
@@ -336,6 +377,7 @@ class Pdo extends Base
         if (empty($whereCondition)) {
             throw new \InvalidArgumentException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'update'));
         }
+        $this->currentQueryIsMaster = true;
         $stmt = $this->prepare("UPDATE {$tableName} SET {$s} {$whereCondition}", $this->wlink);
         $this->execute($stmt);
 
@@ -348,7 +390,7 @@ class Pdo extends Base
     /**
      * 根据key值删除数据
      *
-     * @param string $key eg: 'user'(表名，即条件通过where()传递)、'user-uid-$uid'(表名+条件)、啥也不传(即通过table传表名)
+     * @param string|int $key eg: 'user'(表名，即条件通过where()传递)、'user-uid-$uid'(表名+条件)、啥也不传(即通过table传表名)
      * @param bool $and 多个条件之间是否为and  true为and false为or
      * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
      *
@@ -379,7 +421,13 @@ class Pdo extends Base
         if (empty($whereCondition)) {
             throw new \InvalidArgumentException(Lang::get('_PARSE_SQL_ERROR_NO_CONDITION_', 'delete'));
         }
-        $stmt = $this->prepare("DELETE FROM {$tableName} {$whereCondition}", $this->wlink);
+        $this->currentQueryIsMaster = true;
+        $limit = '';
+        if ($this->sql['limit']) {
+            $limit = explode(',', $this->sql['limit']);
+            $limit = 'LIMIT ' . $limit[1];
+        }
+        $stmt = $this->prepare("DELETE FROM {$tableName} {$whereCondition} {$limit}", $this->wlink);
         $this->execute($stmt);
 
         foreach ($upCacheTables as $tb) {
@@ -410,6 +458,7 @@ class Pdo extends Base
     public function truncate($tableName)
     {
         $tableName = $this->tablePrefix . $tableName;
+        $this->currentQueryIsMaster = true;
         $stmt = $this->prepare("TRUNCATE {$tableName}");
 
         $this->setCacheVer($tableName);
@@ -626,6 +675,7 @@ class Pdo extends Base
         }
 
         if ($return === false) {
+            $this->currentQueryIsMaster = $useMaster;
             $stmt = $this->prepare($sql, $useMaster ? $this->wlink : $this->rlink);
             $this->execute($stmt);
             $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -688,7 +738,12 @@ class Pdo extends Base
         $link = '';
         try {
             $host = explode(':', $host);
-            $dsn = "mysql:host={$host[0]};" . (isset($host[1]) ? "port={$host[1]};" : '') . "dbname={$dbName}";
+            if (substr($host[0], 0, 11) === 'unix_socket') {
+                $dsn = "mysql:dbname={$dbName};unix_socket=" . substr($host[0], 12);
+            } else {
+                $dsn = "mysql:host={$host[0]};" . (isset($host[1]) ? "port={$host[1]};" : '') . "dbname={$dbName}";
+            }
+
             if ($pConnect) {
                 $link = new \PDO($dsn, $username, $password, [
                     \PDO::ATTR_PERSISTENT => true,
@@ -739,7 +794,8 @@ class Pdo extends Base
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         $tableName = $tablePrefix . $tableName;
 
-        $stmt = $this->prepare('UPDATE  `' . $tableName . "` SET  `{$field}` =  `{$field}` + {$val}  WHERE  $condition");
+        $this->currentQueryIsMaster = true;
+        $stmt = $this->prepare('UPDATE  `' . $tableName . "` SET  `{$field}` =  `{$field}` + {$val}  WHERE  $condition", $this->wlink);
 
         $this->execute($stmt);
         $this->setCacheVer($tableName);
@@ -767,7 +823,8 @@ class Pdo extends Base
 
         is_null($tablePrefix) && $tablePrefix = $this->tablePrefix;
         $tableName = $tablePrefix . $tableName;
-        $stmt = $this->prepare('UPDATE  `' . $tableName . "` SET  `$field` =  `$field` - $val  WHERE  $condition");
+        $this->currentQueryIsMaster = true;
+        $stmt = $this->prepare('UPDATE  `' . $tableName . "` SET  `$field` =  `$field` - $val  WHERE  $condition", $this->wlink);
 
         $this->execute($stmt);
         $this->setCacheVer($tableName);
@@ -787,7 +844,7 @@ class Pdo extends Base
     public function prepare($sql, $link = null, $resetParams = true)
     {
         $resetParams && $this->reset();
-        is_null($link) && $link = $this->wlink;
+        is_null($link) && $link = $this->currentQueryIsMaster ? $this->wlink : $this->rlink;
 
         $sqlParams = [];
         foreach ($this->bindParams as $key => $val) {
@@ -800,8 +857,18 @@ class Pdo extends Base
         $stmt = $link->prepare($sql);//pdo默认情况prepare出错不抛出异常只返回Pdo::errorInfo
         if ($stmt === false) {
             $error = $link->errorInfo();
+            if (in_array($error[1], [2006, 2013])) {
+                $link = $this->connectDb($this->currentQueryIsMaster ? 'wlink' : 'rlink', true);
+                $stmt = $link->prepare($sql);
+                if ($stmt === false) {
+                    $error = $link->errorInfo();
+                } else {
+                    return $stmt;
+                }
+            }
             throw new \InvalidArgumentException(
-                'Pdo Prepare Sql error! ,【Sql : ' . $this->buildDebugSql() . '】,【Code:' . $link->errorCode() . '】, 【ErrorInfo!:' . $error[2] . '】 '
+                'Pdo Prepare Sql error! ,【Sql: ' . $this->buildDebugSql() . '】,【Code: ' . $link->errorCode() . '】, 【ErrorInfo!: 
+                ' . $error[2] . '】 '
             );
         }
         return $stmt;
@@ -843,6 +910,7 @@ class Pdo extends Base
             $this->debugLogSql($slow > 0 ? Debug::SQL_TYPE_SLOW : Debug::SQL_TYPE_NORMAL, $slow);
         }
 
+        $this->currentQueryIsMaster = true;
         $this->currentSql = '';
         $clearBindParams && $this->clearBindParams();
         return true;
@@ -962,7 +1030,8 @@ class Pdo extends Base
     public function callProcedure($procedureName = '', $bindParams = [], $isSelect = true)
     {
         $this->bindParams = $bindParams;
-        $stmt = $this->prepare("exec {$procedureName}");
+        $this->currentQueryIsMaster = true;
+        $stmt = $this->prepare("exec {$procedureName}", $this->wlink);
         $this->execute($stmt);
         if ($isSelect) {
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);

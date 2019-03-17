@@ -254,9 +254,12 @@ class MongoDB extends Base
     /**
      * orm参数重置
      *
+     * @param bool $must 是否强制重置
+     *
      */
-    protected function reset()
+    public function reset($must = false)
     {
+        $must && $this->paramsAutoReset();
         if (!$this->paramsAutoReset) {
             $this->alwaysClearColumns && $this->sql['columns'] = [];
             if ($this->alwaysClearTable) {
@@ -429,6 +432,21 @@ class MongoDB extends Base
             $idArray[] = $this->set($table, $row, $tablePrefix);
         }
         return $idArray;
+    }
+
+    /**
+     * 插入或替换一条记录
+     * 若AUTO_INCREMENT存在则返回 AUTO_INCREMENT 的值.
+     *
+     * @param string $table 表名
+     * @param array $data 插入/更新的值 eg: ['username'=>'admin', 'email'=>'linhechengbush@live.com']
+     * @param mixed $tablePrefix 表前缀 不传则获取配置中配置的前缀
+     *
+     * @return int
+     */
+    public function replaceInto($table, array $data, $tablePrefix = null)
+    {
+        return $this->upSet($table, $data, $data, $tablePrefix);
     }
 
     /**
@@ -1218,13 +1236,14 @@ class MongoDB extends Base
     }
 
     /**
-     * 魔术方法 自动获取相应db实例
+     * 连接数据库
      *
-     * @param string $db 要连接的数据库类型
+     * @param string $db rlink/wlink
+     * @param bool $reConnect 是否重连--用于某些db如mysql.长连接被服务端断开的情况
      *
-     * @return  bool|Manager MongoDB 连接标识
+     * @return bool|false|mixed|resource
      */
-    public function __get($db)
+    protected function connectDb($db, $reConnect = false)
     {
         if ($db == 'rlink') {
             //如果没有指定从数据库，则使用 master

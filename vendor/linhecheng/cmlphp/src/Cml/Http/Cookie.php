@@ -73,12 +73,14 @@ class Cookie
      * 删除某个Cookie值
      *
      * @param string $name 要删除的cookie的名称
+     * @param string $path path
+     * @param string $domain domain
      *
      * @return void
      */
-    public static function delete($name)
+    public static function delete($name, $path = '', $domain = '')
     {
-        self::set($name, '', -3600);
+        self::set($name, '', -3600, $path, $domain);
         unset($_COOKIE[Config::get('cookie_prefix') . $name]);
     }
 

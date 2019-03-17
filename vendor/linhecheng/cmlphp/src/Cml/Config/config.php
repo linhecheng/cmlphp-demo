@@ -19,6 +19,7 @@ return [
         'driver' => 'MySql.Pdo', //数据库驱动
         'master' => [
             'host' => 'localhost', //数据库主机
+            //'host' => 'unix_socket=/path/', //使用unix_socket
             'username' => 'root', //数据库用户名
             'password' => '', //数据库密码
             'dbname' => 'cmlphp', //数据库名
@@ -64,7 +65,9 @@ return [
             [
                 'host' => '127.0.0.1',
                 'port' => 11211,//必须是整形
-                //'weight' => 100 //权重memcached扩展有效
+                //'weight' => 100 //权重
+                //'username'=>'sals_username'
+                //'password'=>'sals_password'
             ],
             //多台...
         ],

@@ -72,7 +72,7 @@ class Excel
         $cells = '';
         foreach ($data as $val) {
             //字符转换为 HTML 实体
-            $val = htmlentities($val, ENT_COMPAT, $this->coding);
+            //$val = htmlentities($val, ENT_COMPAT, $this->coding);
             $cells .= "<td align=\"left\">{$val}</td>";
         }
         return $cells;

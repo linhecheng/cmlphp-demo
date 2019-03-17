@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 Lock处理类
  * *********************************************************** */
+
 namespace Cml;
 
 /**
@@ -50,6 +51,29 @@ class Lock
     public static function lock($key, $wouldBlock = false)
     {
         return self::getLocker()->lock($key, $wouldBlock);
+    }
+
+    /**
+     * 上锁并重试N次-每2000微秒重试一次
+     *
+     * @param string $key 要解锁的锁的key
+     * @param int $reTryTimes 重试的次数
+     *
+     * @return bool
+     */
+    public static function lockWait($key, $reTryTimes = 3)
+    {
+        $reTryTimes = intval($reTryTimes);
+
+        $i = 0;
+        while (!self::lock($key)) {
+            if (++$i >= $reTryTimes) {
+                return false;
+            }
+            usleep(2000);
+        }
+
+        return true;
     }
 
     /**

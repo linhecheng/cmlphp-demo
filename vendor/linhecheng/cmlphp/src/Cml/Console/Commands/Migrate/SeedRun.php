@@ -20,7 +20,7 @@ use Cml\Console\IO\Output;
  */
 class SeedRun extends AbstractCommand
 {
-    protected $description = "Run database seeders";
+    protected $description = "run database seeders";
 
     protected $arguments = [
         'name' => 'What is the name of the seeder?',

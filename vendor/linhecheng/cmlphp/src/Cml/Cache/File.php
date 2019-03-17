@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 文件缓存驱动
  * *********************************************************** */
+
 namespace Cml\Cache;
 
 use Cml\Cml;
@@ -45,18 +46,23 @@ class File extends namespace\Base
     public function get($key)
     {
         $fileName = $this->getFileName($key);
-        if (!is_file($fileName)) return false;
+        if (!is_file($fileName)) {
+            if ($this->lock) {
+                $this->lock = false;
+                $this->set($key, 0);
+                return 0;
+            }
+            return false;
+        }
         $fp = fopen($fileName, 'r+');
         if ($this->lock) {//自增自减  上锁
-            if (flock($fp, LOCK_EX) === false) return false;
             $this->lock = $fp;
+            if (flock($fp, LOCK_EX) === false) return false;
         }
         $data = fread($fp, filesize($fileName));
+        $this->lock || fclose($fp);//非自增自减操作时关闭文件
         if ($data === false) {
-            fclose($fp);
             return false;
-        } else {
-            $this->lock || fclose($fp);//非自增自减操作时关闭文件
         }
         //缓存过期
         $fileTime = substr($data, 13, 10);
@@ -67,7 +73,6 @@ class File extends namespace\Base
 
         if (Cml::$nowTime > (intval($fileTime) + intval($cacheTime))) {
             unlink($fileName);
-            $this->lock && fclose($fp);
             return false;//缓存过期
         }
         return unserialize($data);
@@ -186,7 +191,8 @@ class File extends namespace\Base
         if (is_int($v)) {
             return $this->update($key, $v + abs(intval($val)));
         } else {
-            return false;
+            $this->set($key, 1);
+            return 1;
         }
     }
 
@@ -205,7 +211,8 @@ class File extends namespace\Base
         if (is_int($v)) {
             return $this->update($key, $v - abs(intval($val)));
         } else {
-            return false;
+            $this->set($key, 0);
+            return 0;
         }
     }
 

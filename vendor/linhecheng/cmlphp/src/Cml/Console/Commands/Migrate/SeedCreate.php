@@ -23,7 +23,7 @@ use Phinx\Util\Util;
  */
 class SeedCreate extends AbstractCommand
 {
-    protected $description = "Create a new database seeder";
+    protected $description = "create a new database seeder";
 
     protected $arguments = [
         'name' => 'What is the name of the seeder?',

@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 memcache缓存驱动
  * *********************************************************** */
+
 namespace Cml\Cache;
 
 use Cml\Config;
@@ -68,13 +69,12 @@ class Memcache extends namespace\Base
         }
 
         $singleNodeDownFunction = function ($host, $port) {
-            //这边挂掉调用此回调在几s内只会调用一次。其它情况使用memcache方法均返回flase不报错
             Plugin::hook('cml.cache_server_down', ['host' => $host, 'port' => $port]);
             Log::emergency('memcache server down', ['downServer' => ['host' => $host, 'port' => $port]]);
         };
 
         $allNodeDownFunction = function ($serverList) {
-            Plugin::hook('cml.cache_server_down', $this->conf['server'], $serverList);//全挂
+            Plugin::hook('cml.cache_server_down', ['on_cache_server_list' => $serverList]);//全挂
 
             throw new CacheConnectFailException(Lang::get('_CACHE_CONNECT_FAIL_', 'Memcache',
                 json_encode($serverList)
@@ -85,16 +85,20 @@ class Memcache extends namespace\Base
 
         if ($this->type == 2) {//memcache
             foreach ($this->conf['server'] as $val) {
-                if (!$this->memcache->addServer($val['host'], $val['port'])) {
+                if (!$this->memcache->addServer($val['host'], $val['port'], true, isset($val['weight']) ? $val['weight'] : null)) {
                     Log::emergency('memcache server down', ['downServer' => $val]);
                 }
             }
 
-            method_exists($this->memcache, 'setFailureCallback') && $this->memcache->setFailureCallback($singleNodeDownFunction);
+            //method_exists($this->memcache, 'setFailureCallback') && $this->memcache->setFailureCallback($singleNodeDownFunction);
 
             $serverList = $this->memcache->getextendedstats();
             foreach ($serverList as $server => $status) {
-                $status || $downServer++;
+                if (!$status) {
+                    $downServer++;
+                    $server = explode(':', $server);
+                    $singleNodeDownFunction($server[0], $server[1]);
+                }
             }
 
             if (count($serverList) <= $downServer) {
@@ -104,10 +108,10 @@ class Memcache extends namespace\Base
             return;
         }
 
-        if (md5(json_encode($this->conf['server'])) !== md5(json_encode($this->memcache->getServerList()))) {
+        $serverList = $this->memcache->getServerList();
+        if (count($this->conf['server']) !== count($serverList)) {
             $this->memcache->quit();
             $this->memcache->resetServerList();
-            $this->memcache->addServers(array_values($this->conf['server']));
 
             $this->memcache->setOptions([
                 \Memcached::OPT_PREFIX_KEY => $this->conf['prefix'],
@@ -116,22 +120,23 @@ class Memcache extends namespace\Base
                 \Memcached::OPT_SERVER_FAILURE_LIMIT => 1,
                 \Memcached::OPT_RETRY_TIMEOUT => 30,
                 \Memcached::OPT_AUTO_EJECT_HOSTS => true,
-                \Memcached::OPT_REMOVE_FAILED_SERVERS => true
+                \Memcached::OPT_REMOVE_FAILED_SERVERS => true,
+                \Memcached::OPT_BINARY_PROTOCOL => true,
+                \Memcached::OPT_TCP_NODELAY => true
             ]);
-
             \Memcached::HAVE_JSON && $this->memcache->setOption(\Memcached::OPT_SERIALIZER, \Memcached::SERIALIZER_JSON_ARRAY);
+
+            $servers = [];
+            foreach ($this->conf['server'] as $item) {
+                $servers[] = [$item['host'], $item['port'], isset($item['weight']) ? $item['weight'] : 0];
+            }
+            $this->memcache->addServers($servers);
+            isset($this->conf['server'][0]['username']) && $this->memcache->setSaslAuthData($this->conf['server'][0]['username'], $this->conf['server'][0]['password']);
         }
 
         $serverStatus = $this->memcache->getStats();
-        foreach ($serverStatus as $server => $status) {
-            if ($status['pid'] < 1) {
-                $downServer++;
-                $server = explode(':', $server);
-                $singleNodeDownFunction($server[0], $server[1]);
-            }
-        }
-        if (count($serverStatus) <= $downServer) {
-            $allNodeDownFunction($serverStatus);
+        if ($serverStatus === false) {//Memcached驱动无法判断全挂还是单台挂。这边不抛异常
+            $singleNodeDownFunction($serverList, '');
         }
     }
 

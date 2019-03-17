@@ -83,9 +83,10 @@ class StaticResource
                         }
                         $distDir = $rootDir . DIRECTORY_SEPARATOR . $currentDirName;
                         $createDirFunc($distDir, $resourceDir, $currentDirName);
-                    } else if (!is_dir($file->getPathname() . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_controller_path_name'))) {
+                    } /*else if (!is_dir($file->getPathname() . DIRECTORY_SEPARATOR . Cml::getApplicationDir('app_controller_path_name'))) {
                         $dirIteratorFunc($file->getPathname(), $currentDirName);
-                    }
+                    }*/
+                    $dirIteratorFunc($file->getPathname(), $currentDirName);//找到resource了还是继续迭代子目录
                 }
             }
         };

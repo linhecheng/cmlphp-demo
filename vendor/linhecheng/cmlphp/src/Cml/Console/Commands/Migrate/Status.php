@@ -19,7 +19,7 @@ use Cml\Console\IO\Output;
  */
 class Status extends AbstractCommand
 {
-    protected $description = "Show migration status";
+    protected $description = "show migration status";
 
     protected $arguments = [
         'name' => 'What is the name of the seeder?',

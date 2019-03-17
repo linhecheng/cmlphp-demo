@@ -17,7 +17,7 @@ namespace Cml\Console\Commands\Migrate;
  */
 class Breakpoint extends AbstractCommand
 {
-    protected $description = "Manage breakpoints";
+    protected $description = "manage breakpoints";
 
     protected $arguments = [
     ];
