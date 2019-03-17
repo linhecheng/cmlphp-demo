@@ -81,6 +81,7 @@ return array(
     'Cml\\Lock\\Redis' => $vendorDir . '/linhecheng/cmlphp/src/Cml/Lock/Redis.php',
     'Cml\\Log' => $vendorDir . '/linhecheng/cmlphp/src/Cml/Log.php',
     'Cml\\Logger\\Base' => $vendorDir . '/linhecheng/cmlphp/src/Cml/Logger/Base.php',
+    'Cml\\Logger\\Db' => $vendorDir . '/linhecheng/cmlphp/src/Cml/Logger/Db.php',
     'Cml\\Logger\\File' => $vendorDir . '/linhecheng/cmlphp/src/Cml/Logger/File.php',
     'Cml\\Logger\\Redis' => $vendorDir . '/linhecheng/cmlphp/src/Cml/Logger/Redis.php',
     'Cml\\Model' => $vendorDir . '/linhecheng/cmlphp/src/Cml/Model.php',

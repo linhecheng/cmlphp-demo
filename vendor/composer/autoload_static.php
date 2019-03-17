@@ -101,6 +101,7 @@ class ComposerStaticInita596463329239e93dc03c3f108e71623
         'Cml\\Lock\\Redis' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Cml/Lock/Redis.php',
         'Cml\\Log' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Cml/Log.php',
         'Cml\\Logger\\Base' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Cml/Logger/Base.php',
+        'Cml\\Logger\\Db' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Cml/Logger/Db.php',
         'Cml\\Logger\\File' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Cml/Logger/File.php',
         'Cml\\Logger\\Redis' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Cml/Logger/Redis.php',
         'Cml\\Model' => __DIR__ . '/..' . '/linhecheng/cmlphp/src/Cml/Model.php',

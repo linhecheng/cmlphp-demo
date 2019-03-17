@@ -6,12 +6,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/linhecheng/cmlphp.git",
-            "reference": "e0f3de55da2be737886d54f8082e0285d30e5a78"
+            "reference": "4d6208a79df93f8703231ce0ecb5505e1f95d8da"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/linhecheng/cmlphp/zipball/e0f3de55da2be737886d54f8082e0285d30e5a78",
-            "reference": "e0f3de55da2be737886d54f8082e0285d30e5a78",
+            "url": "https://api.github.com/repos/linhecheng/cmlphp/zipball/4d6208a79df93f8703231ce0ecb5505e1f95d8da",
+            "reference": "4d6208a79df93f8703231ce0ecb5505e1f95d8da",
             "shasum": "",
             "mirrors": [
                 {
@@ -26,9 +26,9 @@
         "require-dev": {
             "phpunit/phpunit": "6.*"
         },
-        "time": "2018-09-12T08:46:41+00:00",
+        "time": "2019-03-17T05:57:11+00:00",
         "type": "library",
-        "installation-source": "dist",
+        "installation-source": "source",
         "autoload": {
             "psr-4": {
                 "Cml\\": "src/Cml/",
