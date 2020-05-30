@@ -149,16 +149,16 @@ function friendlyDate($from)
     $hours = floor($seconds / 3600);
     $day = round((strtotime(date('Y-m-d', $now)) - strtotime(date('Y-m-d', $from))) / 86400);
     if ($seconds == 0) {
-        return '刚刚';
+        return Lang::get('friendly date 0', '刚刚');//语言包配置: 'friendly date 0' => '刚刚'
     }
     if (($seconds >= 0) && ($seconds <= 60)) {
-        return "{$seconds}秒前";
+        return Lang::get('friendly date 1', ['seconds' => $seconds]) ?: "{$seconds}秒前";//语言包配置: 'friendly date 1' => '{seconds}秒前'
     }
     if (($minutes >= 0) && ($minutes <= 60)) {
-        return "{$minutes}分钟前";
+        return Lang::get('friendly date 2', ['minutes' => $minutes]) ?: "{$minutes}分钟前";//语言包配置: 'friendly date 2' => '{minutes}分钟前'
     }
     if (($hours >= 0) && ($hours <= 24)) {
-        return "{$hours}小时前";
+        return Lang::get('friendly date 3', ['hours' => $hours]) ?: "{$hours}小时前";//语言包配置: 'friendly date 3' => '{hours}小时前'
     }
     if ((date('Y') - date('Y', $from)) > 0) {
         return date('Y-m-d', $from);
@@ -166,13 +166,13 @@ function friendlyDate($from)
 
     switch ($day) {
         case 0:
-            return date('今天H:i', $from);
+            return date(Lang::get('friendly date 4', '今天H:i'), $from);
             break;
         case 1:
-            return date('昨天H:i', $from);
+            return date(Lang::get('friendly date 5', '昨天H:i'), $from);
             break;
         default:
-            return "{$day} 天前";
+            return Lang::get('friendly date 6', ['day' => $day]) ?: "{$day}天前";//语言包配置: 'friendly date 6' => '{day}天前'
     }
 }
 
@@ -205,13 +205,28 @@ function humpToLine($str)
 /**
  * 下划线转驼峰
  *
- * @param  string $value
+ * @param string $value
+ * @param bool $upper 首字母大写还是小写
  *
  * @return string
  */
-function studlyCase($value)
+function studlyCase($value, $upper = true)
 {
-    return str_replace(' ', '', ucwords(str_replace(array('-', '_'), ' ', $value)));
+    $value = str_replace(' ', '', ucwords(str_replace(array('-', '_'), ' ', $value)));
+    $upper || $value = lcfirst($value);
+    return $value;
+}
+
+/**
+ * 获取
+ * @param $class
+ * @return string
+ */
+function getClassBasename($class, $humpToLine = false)
+{
+    $class = is_object($class) ? get_class($class) : $class;
+    $class = basename(str_replace('\\', '/', $class));
+    return $humpToLine ? humpToLine(lcfirst($class)) : $class;
 }
 
 /**

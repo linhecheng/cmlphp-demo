@@ -6,9 +6,11 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 Logger 抽象类 参考 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  * *********************************************************** */
+
 namespace Cml\Logger;
 
 use Cml\Config;
+use Cml\Http\Request;
 use Cml\Interfaces\Logger;
 
 /**
@@ -56,7 +58,7 @@ abstract class Base implements Logger
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function emergency($message, array $context = [])
     {
@@ -71,7 +73,7 @@ abstract class Base implements Logger
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function alert($message, array $context = [])
     {
@@ -86,7 +88,7 @@ abstract class Base implements Logger
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function critical($message, array $context = [])
     {
@@ -99,7 +101,7 @@ abstract class Base implements Logger
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function error($message, array $context = [])
     {
@@ -114,7 +116,7 @@ abstract class Base implements Logger
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function warning($message, array $context = [])
     {
@@ -127,7 +129,7 @@ abstract class Base implements Logger
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function notice($message, array $context = [])
     {
@@ -142,7 +144,7 @@ abstract class Base implements Logger
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function info($message, array $context = [])
     {
@@ -155,7 +157,7 @@ abstract class Base implements Logger
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function debug($message, array $context = [])
     {
@@ -173,6 +175,7 @@ abstract class Base implements Logger
     public function format($message, array $context = [])
     {
         is_array($context) || $context = [$context];
+        $context['cmlphp_log_src'] = Request::isCli() ? 'cli' : 'web';
         return '[' . date('Y-m-d H:i:s') . '] ' . Config::get('log_prefix', 'cml_log') . ': ' . $message . ' ' . json_encode($context, JSON_UNESCAPED_UNICODE);
     }
 }

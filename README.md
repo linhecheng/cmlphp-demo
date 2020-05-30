@@ -2,7 +2,7 @@
 
 还不知道什么是CmlPHP?[点这里了解](http://cmlphp.com "CmlPHP")
 
-##安装方式
+## 安装方式
 
 1. 使用composer安装命令 `composer create-project linhecheng/cmlphp-demo --prefer-dist`
 2. 直接下载zip包解压
@@ -15,8 +15,3 @@
 **如果有用到[Cookie管理类](http://api.cmlphp.com/Cml/Http/Cookie.html)、[Encry加密解密类](http://api.cmlphp.com/Cml/Encry.html)、[验证码生成类](http://api.cmlphp.com/Cml/Vendor/VerifyCode.html).请一定要修改`proj3e5f9e47cd31239b6fd43a772c5a75b4/Config/common.php`配置件中的`auth_key`加密key**
 
 [视频教程](http://v.youku.com/v_show/id_XMTQwNTc4MDk2OA==.html)
-
-
-##版本要求
-框架只要php5.4+版本即可运行，public/index.php 入口文件中使用了php5.5的语法::class用来获取类名。如果php版本< 5.5直接把xxx::class改成相应的字符串即可
-> 如：\Cml\ErrorOrException::class直接改成'\Cml\ErrorOrException'

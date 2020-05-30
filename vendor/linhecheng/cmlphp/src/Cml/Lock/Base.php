@@ -6,11 +6,11 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 锁机制驱动抽象类基类
  * *********************************************************** */
+
 namespace Cml\Lock;
 
 use Cml\Config;
 use Cml\Interfaces\Lock;
-use Cml\Model;
 
 /**
  * 锁驱动抽象类基类
@@ -20,13 +20,13 @@ use Cml\Model;
 abstract class Base implements Lock
 {
     /**
-     * 锁驱动使用redis/memcache时使用的缓存
+     *  锁驱动使用redis/memcache时使用的缓存
      *
      * @var string
      */
     protected $useCache = '';
 
-    public function __construct($useCache)
+    public function __construct($useCache = null)
     {
         $useCache || $useCache = Config::get('locker_use_cache', 'default_cache');
         $this->useCache = $useCache;
@@ -64,35 +64,67 @@ abstract class Base implements Lock
     /**
      * 组装key
      *
-     * @param string $key 要上的锁的key
+     * @param string $lock 要上的锁的标识key
      *
      * @return string
      */
-    protected function getKey($key)
+    protected function getKey($lock)
     {
-        return Config::get('lock_prefix') . $key;
+        return Config::get('lock_prefix') . $lock;
     }
+
+    /**
+     * 上锁
+     *
+     * @param string $lock 要上的锁的标识key
+     * @param bool $wouldBlock 是否堵塞
+     *
+     * @return bool
+     */
+    final public function lock($lock, $wouldBlock = false)
+    {
+        if (empty($lock)) {
+            return false;
+        }
+
+        return $this->execLock($this->getKey($lock), $wouldBlock);
+    }
+
+    /**
+     * 加锁的具体实现-每个驱动自行实现原子性加锁
+     *
+     * @param string $lock 锁的标识key
+     * @param bool $wouldBlock 是否堵塞
+     *
+     * @return bool
+     */
+    abstract protected function execLock($lock, $wouldBlock = false);
 
     /**
      * 解锁
      *
-     * @param string $key
+     * @param string $lock 锁的标识key
      *
-     * @return void
+     * @return bool
      */
-    public function unlock($key)
+    final public function unlock($lock)
     {
-        $key = $this->getKey($key);
-
-        if (
-            isset($this->lockCache[$key])
-            && $this->lockCache[$key] == Model::getInstance()->cache($this->useCache)->getInstance()->get($key)
-        ) {
-            Model::getInstance()->cache($this->useCache)->getInstance()->delete($key);
-            $this->lockCache[$key] = null;//防止gc延迟,判断有误
-            unset($this->lockCache[$key]);
+        $lock = $this->getKey($lock);
+        if (isset($this->lockCache[$lock])) {
+            return $this->execUnlock($lock);
+        } else {
+            return false;
         }
     }
+
+    /**
+     * 解锁的具体实现-每个驱动自行实现原子性解锁
+     *
+     * @param string $lock 锁的标识
+     *
+     * @return bool
+     */
+    abstract protected function execUnlock($lock);
 
     /**
      * 定义析构函数 自动释放获得的锁
@@ -100,12 +132,8 @@ abstract class Base implements Lock
      */
     public function __destruct()
     {
-        foreach ($this->lockCache as $key => $isMyLock) {
-            if ($isMyLock == Model::getInstance()->cache($this->useCache)->getInstance()->get($key)) {
-                Model::getInstance()->cache($this->useCache)->getInstance()->delete($key);
-            }
-            $this->lockCache[$key] = null;//防止gc延迟,判断有误
-            unset($this->lockCache[$key]);
+        foreach ($this->lockCache as $lock => $isMyLock) {
+            $this->execUnlock($lock);
         }
     }
 }

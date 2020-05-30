@@ -28,8 +28,8 @@
 
 namespace Cml\Logger;
 
-use Cml\Cml;
 use Cml\Config;
+use Cml\Http\Request;
 use Cml\Model;
 
 /**
@@ -46,7 +46,7 @@ class Db extends Base
      * @param string $message 要记录到log的信息
      * @param array $context 上下文信息
      *
-     * @return null
+     * @return bool
      */
     public function log($level, $message, array $context = [])
     {
@@ -54,16 +54,18 @@ class Db extends Base
         $table = Config::get('db_log_use_table', 'cmlphp_log');
         $tablePrefix = Config::get('db_log_use_tableprefix', null);
 
+        $context['cmlphp_log_src'] = Request::isCli() ? 'cli' : 'web';
+
         if ($level === self::EMERGENCY) {//致命错误记文件一份，防止db挂掉什么信息都没有
             $file = new File();
             $file->log($level, $message, $context);
         }
-        return Model::getInstance($table, $tablePrefix, $db)->set([
+        return Model::getInstance($table, $tablePrefix, $db)->setCacheExpire(false)->set([
             'level' => $level,
             'message' => $message,
             'context' => json_encode($context, JSON_UNESCAPED_UNICODE),
-            'ip' => $_SERVER['SERVER_ADDR'] ?: '',
-            'ctime' => Cml::$nowTime
+            'ip' => isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '',
+            'ctime' => time()
         ]);
     }
 }

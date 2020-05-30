@@ -39,7 +39,7 @@ interface Lock
      *
      * @param string $key
      *
-     * @return void
+     * @return bool
      */
     public function unlock($key);
 }

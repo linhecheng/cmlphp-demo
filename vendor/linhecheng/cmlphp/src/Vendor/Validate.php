@@ -90,6 +90,16 @@ class Validate
     }
 
     /**
+     * 动态覆盖语言包
+     *
+     * @param array $errorTip
+     */
+    public static function setLang($errorTip = [])
+    {
+        self::$errorTip = array_merge(self::$errorTip, $errorTip);
+    }
+
+    /**
      * 添加一个自定义的验证规则
      *
      * @param  string $name
@@ -218,7 +228,7 @@ class Validate
     private function error($field, &$bind)
     {
         $label = (isset($this->label[$field]) && !empty($this->label[$field])) ? $this->label[$field] : $field;
-        $this->errorMsg[$field][] = vsprintf(str_replace('{field}', $label, (isset($bind['message']) ? $bind['message'] : '{field} ' . self::$errorTip[strtolower($bind['rule'])])), $bind['params']);
+        $this->errorMsg[$field][] = vsprintf(str_replace('{field}', $label, (isset($bind['message']) ? $bind['message'] : self::$errorTip[strtolower($bind['rule'])])), $bind['params']);
     }
 
     /**

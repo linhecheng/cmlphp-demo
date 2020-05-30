@@ -6,6 +6,7 @@
  * @version  @see \Cml\Cml::VERSION
  * cmlphp框架 系统DEBUG调试类
  * *********************************************************** */
+
 namespace Cml;
 
 use Cml\Http\Request;
@@ -36,6 +37,13 @@ class Debug implements DebugInterfaces
         E_RECOVERABLE_ERROR => '可捕获的致命错误',
         'Unknow' => '未知错误'
     ];
+
+    /**
+     * 控制debug模式是否要显示调试工具栏，比如输出vue子组件就不应该输出
+     *
+     * @var bool
+     */
+    private static $debugModelIsShowDebugInfo = true;
 
 
     /**
@@ -139,6 +147,17 @@ class Debug implements DebugInterfaces
     }
 
     /**
+     * 控制debug模式是否要显示调试工具栏，比如输出vue子组件就不应该输出(设置为false)
+     *
+     * @param bool $isShow
+     */
+    public static function setDebugModelIsShowDebugInfo($isShow = true)
+    {
+        self::$debugModelIsShowDebugInfo = $isShow;
+    }
+
+
+    /**
      * 程序执行完毕,打印CmlPHP运行信息
      *
      */
@@ -147,11 +166,8 @@ class Debug implements DebugInterfaces
         self::$stopTime = microtime(true);
         // 记录内存结束使用
         function_exists('memory_get_usage') && self::$stopMemory = memory_get_usage();
-
-        Cml::getContainer()->make('cml_debug')->stopAndShowDebugInfo();
-
-        Plugin::hook('cml.before_ob_end_flush');
-        CML_OB_START && ob_end_flush();
+        
+        self::$debugModelIsShowDebugInfo && Cml::getContainer()->make('cml_debug')->stopAndShowDebugInfo();
     }
 
     /**
@@ -256,7 +272,7 @@ class Debug implements DebugInterfaces
     }
 
     /**
-     * 显示代码片段
+     * 高亮显示代码片段
      *
      * @param string $file 文件路径
      * @param int $focus 出错的行
@@ -265,8 +281,14 @@ class Debug implements DebugInterfaces
      *
      * @return string
      */
-    public static function codeSnippet($file, $focus, $range = 7, $style = ['lineHeight' => 20, 'fontSize' => 13])
+    public static function codeSnippet($file, $focus, $range = 7, $style = ['lineHeight' => 20, 'fontSize' => 14])
     {
+        ini_set("highlight.comment", "#008000");
+        ini_set("highlight.default", "#000000");
+        ini_set("highlight.html", "#808080");
+        ini_set("highlight.keyword", "#0000BB;");
+        ini_set("highlight.string", "#DD0000");
+
         $html = highlight_file($file, true);
         if (!$html) {
             return false;
@@ -297,9 +319,9 @@ class Debug implements DebugInterfaces
 
         for ($line = $start; $line <= $end; $line++) {
             // 在行号前填充0
-            $index_pad = str_pad($line + 1, strlen($end), 0, STR_PAD_LEFT);
-            ($line + 1) == $focus && $codeHtml .= "<p style='height: " . $style['lineHeight'] . "px; width: 100%; _width: 95%; background-color: red; opacity: 0.4; filter:alpha(opacity=40); font-size:15px; font-weight: bold;'>";
-            $codeHtml .= "<span style='margin-right: 10px;line-height: " . $style['lineHeight'] . "px; color: #807E7E;'>{$index_pad}</span>{$html[$line]}";
+            $indexPad = str_pad($line + 1, strlen($end), 0, STR_PAD_LEFT);
+            ($line + 1) == $focus && $codeHtml .= "<p style='height: " . $style['lineHeight'] . "px; width: 100%; border-radius:3px; background-color: #ffa39e;'>";
+            $codeHtml .= "<span class='code-line' style='line-height: " . $style['lineHeight'] . "px; '>{$indexPad}.</span>{$html[$line]}";
             $codeHtml .= (($line + 1) == $focus ? '</p>' : ($line != $end ? '<br />' : ''));
         }
 
@@ -309,7 +331,7 @@ class Debug implements DebugInterfaces
         }
 
         return <<<EOT
-        <div style="position: relative; font-size: {$style['fontSize']}px; background-color: #BAD89A;">
+        <div style="position: relative; font-size: {$style['fontSize']}px; background-color: #f2f8f0;padding:8px 5px;border-radius: 8px;">
             <div style="_width: 95%; line-height: {$style['lineHeight']}px; position: relative; z-index: 2; overflow: hidden; white-space:nowrap; text-overflow:ellipsis;">{$codeHtml}</div>
         </div>
 EOT;
@@ -323,18 +345,14 @@ EOT;
     public function stopAndShowDebugInfo()
     {
         if (Request::isAjax()) {
+            $dump = [
+                'sql' => self::$sql,
+                'tipInfo' => self::$tipInfo
+            ];
             if (Config::get('dump_use_php_console')) {
-                self::$sql && \Cml\dumpUsePHPConsole(self::$sql, 'sql');
-                \Cml\dumpUsePHPConsole(self::$tipInfo, 'tipInfo');
-                \Cml\dumpUsePHPConsole(self::$includeFile, 'includeFile');
+                dumpUsePHPConsole($dump, strip_tags($_SERVER['REQUEST_URI']));
             } else {
-                $deBugLogData = [
-                    'tipInfo' => self::$tipInfo
-                ];
-                self::$sql && $deBugLogData['sql'] = self::$sql;
-                if (!empty($deBugLogData)) {
-                    Cml::requireFile(CML_CORE_PATH . DIRECTORY_SEPARATOR . 'ConsoleLog.php', ['deBugLogData' => $deBugLogData]);
-                }
+                Cml::requireFile(CML_CORE_PATH . DIRECTORY_SEPARATOR . 'ConsoleLog.php', ['deBugLogData' => $dump]);
             }
         } else {
             View::getEngine('html')

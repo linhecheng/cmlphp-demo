@@ -9,8 +9,8 @@
 
 namespace Cml\Lock;
 
-use Cml\Cml;
 use Cml\Model;
+use Memcached;
 
 /**
  * 锁机制Memcache驱动
@@ -19,37 +19,34 @@ use Cml\Model;
  */
 class Memcache extends Base
 {
-
     /**
-     * 上锁
+     * 加锁的具体实现-每个驱动自行实现原子性加锁
      *
-     * @param string $key 要上的锁的key
+     * @param string $lock 锁的标识key
      * @param bool $wouldBlock 是否堵塞
      *
-     * @return mixed
+     * @return bool
      */
-    public function lock($key, $wouldBlock = false)
+    protected function execLock($lock, $wouldBlock = false)
     {
-        if (empty($key)) {
-            return false;
-        }
-        $key = $this->getKey($key);
+        $inst = Model::getInstance()->cache($this->useCache)->getInstance();
 
         if (
-            isset($this->lockCache[$key])
-            && $this->lockCache[$key] == Model::getInstance()->cache($this->useCache)->getInstance()->get($key)
+            isset($this->lockCache[$lock])
+            && $this->lockCache[$lock] == $inst->get($lock)
         ) {
             return true;
         }
+        $unique = uniqid('', true);
 
         $driverType = Model::getInstance()->cache($this->useCache)->getDriverType();
         if ($driverType === 1) { //memcached
-            $isLock = Model::getInstance()->cache($this->useCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, $this->expire);
+            $isLock = $inst->add($lock, $unique, $this->expire);
         } else {//memcache
-            $isLock = Model::getInstance()->cache($this->useCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, 0, $this->expire);
+            $isLock = $inst->add($lock, $unique, 0, $this->expire);
         }
         if ($isLock) {
-            $this->lockCache[$key] = (string)Cml::$nowMicroTime;
+            $this->lockCache[$lock] = $unique;
             return true;
         }
 
@@ -63,13 +60,54 @@ class Memcache extends Base
             usleep(200);
 
             if ($driverType === 1) { //memcached
-                $isLock = Model::getInstance()->cache($this->useCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, $this->expire);
+                $isLock = $inst->add($lock, $unique, $this->expire);
             } else {//memcache
-                $isLock = Model::getInstance()->cache($this->useCache)->getInstance()->add($key, (string)Cml::$nowMicroTime, 0, $this->expire);
+                $isLock = $inst->add($lock, $unique, 0, $this->expire);
             }
         } while (!$isLock);
 
-        $this->lockCache[$key] = (string)Cml::$nowMicroTime;
+        $this->lockCache[$lock] = $unique;
         return true;
+    }
+
+    /**
+     * 解锁的具体实现-每个驱动自行实现原子性解锁
+     *
+     * @param string $lock 锁的标识key
+     *
+     * @return bool
+     */
+    protected function execUnlock($lock)
+    {
+        $inst = Model::getInstance()->cache($this->useCache);
+
+        $success = false;
+        if ($inst->getDriverType() === 1) { //memcached
+            $cas = 0;
+            if (defined('Memcached::GET_EXTENDED')) {
+                $lockValue = $inst->getInstance()->get($lock, null, Memcached::GET_EXTENDED);
+                if (is_array($lockValue)) {
+                    $cas = $lockValue['cas'];
+                    $lockValue = $lockValue['value'];
+                }
+            } else {
+                $lockValue = $inst->getInstance()->get($lock, null, $cas);
+            }
+            if ($this->lockCache[$lock] == $lockValue && $inst->getInstance()->cas($cas, $lock, 0, $this->expire)) {
+                $success = true;
+            }
+        } else {//memcache
+            $lockValue = $inst->getInstance()->get($lock);
+            if ($this->lockCache[$lock] == $lockValue) {
+                $success = true;
+            }
+        }
+
+        if ($success) {
+            $inst->getInstance()->delete($lock);
+        }
+        $this->lockCache[$lock] = null;//防止gc延迟,判断有误
+        unset($this->lockCache[$lock]);
+        return $success;
     }
 }
